@@ -1,5 +1,5 @@
 // 检查是否为默认值
-export function isDefaultValue(property: string, defaultValues: Record<string, string>, value: string): boolean {
+export function isDefaultValue(property, defaultValues, value) {
     if (!(property in defaultValues)) {
         return false
     }
@@ -7,7 +7,7 @@ export function isDefaultValue(property: string, defaultValues: Record<string, s
 }
 
 // 处理CSS变量，提取默认值
-export function extractDefaultValue(value: string): string {
+export function extractDefaultValue(value) {
     // 匹配 var(--xxx, #default) 格式
     const match = value.match(/var\([^,]+,\s*([^)]+)\)/)
     if (match) {
@@ -17,7 +17,7 @@ export function extractDefaultValue(value: string): string {
 }
 
 // 将rem转换为px
-export function remToPx(remValue: string, rootFontSize: number = 16): number {
+export function remToPx(remValue, rootFontSize = 16) {
     const match = remValue.match(/^([\d.]+)rem$/)
     if (match) {
         return Number(match[1]) * rootFontSize
@@ -26,24 +26,24 @@ export function remToPx(remValue: string, rootFontSize: number = 16): number {
 }
 
 // 将px转换为rem
-export function pxToRem(pxValue: string | number, rootFontSize: number = 16): string {
+export function pxToRem(pxValue, rootFontSize = 16) {
     const px = typeof pxValue === 'string' ? parseFloat(pxValue) : pxValue
     return `${(px / rootFontSize).toFixed(3)}rem`
 }
 
 // 将px转换为MVVM的rem函数格式
-export function pxToMvvmRem(pxValue: string | number): string {
+export function pxToMvvmRem(pxValue) {
     const px = typeof pxValue === 'string' ? parseFloat(pxValue) : pxValue
     return `rem(${px})`
 }
 
 // 格式化数字，整数时不显示小数点
-export function formatNumber(num: number): string {
+export function formatNumber(num) {
     return Number.isInteger(num) ? num.toString() : num.toFixed(2)
 }
 
 // 处理数值单位转换
-export function convertUnit(value: string, options: any = {}): string {
+export function convertUnit(value, options = {}) {
     const { project, useRem, rootFontSize = 16, scale = 1 } = options
 
     // 提取默认值（处理CSS变量）
@@ -70,7 +70,7 @@ export function convertUnit(value: string, options: any = {}): string {
 }
 
 // 处理line-height，支持rem和px
-function convertLineHeight(lineHeight: string, fontSize: string | undefined, options: any = {}): string {
+function convertLineHeight(lineHeight, fontSize, options = {}) {
     const rootFontSize = options.rootFontSize || 16
     const scale = options.scale || 1
 
@@ -91,7 +91,7 @@ function convertLineHeight(lineHeight: string, fontSize: string | undefined, opt
     fontSizePx *= scale
 
     // 获取行高（以px为单位）
-    let lineHeightPx: number | null = null
+    let lineHeightPx = null
     if (lineHeight.endsWith('rem')) {
         lineHeightPx = remToPx(lineHeight, rootFontSize) * scale
     } else if (lineHeight.endsWith('px')) {
@@ -108,12 +108,9 @@ function convertLineHeight(lineHeight: string, fontSize: string | undefined, opt
 }
 
 export default function processedValue(key, value, options) {
-    console.log('[Processing]', { key, value, options })
-
     if (key === 'line-height') {
         return convertLineHeight(value, options.fontSize, options)
     }
 
     return convertUnit(value, options)
-}
-
+} 
