@@ -26,8 +26,7 @@ export default definePlugin({
             return projectConfig.defaultValues[key] !== value
           })
           .map(([key, value]) => {
-            console.log('[Processing]', { key, value })
-            const processedVal = processedValue(key, value, {
+            const processedVal = processedValue(key, value, style, {
               ...options,
               rootFontSize: projectConfig.rootFontSize,
               scale: projectConfig.scale

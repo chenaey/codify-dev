@@ -22,23 +22,19 @@ watch(
 )
 const projects = ref([
   {
-    value: 'MVVM',
+    value: 'mvvm',
     label: 'MVVM',
   },
   {
-    value: 'CBG',
+    value: 'cbg',
     label: 'CBG',
   },
   {
-    value: 'my-plugin',
-    label: 'my-plugin',
-  },
-  {
-    value: 'iOS',
+    value: 'ios',
     label: 'iOS',
   },
   {
-    value: 'Android',
+    value: 'android',
     label: 'Android',
   }
 ])

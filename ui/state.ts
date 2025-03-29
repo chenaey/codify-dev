@@ -43,7 +43,7 @@ export const options = useStorage<Options>('tempad-dev', {
   measureOn: true,
   project: 'mvvm',
   cssUnit: 'px',
-  rootFontSize: 16,
+  rootFontSize: 20,
   scale: 1,
   plugins: {},
   activePluginSource: null

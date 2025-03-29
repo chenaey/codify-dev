@@ -1,3 +1,5 @@
+import { getProjectConfig } from '../config'
+
 // 检查是否为默认值
 export function isDefaultValue(property, defaultValues, value) {
     if (!(property in defaultValues)) {
@@ -44,11 +46,10 @@ export function formatNumber(num) {
 
 // 处理数值单位转换
 export function convertUnit(value, options = {}) {
-    const { project, useRem, rootFontSize = 16, scale = 1 } = options
+    const { project, useRem, rootFontSize = 16, scale = 1, lessVariables = {} } = options
 
     // 提取默认值（处理CSS变量）
     const actualValue = extractDefaultValue(value)
-
     // 如果不是px值，直接返回
     if (!actualValue.endsWith('px')) {
         return actualValue
@@ -58,7 +59,12 @@ export function convertUnit(value, options = {}) {
 
     // MVVM项目使用rem()函数格式
     if (project === 'mvvm') {
-        return pxToMvvmRem(numValue)
+        let result = pxToMvvmRem(numValue)
+        if (lessVariables[result]) {
+            result = lessVariables[result]
+        }
+        console.log(result, value, options,lessVariables[result])
+        return result
     }
 
     // 其他项目根据useRem决定是否转换为rem
@@ -70,47 +76,43 @@ export function convertUnit(value, options = {}) {
 }
 
 // 处理line-height，支持rem和px
-function convertLineHeight(lineHeight, fontSize, options = {}) {
-    const rootFontSize = options.rootFontSize || 16
-    const scale = options.scale || 1
-
+function convertLineHeight(lineHeight, style, options = {}) {
     // 如果已经是数字，直接返回
     if (!isNaN(Number(lineHeight))) {
-        return formatNumber(Number(lineHeight))
+        return lineHeight
     }
 
-    // 获取字体大小（以px为单位）
-    let fontSizePx = 16 // 默认值
-    if (fontSize) {
-        if (fontSize.endsWith('rem')) {
-            fontSizePx = remToPx(fontSize, rootFontSize)
-        } else if (fontSize.endsWith('px')) {
-            fontSizePx = parseFloat(fontSize)
-        }
-    }
-    fontSizePx *= scale
-
-    // 获取行高（以px为单位）
-    let lineHeightPx = null
-    if (lineHeight.endsWith('rem')) {
-        lineHeightPx = remToPx(lineHeight, rootFontSize) * scale
-    } else if (lineHeight.endsWith('px')) {
-        lineHeightPx = parseFloat(lineHeight) * scale
+    // 如果没有fontSize，返回原值
+    if (!style['font-size']) {
+        return lineHeight
     }
 
-    if (lineHeightPx !== null && fontSizePx) {
-        // 计算相对值并格式化
-        const ratio = lineHeightPx / fontSizePx
+    const { scale = 1 } = options
+
+    // 如果单位相同，直接计算比例
+    const unit = style['font-size'].match(/(px|rem)$/)?.[0]
+    if (unit && lineHeight.endsWith(unit)) {
+        const ratio = unit === 'px'
+            ? (parseFloat(lineHeight) * scale) / (parseFloat(style['font-size']) * scale)
+            : parseFloat(lineHeight) / parseFloat(style['font-size'])
         return formatNumber(ratio)
     }
 
     return lineHeight
 }
 
-export default function processedValue(key, value, options) {
-    if (key === 'line-height') {
-        return convertLineHeight(value, options.fontSize, options)
+const isWeb = (type) => type === 'web'
+
+export default function processedValue(key, value, style, options) {
+    const config = {
+        ...getProjectConfig(options.project),
+        ...options
     }
 
-    return convertUnit(value, options)
+    if (isWeb(config.type)) {
+        if (key === 'line-height') {
+            return convertLineHeight(value, style, config)
+        }
+    }
+    return convertUnit(value, config)
 } 
