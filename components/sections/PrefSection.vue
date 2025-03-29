@@ -20,6 +20,28 @@ watch(
     flush: 'post'
   }
 )
+const projects = ref([
+  {
+    value: 'MVVM',
+    label: 'MVVM',
+  },
+  {
+    value: 'CBG',
+    label: 'CBG',
+  },
+  {
+    value: 'my-plugin',
+    label: 'my-plugin',
+  },
+  {
+    value: 'iOS',
+    label: 'iOS',
+  },
+  {
+    value: 'Android',
+    label: 'Android',
+  }
+])
 
 const fontSizeInput = useTemplateRef('fontSizeInput')
 useSelectAll(fontSizeInput)
@@ -46,6 +68,14 @@ useSelectAll(scaleInput)
       </div>
     </div>
     <div class="tp-row tp-row-justify tp-pref-field">
+      <label for="project-select">Project</label>
+      <select id="project-select" class="tp-pref-input" v-model="options.project">
+        <option v-for="project in projects" :key="project.value" :value="project.value">
+          {{ project.label }}
+        </option>
+      </select>
+    </div>
+    <!-- <div class="tp-row tp-row-justify tp-pref-field">
       <label for="css-unit">CSS unit</label>
       <select id="css-unit" class="tp-pref-input" v-model="options.cssUnit">
         <option value="px">px</option>
@@ -72,7 +102,7 @@ useSelectAll(scaleInput)
         step="1"
         v-model.number="options.scale"
       />
-    </div>
+    </div> -->
     <PluginsSection class="tp-pref-plugins" />
   </Section>
 </template>

@@ -17,6 +17,7 @@ export type Options = {
     left: number
     top: number
   }
+  project: string
   prefOpen: boolean
   deepSelectOn: boolean
   measureOn: boolean
@@ -38,8 +39,9 @@ export const options = useStorage<Options>('tempad-dev', {
     top: ui.topBoundary
   },
   prefOpen: false,
-  deepSelectOn: false,
-  measureOn: false,
+  deepSelectOn: true,
+  measureOn: true,
+  project: 'mvvm',
   cssUnit: 'px',
   rootFontSize: 16,
   scale: 1,

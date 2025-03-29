@@ -40,6 +40,7 @@ type ProcessValueOptions = {
   useRem: boolean
   rootFontSize: number
   scale: number
+  project?: string
 }
 
 type SerializeOptions = {
@@ -48,10 +49,10 @@ type SerializeOptions = {
 
 export function serializeCSS(
   style: Record<string, string>,
-  { toJS = false, useRem, rootFontSize, scale }: SerializeOptions,
+  { toJS = false, useRem, rootFontSize, scale, project }: SerializeOptions,
   { transform, transformVariable, transformPx }: TransformOptions = {}
 ) {
-  const options = { useRem, rootFontSize, scale }
+  const options = { useRem, rootFontSize, scale, project }
 
   function processValue(key: string, value: string) {
     let current = trimComments(value).trim()

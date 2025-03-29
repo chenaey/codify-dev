@@ -36,11 +36,12 @@ async function updateCode() {
   const component = getDesignComponent(node)
 
   const style = await node.getCSSAsync()
-  const { cssUnit, rootFontSize, scale } = options.value
+  const { cssUnit, project, rootFontSize, scale } = options.value
   const serializeOptions = {
     useRem: cssUnit === 'rem',
     rootFontSize,
-    scale
+    scale,
+    project
   }
 
   codeBlocks.value = (

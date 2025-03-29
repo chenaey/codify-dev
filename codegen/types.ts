@@ -4,6 +4,7 @@ export interface SerializeOptions {
   useRem: boolean
   rootFontSize: number
   scale: number
+  project: string
 }
 
 export interface RequestPayload {
