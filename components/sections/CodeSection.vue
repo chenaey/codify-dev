@@ -7,6 +7,7 @@ import IconButton from '@/components/IconButton.vue'
 import Info from '@/components/icons/Info.vue'
 import Preview from '@/components/icons/Preview.vue'
 import Section from '@/components/Section.vue'
+import { useToast } from '@/composables/toast'
 import { selection, selectedNode, options, selectedTemPadComponent, activePlugin } from '@/ui/state'
 import { getDesignComponent } from '@/utils'
 import { generateCode } from '@/utils/ai/client'
@@ -14,18 +15,43 @@ import { extractSelectedNodes } from '@/utils/uiExtractor'
 
 const componentCode = shallowRef('')
 const componentLink = shallowRef('')
-const codeBlocks = shallowRef<CodeBlock[]>([])
+const codeBlocks = ref<CodeBlock[]>([])
 const warning = shallowRef('')
 const isGeneratingJson = ref(false)
 const isGeneratingAICode = ref(false)
-const aiGeneratedCode = ref('')
+
 const aiError = ref('')
+const { show } = useToast()
 
 const playButtonTitle = computed(() =>
   componentLink.value
     ? 'Open in TemPad Playground'
     : 'The component is produced with older versions of TemPad that does not provide a link to TemPad playground.'
 )
+
+// 生成加载动画点
+function useLoadingTitle(aiCodeBlock: Ref<CodeBlock>) {
+  const dots = ['.', '..', '...', '....']
+  let index = 0
+  let timer: number | null = null
+  
+  // 开始动画
+  function start() {
+    timer = window.setInterval(() => {
+      aiCodeBlock.value.title = 'AI Generating' + dots[index++ % dots.length]
+    }, 300)
+  }
+  
+  // 停止动画
+  function stop() {
+    if (timer) {
+      clearInterval(timer)
+      timer = null
+    }
+  }
+  
+  return { start, stop }
+}
 
 async function generateUIJson() {
   if (!selectedNode.value || isGeneratingJson.value) return
@@ -93,30 +119,31 @@ async function generateAICode() {
     codeBlocks.value = codeBlocks.value.filter(block => block.name !== 'ai-generated')
     
     // 创建新的 AI 代码块
-    const aiCodeBlock: CodeBlock = {
+    const aiCodeBlock = ref<CodeBlock>({
       name: 'ai-generated',
       title: 'AI Generating...',
       lang: 'vue',
       code: ''
-    }
+    })
     
     // 将代码块添加到列表开头
-    codeBlocks.value.unshift(aiCodeBlock)
+    codeBlocks.value.unshift(aiCodeBlock.value)
+    
+    // 启动加载动画
+    const loading = useLoadingTitle(aiCodeBlock)
+    loading.start()
     
     const uiInfo = await extractSelectedNodes([selectedNode.value])
     
     // 使用生成器获取流式响应并实时更新
     for await (const chunk of generateCode(uiInfo, options.value.project)) {
-      // console.log('chunk', chunk)
-      aiCodeBlock.code += chunk
-      // 强制更新 codeBlocks 引用以触发视图更新
-      codeBlocks.value = [...codeBlocks.value]
+      aiCodeBlock.value.code += chunk
     }
-    aiCodeBlock.code = aiCodeBlock.code.replace(/```vue\s*|\s*```/g, '')
     
-    // 更新标题，移除 "Generating..." 状态
-    aiCodeBlock.title = 'AI Generated Code'
-    codeBlocks.value = [...codeBlocks.value]
+    // 停止加载动画并更新标题
+    loading.stop()
+    aiCodeBlock.value.title = 'AI Generated Code'
+    show('AI Generated Code Success')
   } catch (err) {
     aiError.value = err instanceof Error ? err.message : 'Failed to generate AI code'
     console.error('Failed to generate AI code:', err)
@@ -152,7 +179,7 @@ function open() {
           :disabled="isGeneratingAICode || !selectedNode"
           @click="generateAICode"
         >
-          {{ isGeneratingAICode ? 'Generating...' : 'AI' }}
+          AI
         </IconButton>
       </div>
       <IconButton v-if="warning" variant="secondary" :title="warning" dull>

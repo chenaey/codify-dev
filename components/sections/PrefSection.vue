@@ -3,7 +3,7 @@ import IconButton from '@/components/IconButton.vue'
 import Inspect from '@/components/icons/Inspect.vue'
 import Measure from '@/components/icons/Measure.vue'
 import Section from '@/components/Section.vue'
-import PluginsSection from '@/components/sections/PluginsSection.vue'
+// import PluginsSection from '@/components/sections/PluginsSection.vue'
 import { useSelectAll } from '@/composables/input'
 import { options } from '@/ui/state'
 
@@ -63,7 +63,7 @@ useSelectAll(scaleInput)
         </IconButton>
       </div>
     </div>
-    <div class="tp-row tp-row-justify tp-pref-field">
+    <div class="tp-row tp-row-justify tp-pref-field tb-pref-plugin">
       <label for="project-select">Project</label>
       <select id="project-select" class="tp-pref-input" v-model="options.project">
         <option v-for="project in projects" :key="project.value" :value="project.value">
@@ -99,7 +99,7 @@ useSelectAll(scaleInput)
         v-model.number="options.scale"
       />
     </div> -->
-    <PluginsSection class="tp-pref-plugins" />
+    <!-- <PluginsSection class="tp-pref-plugins" /> -->
   </Section>
 </template>
 
@@ -118,6 +118,9 @@ useSelectAll(scaleInput)
 
 .tp-pref-plugins {
   margin-top: 8px;
+}
+.tb-pref-plugin {
+  margin-bottom: 8px;
 }
 
 label {

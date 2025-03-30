@@ -12,8 +12,8 @@ interface UINode {
   layout: {
     x: number
     y: number
-    width: number
-    height: number
+    width?: number
+    height?: number
     rotation?: number
     constraints?: {
       horizontal: string
@@ -70,11 +70,12 @@ interface UINode {
   }
   children?: UINode[]
   // 添加自定义样式字段
-  customStyle?: string
+  customStyle?: string[]
 }
 
 // 提取颜色信息
 function extractColor(color: { r: number; g: number; b: number; a?: number }) {
+  if (!color) return 'null'
   return `rgba(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(
     color.b * 255
   )}, ${color.a ?? 1})`
@@ -111,7 +112,7 @@ function extractStrokes(node: any) {
   if (!('strokes' in node) || !node.strokes) return undefined
 
   return node.strokes
-    .filter((stroke: any) => stroke.visible !== false)
+    .filter((stroke: any) => stroke?.visible !== false && stroke?.color)
     .map((stroke: any) => ({
       type: stroke.type,
       color: extractColor(stroke.color),
@@ -197,8 +198,12 @@ function extractLayout(node: any) {
   const layout: UINode['layout'] = {
     x: toDecimalPlace(node.x),
     y: toDecimalPlace(node.y),
-    width: toDecimalPlace(node.width),
-    height: toDecimalPlace(node.height)
+  }
+
+  // 只为非容器节点添加宽高
+  if (!['FRAME', 'GROUP', 'INSTANCE', 'COMPONENT', 'TEXT'].includes(node.type)) {
+    layout.width = toDecimalPlace(node.width)
+    layout.height = toDecimalPlace(node.height)
   }
 
   if ('rotation' in node) {
@@ -220,6 +225,7 @@ function extractLayout(node: any) {
     layout.layoutAlign = node.layoutAlign
   }
 
+  // 对于容器节点，保留 padding 信息以便于布局
   if ('paddingTop' in node || 'paddingRight' in node || 'paddingBottom' in node || 'paddingLeft' in node) {
     layout.padding = {
       top: node.paddingTop || 0,
@@ -276,7 +282,14 @@ export async function extractUINode(node: any, maxDepth = Infinity): Promise<UIN
     // 只保存 css 代码块的 code 字段
     const cssBlock = codeBlocks.find(block => block.name === 'css')
     if (cssBlock) {
-      uiNode.customStyle = cssBlock.code
+      // 对于容器节点，过滤掉 width 和 height 样式
+      const styles = cssBlock.code.split('\n').filter(line => {
+        if (['FRAME', 'GROUP', 'INSTANCE', 'COMPONENT', 'TEXT'].includes(node.type)) {
+          return !line.trim().startsWith('width:') && !line.trim().startsWith('height:')
+        }
+        return true
+      })
+      uiNode.customStyle = styles
     }
   } catch (error) {
     console.error(`Failed to get CSS for node ${node.id}:`, error)

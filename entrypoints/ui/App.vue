@@ -29,7 +29,7 @@ const panelWidth = `${ui.tempadPanelWidth}px`
   <Panel class="tp-main" :class="{ 'tp-main-minimized': options.minimized }">
     <template #header>
       <div class="tp-row">
-        TemPad Dev
+        CBG DEV
         <IconButton
           v-if="isQuirksMode"
           variant="secondary"
