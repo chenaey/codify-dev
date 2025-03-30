@@ -1,9 +1,10 @@
 import type { RequestPayload, ResponsePayload, CodeBlock } from '@/codegen/types'
 import type { Plugin } from '@/shared/types'
 
+import defaultPlugin from '@/plugins/default'
 import { serializeComponent } from '@/utils/component'
 import { serializeCSS } from '@/utils/css'
-import { evaluate } from '@/utils/module'
+// import { evaluate } from '@/utils/module'
 
 import type { RequestMessage, ResponseMessage } from './worker'
 
@@ -21,26 +22,27 @@ globalThis.onmessage = async ({ data }: MessageEvent<Request>) => {
   const codeBlocks: CodeBlock[] = []
 
   const { style, component, options, pluginCode } = payload
-  let plugin = null
+  const plugin: Plugin = defaultPlugin
 
-  try {
-    if (pluginCode) {
-      if (IMPORT_RE.test(pluginCode)) {
-        throw new Error('`import` is not allowed in plugins.')
-      }
+  // 注释掉动态evaluate的逻辑，改为使用默认插件
+  // try {
+  //   if (pluginCode) {
+  //     if (IMPORT_RE.test(pluginCode)) {
+  //       throw new Error('`import` is not allowed in plugins.')
+  //     }
 
-      const exports = await evaluate(pluginCode)
-      plugin = (exports.default || exports.plugin) as Plugin
-    }
-  } catch (e) {
-    console.error(e)
-    const message: Response = {
-      id,
-      error: e
-    }
-    postMessage(message)
-    return
-  }
+  //     const exports = await evaluate(pluginCode)
+  //     plugin = (exports.default || exports.plugin) as Plugin
+  //   }
+  // } catch (e) {
+  //   console.error(e)
+  //   const message: Response = {
+  //     id,
+  //     error: e
+  //   }
+  //   postMessage(message)
+  //   return
+  // }
 
   const {
     component: componentOptions,
@@ -48,7 +50,7 @@ globalThis.onmessage = async ({ data }: MessageEvent<Request>) => {
     js: jsOptions,
     ...rest
   } = plugin?.code ?? {}
-
+  
   if (componentOptions && component) {
     const { lang, transformComponent } = componentOptions
     const componentCode = serializeComponent(component, { lang }, { transformComponent })
