@@ -1,5 +1,6 @@
 import { getTemPadComponent } from '@/utils'
-import { useStorage, computedAsync } from '@vueuse/core'
+import { useStorage, computedAsync, createGlobalState } from '@vueuse/core'
+import { shallowRef, computed, ref, watch } from 'vue'
 
 import type { QuirksNode, GhostNode } from './quirks'
 
@@ -24,13 +25,28 @@ export type Options = {
   cssUnit: 'px' | 'rem'
   rootFontSize: number
   scale: number
+  exportOpen: boolean
   plugins: {
     [source: string]: PluginData
   }
   activePluginSource: string | null
 }
 
-export type SelectionNode = SceneNode | QuirksNode | GhostNode
+export type ScaleSelectionType = {
+  scale: string
+  suffix: string
+  fileType: 'PNG' | 'JPG' | 'SVG'
+}
+
+export type SelectionNode = (SceneNode & {
+  width: number
+  height: number
+  exportAsync: (settings: {
+    format: 'PNG' | 'JPG' | 'SVG'
+    constraint: { type: 'SCALE', value: number }
+    suffix?: string
+  }) => Promise<Uint8Array>
+}) | QuirksNode | GhostNode
 
 export const options = useStorage<Options>('tempad-dev', {
   minimized: false,
@@ -44,9 +60,47 @@ export const options = useStorage<Options>('tempad-dev', {
   project: 'mvvm',
   cssUnit: 'px',
   rootFontSize: 20,
+  exportOpen: true,
   scale: 1,
   plugins: {},
   activePluginSource: null
+})
+
+export const useGlobalState = createGlobalState(() => {
+  const scaleInputs = ref<ScaleSelectionType[]>([{
+    scale: '1x',
+    fileType: 'PNG',
+    suffix: ''
+  }])
+
+  function addScaleInput() {
+    const scaleInputsLen = scaleInputs.value.length + 1
+    scaleInputs.value.unshift({
+      scale: `${scaleInputsLen > 4 ? '1' : scaleInputsLen}x`,
+      fileType: 'PNG',
+      suffix: ''
+    })
+  }
+
+  function removeScaleInput(index: number) {
+    scaleInputs.value.splice(index, 1)
+  }
+
+  watch(
+    selectedNode,
+    () => {
+      scaleInputs.value = [{
+        scale: '1x',
+        fileType: 'PNG',
+        suffix: ''
+      }]
+    },
+    {
+      immediate: true
+    }
+  )
+
+  return { scaleInputs, addScaleInput, removeScaleInput }
 })
 
 export const isQuirksMode = shallowRef<boolean>(false)

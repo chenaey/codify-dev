@@ -1,6 +1,6 @@
 import { definePlugin } from '@tempad-dev/plugins'
 
-import { PROJECTS, DEFAULT_CONFIG, getProjectConfig } from './config'
+import { PROJECTS } from './config'
 import parsedStyle from './utils/processedValue'
 
 export { PROJECTS as projects }
@@ -16,6 +16,7 @@ export default definePlugin({
 
         return parsedStyle(style, options)
       }
-    }
+    },
+    js: false
   }
 }) 

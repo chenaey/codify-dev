@@ -6,6 +6,7 @@ import Plus from '@/components/icons/Plus.vue'
 import Preferences from '@/components/icons/Preferences.vue'
 import Panel from '@/components/Panel.vue'
 import CodeSection from '@/components/sections/CodeSection.vue'
+import ExportSection from '@/components/sections/ExportSection.vue'
 import MetaSection from '@/components/sections/MetaSection.vue'
 import PrefSection from '@/components/sections/PrefSection.vue'
 import Toast from '@/components/Toast.vue'
@@ -58,6 +59,7 @@ const panelWidth = `${ui.tempadPanelWidth}px`
     <PrefSection :collapsed="!options.prefOpen" />
     <MetaSection />
     <CodeSection />
+    <ExportSection />
   </Panel>
   <Toast />
 </template>

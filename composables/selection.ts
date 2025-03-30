@@ -8,6 +8,7 @@ function syncSelection() {
     return
   }
   selection.value = figma.currentPage.selection
+  console.log('[selection]',figma.currentPage.selection)
 }
 
 function handleClick() {

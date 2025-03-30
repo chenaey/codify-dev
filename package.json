@@ -47,5 +47,8 @@
     "patchedDependencies": {
       "wxt@0.19.13": "patches/wxt@0.19.13.patch"
     }
+  },
+  "dependencies": {
+    "jszip": "^3.10.1"
   }
 }
