@@ -9,17 +9,44 @@ import Preview from '@/components/icons/Preview.vue'
 import Section from '@/components/Section.vue'
 import { selection, selectedNode, options, selectedTemPadComponent, activePlugin } from '@/ui/state'
 import { getDesignComponent } from '@/utils'
+import { generateCode } from '@/utils/ai/client'
+import { extractSelectedNodes } from '@/utils/uiExtractor'
 
 const componentCode = shallowRef('')
 const componentLink = shallowRef('')
 const codeBlocks = shallowRef<CodeBlock[]>([])
 const warning = shallowRef('')
+const isGeneratingJson = ref(false)
+const isGeneratingAICode = ref(false)
+const aiGeneratedCode = ref('')
+const aiError = ref('')
 
 const playButtonTitle = computed(() =>
   componentLink.value
     ? 'Open in TemPad Playground'
     : 'The component is produced with older versions of TemPad that does not provide a link to TemPad playground.'
 )
+
+async function generateUIJson() {
+  if (!selectedNode.value || isGeneratingJson.value) return
+  
+  isGeneratingJson.value = true
+  try {
+    const uiInfo = await extractSelectedNodes([selectedNode.value])
+    // 添加一个新的代码块来显示UI JSON
+    codeBlocks.value.unshift({
+      name: 'ui-json',
+      title: 'UI JSON',
+      lang: 'json',
+      code: JSON.stringify(uiInfo, null, 2)
+    })
+
+  } catch (error) {
+    console.error('Failed to generate UI JSON:', error)
+  } finally {
+    isGeneratingJson.value = false
+  }
+}
 
 async function updateCode() {
   const node = selectedNode.value
@@ -55,6 +82,51 @@ async function updateCode() {
   }
 }
 
+async function generateAICode() {
+  if (!selectedNode.value || isGeneratingAICode.value) return
+  
+  isGeneratingAICode.value = true
+  aiError.value = ''
+  
+  try {
+    // 移除已存在的 AI 生成代码块（如果有）
+    codeBlocks.value = codeBlocks.value.filter(block => block.name !== 'ai-generated')
+    
+    // 创建新的 AI 代码块
+    const aiCodeBlock: CodeBlock = {
+      name: 'ai-generated',
+      title: 'AI Generating...',
+      lang: 'vue',
+      code: ''
+    }
+    
+    // 将代码块添加到列表开头
+    codeBlocks.value.unshift(aiCodeBlock)
+    
+    const uiInfo = await extractSelectedNodes([selectedNode.value])
+    
+    // 使用生成器获取流式响应并实时更新
+    for await (const chunk of generateCode(uiInfo, options.value.project)) {
+      // console.log('chunk', chunk)
+      aiCodeBlock.code += chunk
+      // 强制更新 codeBlocks 引用以触发视图更新
+      codeBlocks.value = [...codeBlocks.value]
+    }
+    aiCodeBlock.code = aiCodeBlock.code.replace(/```vue\s*|\s*```/g, '')
+    
+    // 更新标题，移除 "Generating..." 状态
+    aiCodeBlock.title = 'AI Generated Code'
+    codeBlocks.value = [...codeBlocks.value]
+  } catch (err) {
+    aiError.value = err instanceof Error ? err.message : 'Failed to generate AI code'
+    console.error('Failed to generate AI code:', err)
+    // 如果发生错误，移除正在生成的代码块
+    codeBlocks.value = codeBlocks.value.filter(block => block.name !== 'ai-generated')
+  } finally {
+    isGeneratingAICode.value = false
+  }
+}
+
 watch(options, updateCode, {
   deep: true
 })
@@ -74,11 +146,24 @@ function open() {
         <Badge v-if="activePlugin" title="Code in this section is transformed by this plugin">{{
           activePlugin.name
         }}</Badge>
+        <IconButton
+          variant="secondary"
+          title="AI Code"
+          :disabled="isGeneratingAICode || !selectedNode"
+          @click="generateAICode"
+        >
+          {{ isGeneratingAICode ? 'Generating...' : 'AI' }}
+        </IconButton>
       </div>
       <IconButton v-if="warning" variant="secondary" :title="warning" dull>
         <Info />
       </IconButton>
     </template>
+    
+    <div v-if="aiError" class="error">
+      {{ aiError }}
+    </div>
+
     <Code
       v-if="componentCode"
       class="tp-code-code"
@@ -115,6 +200,11 @@ function open() {
 }
 
 .tp-code-code {
+  margin-bottom: 8px;
+}
+
+.error {
+  color: var(--color-error);
   margin-bottom: 8px;
 }
 </style>

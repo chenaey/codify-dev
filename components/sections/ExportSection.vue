@@ -288,6 +288,12 @@ function handleFileSelectChange(select: ScaleSelectionType) {
 
 <template>
   <Section class="tp-export" v-if="scaleInputs.length && filteredExportNodes.length">
+    <template #header>
+      <div class="tp-code-header tp-row tp-shrink tp-gap-l">
+        Export
+      </div>
+
+    </template>
     <div class="tp-preview" v-if="previewUrl">
       <div class="tp-preview-container">
         <img 
