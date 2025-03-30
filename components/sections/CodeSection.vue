@@ -47,7 +47,7 @@ async function updateCode() {
   codeBlocks.value = (
     await codegen(style, component, serializeOptions, activePlugin.value?.code || undefined)
   ).codeBlocks
-
+  console.log('codeBlocks', codeBlocks.value)
   if ('warning' in node) {
     warning.value = node.warning
   } else {

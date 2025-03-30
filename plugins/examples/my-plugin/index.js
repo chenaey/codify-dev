@@ -13,7 +13,7 @@ export default definePlugin({
       lang: 'css',
       transform({ style, options }) {
         // console.log('Transform called with:', { style, options })
-
+        console.log('[Transform]', style, options)
         return parsedStyle(style, options)
       }
     },
