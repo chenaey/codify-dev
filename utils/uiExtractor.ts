@@ -1,5 +1,5 @@
 import { options, activePlugin } from '@/ui/state'
-
+import { getComponentMapping } from './componentMap'
 import { codegen } from './codegen'
 import { getDesignComponent } from './component'
 import { toDecimalPlace } from './index'
@@ -9,6 +9,13 @@ interface UINode {
   id: string
   name: string
   type: string
+  // 自定义组件信息
+  custom_component?: {
+    name: string // 组件名称（如 ProductItem）
+    importPath: string // 导入路径
+    description?: string // 组件描述
+    props?: string[] // 组件支持的属性列表
+  }
   layout: {
     x: number
     y: number
@@ -279,6 +286,19 @@ function extractLayout(node: any) {
   return layout
 }
 
+// 提取自定义组件信息
+function extractCustomComponent(node: any) {
+  if (!node?.name) return undefined
+
+  // 获取组件映射
+  const mapping = getComponentMapping(node.name)
+  if (!mapping) return undefined
+
+  return {
+    ...mapping
+  }
+}
+
 // 主函数：提取UI节点信息
 export async function extractUINode(node: any, maxDepth = Infinity): Promise<UINode | null> {
   // 过滤掉隐藏的节点
@@ -297,6 +317,12 @@ export async function extractUINode(node: any, maxDepth = Infinity): Promise<UIN
       effects: extractEffects(node),
       cornerRadius: extractCornerRadius(node)
     }
+  }
+
+  // 提取自定义组件信息
+  const customComponent = extractCustomComponent(node)
+  if (customComponent) {
+    uiNode.custom_component = customComponent
   }
 
   const textInfo = extractText(node)
@@ -344,8 +370,8 @@ export async function extractUINode(node: any, maxDepth = Infinity): Promise<UIN
     console.error(`Failed to get CSS for node ${node.id}:`, error)
   }
 
-  // 递归处理子节点，过滤掉返回null的节点
-  if (maxDepth > 0 && 'children' in node && node.children) {
+  // 如果不是自定义组件，才处理子节点
+  if (!customComponent && maxDepth > 0 && 'children' in node && node.children) {
     const childNodes = await Promise.all(
       node.children.map((child: any) => extractUINode(child, maxDepth - 1))
     )

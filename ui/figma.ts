@@ -1,5 +1,5 @@
 const NATIVE_PANEL_WIDTH = 241
-const TEMPAD_PANEL_WIDTH = 240
+const TEMPAD_PANEL_WIDTH = 300
 
 const ui = reactive({
   isUi3: false,
