@@ -208,7 +208,7 @@ function extractText(node: any) {
 }
 
 // 判断是否需要添加宽高信息
-const shouldAddDimensions = (node: any) => {
+const shouldAddWidthHeight = (node: any) => {
   // 1. 检查是否为容器类型
   const isContainer = ['FRAME', 'GROUP', 'INSTANCE', 'COMPONENT', 'TEXT'].includes(node.type)
 
@@ -241,7 +241,7 @@ function extractLayout(node: any) {
   }
 
   // 根据判断结果添加宽高
-  if (shouldAddDimensions(node)) {
+  if (shouldAddWidthHeight(node)) {
     layout.width = toDecimalPlace(node.width)
     layout.height = toDecimalPlace(node.height)
     // console.log('[UI Node 宽高]', node.type, node.name, '需要固定宽高')
@@ -354,9 +354,9 @@ export async function extractUINode(node: any, maxDepth = Infinity): Promise<UIN
     // 只保存 css 代码块的 code 字段
     const cssBlock = codeBlocks.find((block) => block.name === 'css')
     if (cssBlock) {
-      const needRemoveWidthHeight = shouldAddDimensions(node)
       let styles = cssBlock.code.split('\n')
-      if (needRemoveWidthHeight) {
+      // 如果节点不需要固定宽高，则过滤掉 width 和 height 样式
+      if (!shouldAddWidthHeight(node)) {
         // 对于容器节点，过滤掉 width 和 height 样式
         styles = styles.filter((line) => {
           // console.log('[UI Node 样式]', line)

@@ -6,7 +6,6 @@ let client: OpenAI | null = null
 const getClient = () => {
   if (client) return client
   return new OpenAI({
-    apiKey: '',
     dangerouslyAllowBrowser: true,
     baseURL: 'https://api.deepseek.com/v1'
   })
@@ -14,7 +13,6 @@ const getClient = () => {
 
 export async function* generateCode(uiInfo: any, projectId: string) {
   client = getClient()
-  console.log(projectId)
   console.log(createUserPrompt(projectId, uiInfo))
   const stream = await client.chat.completions.create({
     model: 'deepseek-chat',
