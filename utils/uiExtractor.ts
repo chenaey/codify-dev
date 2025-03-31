@@ -83,8 +83,7 @@ function extractColor(color: { r: number; g: number; b: number; a?: number }) {
 
 // 提取填充信息
 function extractFills(node: any) {
-  if (!('fills' in node) || !node.fills) return undefined
-
+  if (!('fills' in node) || !node.fills || !Array.isArray(node.fills)) return undefined
   return node.fills
     .filter((fill: any) => fill.visible !== false)
     .map((fill: any) => {
