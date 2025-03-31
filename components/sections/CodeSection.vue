@@ -12,7 +12,11 @@ import { useToast } from '@/composables/toast'
 import { selection, selectedNode, options, selectedTemPadComponent, activePlugin } from '@/ui/state'
 import { getDesignComponent } from '@/utils'
 import { generateCode } from '@/utils/ai/client'
-import { initPendingResult, updateGenerationResult, getGenerationResult } from '@/utils/cache/aiGenCache'
+import {
+  initPendingResult,
+  updateGenerationResult,
+  getGenerationResult
+} from '@/utils/cache/aiGenCache'
 import { extractSelectedNodes } from '@/utils/uiExtractor'
 
 interface GenerationState {
@@ -74,14 +78,14 @@ function useLoadingTitle(aiCodeBlock: Ref<CodeBlock>) {
   const dots = ['.', '..', '...', '....']
   let index = 0
   let timer: number | null = null
-  
+
   // 开始动画
   function start() {
     timer = window.setInterval(() => {
       aiCodeBlock.value.title = 'AI Generating' + dots[index++ % dots.length]
     }, 300)
   }
-  
+
   // 停止动画
   function stop() {
     if (timer) {
@@ -89,7 +93,7 @@ function useLoadingTitle(aiCodeBlock: Ref<CodeBlock>) {
       timer = null
     }
   }
-  
+
   return { start, stop }
 }
 
@@ -119,7 +123,6 @@ async function updateCode() {
   codeBlocks.value = (
     await codegen(style, component, serializeOptions, activePlugin.value?.code || undefined)
   ).codeBlocks
-  console.log('codeBlocks', codeBlocks.value)
   if ('warning' in node) {
     warning.value = node.warning
   } else {
@@ -127,38 +130,49 @@ async function updateCode() {
   }
 }
 
+// 辅助函数：清除代码块的Markdown语法标记
+function cleanMarkdownCode(code: string): string {
+  return code
+    .replace(/^```[a-zA-Z]*\n?/, '') // 去除开头的```和任意语言标记
+    .replace(/```$/, '') // 去除结尾的```
+    .trim() // 去除多余的空白字符
+}
+
 // 检查并应用缓存的代码块
 async function checkAndApplyCache(node: SelectionNode | null) {
   // 清除现有的 AI 生成代码块
-  codeBlocks.value = codeBlocks.value.filter(block => block.name !== 'ai-generated')
-  
+  codeBlocks.value = codeBlocks.value.filter((block) => block.name !== 'ai-generated')
+
   if (!node) return
-  
+
   const nodeId = node.id
   const result = getGenerationResult(nodeId)
   const state = generatingStates.value.get(nodeId)
-  
   if (result) {
     if (result.status === 'completed') {
       // 使用已完成的缓存结果
+      result.codeBlocks.forEach((block) => {
+        block.code = cleanMarkdownCode(block.code)
+        block.title = 'AI Generated Cache'
+      })
       codeBlocks.value.unshift(...result.codeBlocks)
     } else if (result.status === 'pending') {
       // 显示待处理状态
       codeBlocks.value.unshift(...result.codeBlocks)
       const aiCodeBlock = ref(codeBlocks.value[0])
-      
+
       // 如果存在生成状态，说明请求可能还在进行中
       if (state) {
         // 更新代码内容
         aiCodeBlock.value.code = state.code
-        
+
         // 根据请求状态处理
         if (state.status === 'pending' && state.promise) {
           // 请求还在进行中，启动新的loading
           const loading = useLoadingTitle(aiCodeBlock)
           loading.start()
           state.loading = loading
-          
+
           // 等待请求完成
           try {
             await state.promise
@@ -181,6 +195,10 @@ async function checkAndApplyCache(node: SelectionNode | null) {
 async function handleCompletedCache(nodeId: string) {
   const result = getGenerationResult(nodeId)
   if (result?.status === 'completed') {
+    // 清理每个代码块中的Markdown标记
+    result.codeBlocks.forEach((block) => {
+      block.code = cleanMarkdownCode(block.code)
+    })
     codeBlocks.value.unshift(...result.codeBlocks)
     show('Using cached AI generated code')
     return true
@@ -195,21 +213,21 @@ async function handlePendingCache(nodeId: string) {
     // 继续显示正在生成的状态
     codeBlocks.value.unshift(...result.codeBlocks)
     const aiCodeBlock = ref(codeBlocks.value[0])
-    
+
     const state = getGenerationState(nodeId)
     const controller = new AbortController()
     state.controller = controller
-    
+
     const loading = useLoadingTitle(aiCodeBlock)
     loading.start()
     state.loading = loading
-    
+
     // 创建并保存生成Promise
     state.promise = (async () => {
       try {
         // 获取选中节点的信息并继续生成
         const uiInfo = await extractSelectedNodes([selectedNode.value])
-        
+
         // 使用生成器获取流式响应并实时更新
         for await (const chunk of generateCode(uiInfo, options.value.project)) {
           if (controller.signal.aborted) {
@@ -218,15 +236,18 @@ async function handlePendingCache(nodeId: string) {
           aiCodeBlock.value.code += chunk
           state.code = aiCodeBlock.value.code
         }
-        
+
         // 更新状态为完成
         state.status = 'completed'
         clearGenerationState(nodeId)
         aiCodeBlock.value.title = 'AI Generated Code'
-        
+
         // 更新缓存为完成状态
         updateGenerationResult(nodeId, [aiCodeBlock.value])
-        
+
+        // 清除代码块的Markdown语法标记
+        aiCodeBlock.value.code = cleanMarkdownCode(aiCodeBlock.value.code)
+
         show('AI Generated Code Success')
         return true
       } catch (err) {
@@ -238,7 +259,7 @@ async function handlePendingCache(nodeId: string) {
         return false
       }
     })()
-    
+
     return state.promise
   }
   return false
@@ -251,26 +272,26 @@ async function initNewGeneration(nodeId: string) {
     // 如果返回 null，说明已经有完成的结果，再次检查
     return await handleCompletedCache(nodeId)
   }
-  
+
   // 将待生成的代码块添加到列表开头
   codeBlocks.value.unshift(...pendingResult.codeBlocks)
   const aiCodeBlock = ref(codeBlocks.value[0])
-  
+
   const state = getGenerationState(nodeId)
   const controller = new AbortController()
   state.controller = controller
-  
+
   // 启动加载动画
   const loading = useLoadingTitle(aiCodeBlock)
   loading.start()
   state.loading = loading
-  
+
   // 创建并保存生成Promise
   state.promise = (async () => {
     try {
       // 获取选中节点的信息
       const uiInfo = await extractSelectedNodes([selectedNode.value])
-      
+
       // 使用生成器获取流式响应并实时更新
       for await (const chunk of generateCode(uiInfo, options.value.project)) {
         if (controller.signal.aborted) {
@@ -279,15 +300,19 @@ async function initNewGeneration(nodeId: string) {
         aiCodeBlock.value.code += chunk
         state.code = aiCodeBlock.value.code
       }
-      
+      aiCodeBlock.value.code.replace(/```vue/, '')
+
       // 更新状态为完成
       state.status = 'completed'
       clearGenerationState(nodeId)
       aiCodeBlock.value.title = 'AI Generated Code'
-      
+
       // 更新缓存为完成状态
       updateGenerationResult(nodeId, [aiCodeBlock.value])
-      
+
+      // 清除代码块的Markdown语法标记
+      aiCodeBlock.value.code = cleanMarkdownCode(aiCodeBlock.value.code)
+
       show('AI Generated Code Success')
       return true
     } catch (err) {
@@ -299,35 +324,39 @@ async function initNewGeneration(nodeId: string) {
       return false
     }
   })()
-  
+
   return state.promise
 }
 
 async function generateAICode() {
+  if (options.value.project !== 'mvvm') {
+    show('AI code generation is not supported in this project')
+    return
+  }
   if (!selectedNode.value) return
-  
+
   const nodeId = selectedNode.value.id
   if (isGeneratingAICode(nodeId)) return
-  
+
   aiError.value = ''
-  
+
   try {
     // 移除已存在的 AI 生成代码块（如果有）
-    codeBlocks.value = codeBlocks.value.filter(block => block.name !== 'ai-generated')
-    
+    codeBlocks.value = codeBlocks.value.filter((block) => block.name !== 'ai-generated')
+
     // 1. 检查是否有已完成的缓存
     if (await handleCompletedCache(nodeId)) return
-    
+
     // 2. 检查是否有待处理的缓存
     if (await handlePendingCache(nodeId)) return
-    
+
     // 3. 开始新的生成过程
     await initNewGeneration(nodeId)
   } catch (err) {
     aiError.value = err instanceof Error ? err.message : 'Failed to generate AI code'
     console.error('Failed to generate AI code:', err)
     // 如果发生错误，移除正在生成的代码块
-    codeBlocks.value = codeBlocks.value.filter(block => block.name !== 'ai-generated')
+    codeBlocks.value = codeBlocks.value.filter((block) => block.name !== 'ai-generated')
   }
 }
 
@@ -364,8 +393,8 @@ onUnmounted(() => {
         }}</Badge>
         <IconButton
           variant="secondary"
-          title="AI Code"
-          :disabled="selectedNode && isGeneratingAICode(selectedNode.id) || !selectedNode"
+          title="AI Generate Code (beta)"
+          :disabled="(selectedNode && isGeneratingAICode(selectedNode.id)) || !selectedNode"
           @click="generateAICode"
         >
           AI
@@ -375,7 +404,7 @@ onUnmounted(() => {
         <Info />
       </IconButton>
     </template>
-    
+
     <div v-if="aiError" class="error">
       {{ aiError }}
     </div>
