@@ -2,6 +2,7 @@
 import IconButton from '@/components/IconButton.vue'
 import Inspect from '@/components/icons/Inspect.vue'
 import Measure from '@/components/icons/Measure.vue'
+import Export from '@/components/icons/Plus.vue'
 import Section from '@/components/Section.vue'
 // import PluginsSection from '@/components/sections/PluginsSection.vue'
 import { useSelectAll } from '@/composables/input'
@@ -23,19 +24,19 @@ watch(
 const projects = ref([
   {
     value: 'mvvm',
-    label: 'MVVM',
+    label: 'MVVM'
   },
   {
     value: 'cbg',
-    label: 'CBG',
+    label: 'CBG'
   },
   {
     value: 'ios',
-    label: 'iOS',
+    label: 'iOS'
   },
   {
     value: 'android',
-    label: 'Android',
+    label: 'Android'
   }
 ])
 
@@ -60,6 +61,9 @@ useSelectAll(scaleInput)
           v-model:selected="options.measureOn"
         >
           <Measure />
+        </IconButton>
+        <IconButton title="Export images" toggle="subtle" v-model:selected="options.exportOn">
+          <Export />
         </IconButton>
       </div>
     </div>

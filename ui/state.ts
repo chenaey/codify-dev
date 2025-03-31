@@ -22,6 +22,7 @@ export type Options = {
   prefOpen: boolean
   deepSelectOn: boolean
   measureOn: boolean
+  exportOn: boolean
   cssUnit: 'px' | 'rem'
   rootFontSize: number
   scale: number
@@ -38,15 +39,18 @@ export type ScaleSelectionType = {
   fileType: 'PNG' | 'JPG' | 'SVG'
 }
 
-export type SelectionNode = (SceneNode & {
-  width: number
-  height: number
-  exportAsync: (settings: {
-    format: 'PNG' | 'JPG' | 'SVG'
-    constraint: { type: 'SCALE', value: number }
-    suffix?: string
-  }) => Promise<Uint8Array>
-}) | QuirksNode | GhostNode
+export type SelectionNode =
+  | (SceneNode & {
+      width: number
+      height: number
+      exportAsync: (settings: {
+        format: 'PNG' | 'JPG' | 'SVG'
+        constraint: { type: 'SCALE'; value: number }
+        suffix?: string
+      }) => Promise<Uint8Array>
+    })
+  | QuirksNode
+  | GhostNode
 
 export const options = useStorage<Options>('tempad-dev', {
   minimized: false,
@@ -57,6 +61,7 @@ export const options = useStorage<Options>('tempad-dev', {
   prefOpen: false,
   deepSelectOn: true,
   measureOn: true,
+  exportOn: false,
   project: 'mvvm',
   cssUnit: 'px',
   rootFontSize: 20,
@@ -67,11 +72,13 @@ export const options = useStorage<Options>('tempad-dev', {
 })
 
 export const useGlobalState = createGlobalState(() => {
-  const scaleInputs = ref<ScaleSelectionType[]>([{
-    scale: '1x',
-    fileType: 'PNG',
-    suffix: ''
-  }])
+  const scaleInputs = ref<ScaleSelectionType[]>([
+    {
+      scale: '1x',
+      fileType: 'PNG',
+      suffix: ''
+    }
+  ])
 
   function addScaleInput() {
     const scaleInputsLen = scaleInputs.value.length + 1
@@ -89,11 +96,13 @@ export const useGlobalState = createGlobalState(() => {
   watch(
     selectedNode,
     () => {
-      scaleInputs.value = [{
-        scale: '1x',
-        fileType: 'PNG',
-        suffix: ''
-      }]
+      scaleInputs.value = [
+        {
+          scale: '1x',
+          fileType: 'PNG',
+          suffix: ''
+        }
+      ]
     },
     {
       immediate: true

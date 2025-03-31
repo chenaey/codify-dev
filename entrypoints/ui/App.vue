@@ -22,6 +22,8 @@ function toggleMinimized() {
   options.value.minimized = !options.value.minimized
 }
 
+const showExport = computed(() => options.value.exportOn)
+
 const panelWidth = `${ui.tempadPanelWidth}px`
 </script>
 
@@ -59,7 +61,7 @@ const panelWidth = `${ui.tempadPanelWidth}px`
     <PrefSection :collapsed="!options.prefOpen" />
     <MetaSection />
     <CodeSection />
-    <ExportSection />
+    <ExportSection v-if="showExport" />
   </Panel>
   <Toast />
 </template>
