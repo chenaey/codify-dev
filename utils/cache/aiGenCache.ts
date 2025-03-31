@@ -50,7 +50,8 @@ export function initPendingResult(nodeId: string, projectId: string) {
   if (existingIndex !== -1) {
     // 如果已经存在且是完成状态，不要覆盖
     if (cache.value.results[existingIndex].status === 'completed') {
-      return null
+      // 允许重复生成
+      return newResult
     }
     // 更新已存在的结果
     cache.value.results[existingIndex] = newResult

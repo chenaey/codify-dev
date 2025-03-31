@@ -157,7 +157,6 @@ async function checkAndApplyCache(node: SelectionNode | null) {
 
   const nodeId = node.id
   const projectId = options.value.project
-  console.log(projectId, 'projectId')
   const result = getGenerationResult(nodeId, projectId)
   const state = generatingStates.value.get(getStateKey(nodeId, projectId))
   if (result) {

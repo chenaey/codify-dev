@@ -49,12 +49,14 @@ interface UINode {
       radius?: number
       visible?: boolean
     }>
-    cornerRadius?: number | {
-      topLeft: number
-      topRight: number
-      bottomRight: number
-      bottomLeft: number
-    }
+    cornerRadius?:
+      | number
+      | {
+          topLeft: number
+          topRight: number
+          bottomRight: number
+          bottomLeft: number
+        }
   }
   text?: {
     content: string
@@ -160,7 +162,12 @@ function extractCornerRadius(node: any) {
     return node.cornerRadius
   }
 
-  if (node.topLeftRadius || node.topRightRadius || node.bottomRightRadius || node.bottomLeftRadius) {
+  if (
+    node.topLeftRadius ||
+    node.topRightRadius ||
+    node.bottomRightRadius ||
+    node.bottomLeftRadius
+  ) {
     return {
       topLeft: node.topLeftRadius || 0,
       topRight: node.topRightRadius || 0,
@@ -182,9 +189,10 @@ function extractText(node: any) {
     fontFamily: node.fontName?.family,
     fontWeight: node.fontName?.style,
     letterSpacing: node.letterSpacing?.value || 0,
-    lineHeight: typeof node.lineHeight === 'number' 
-      ? node.lineHeight 
-      : { value: node.lineHeight?.value || 0, unit: node.lineHeight?.unit || 'AUTO' },
+    lineHeight:
+      typeof node.lineHeight === 'number'
+        ? node.lineHeight
+        : { value: node.lineHeight?.value || 0, unit: node.lineHeight?.unit || 'AUTO' },
     textAlignHorizontal: node.textAlignHorizontal,
     textAlignVertical: node.textAlignVertical,
     textCase: node.textCase,
@@ -196,7 +204,7 @@ function extractText(node: any) {
 function extractLayout(node: any) {
   const layout: UINode['layout'] = {
     x: toDecimalPlace(node.x),
-    y: toDecimalPlace(node.y),
+    y: toDecimalPlace(node.y)
   }
 
   // 只为非容器节点添加宽高
@@ -225,7 +233,12 @@ function extractLayout(node: any) {
   }
 
   // 对于容器节点，保留 padding 信息以便于布局
-  if ('paddingTop' in node || 'paddingRight' in node || 'paddingBottom' in node || 'paddingLeft' in node) {
+  if (
+    'paddingTop' in node ||
+    'paddingRight' in node ||
+    'paddingBottom' in node ||
+    'paddingLeft' in node
+  ) {
     layout.padding = {
       top: node.paddingTop || 0,
       right: node.paddingRight || 0,
@@ -238,7 +251,12 @@ function extractLayout(node: any) {
 }
 
 // 主函数：提取UI节点信息
-export async function extractUINode(node: any, maxDepth = Infinity): Promise<UINode> {
+export async function extractUINode(node: any, maxDepth = Infinity): Promise<UINode | null> {
+  // 过滤掉隐藏的节点
+  if ('visible' in node && node.visible === false) {
+    return null
+  }
+
   const uiNode: UINode = {
     id: node.id,
     name: node.name,
@@ -251,6 +269,7 @@ export async function extractUINode(node: any, maxDepth = Infinity): Promise<UIN
       cornerRadius: extractCornerRadius(node)
     }
   }
+  console.log('[UI Node]', node.type)
 
   const textInfo = extractText(node)
   if (textInfo) {
@@ -261,7 +280,7 @@ export async function extractUINode(node: any, maxDepth = Infinity): Promise<UIN
     // 获取生成的CSS代码
     const style = await node.getCSSAsync()
     const component = getDesignComponent(node)
-    
+
     const { cssUnit, project, rootFontSize, scale } = options.value
     const serializeOptions = {
       useRem: cssUnit === 'rem',
@@ -272,17 +291,17 @@ export async function extractUINode(node: any, maxDepth = Infinity): Promise<UIN
 
     // 使用与 CodeSection.vue 相同的参数调用 codegen
     const { codeBlocks } = await codegen(
-      style, 
-      component, 
+      style,
+      component,
       serializeOptions,
       activePlugin.value?.code || undefined
     )
-    
+
     // 只保存 css 代码块的 code 字段
-    const cssBlock = codeBlocks.find(block => block.name === 'css')
+    const cssBlock = codeBlocks.find((block) => block.name === 'css')
     if (cssBlock) {
       // 对于容器节点，过滤掉 width 和 height 样式
-      const styles = cssBlock.code.split('\n').filter(line => {
+      const styles = cssBlock.code.split('\n').filter((line) => {
         if (['FRAME', 'GROUP', 'INSTANCE', 'COMPONENT', 'TEXT'].includes(node.type)) {
           return !line.trim().startsWith('width:') && !line.trim().startsWith('height:')
         }
@@ -294,11 +313,12 @@ export async function extractUINode(node: any, maxDepth = Infinity): Promise<UIN
     console.error(`Failed to get CSS for node ${node.id}:`, error)
   }
 
-  // 递归处理子节点
+  // 递归处理子节点，过滤掉返回null的节点
   if (maxDepth > 0 && 'children' in node && node.children) {
-    uiNode.children = await Promise.all(
+    const childNodes = await Promise.all(
       node.children.map((child: any) => extractUINode(child, maxDepth - 1))
     )
+    uiNode.children = childNodes.filter((node): node is UINode => node !== null)
   }
 
   return uiNode
@@ -306,5 +326,7 @@ export async function extractUINode(node: any, maxDepth = Infinity): Promise<UIN
 
 // 导出函数：处理选中的节点
 export async function extractSelectedNodes(selection: readonly any[]) {
-  return Promise.all(selection.map(node => extractUINode(node)))
-} 
+  const nodes = await Promise.all(selection.map((node) => extractUINode(node)))
+  // 过滤掉null节点
+  return nodes.filter((node): node is UINode => node !== null)
+}
