@@ -43,15 +43,23 @@ const playButtonTitle = computed(() =>
     : 'The component is produced with older versions of TemPad that does not provide a link to TemPad playground.'
 )
 
+// 生成状态key
+function getStateKey(nodeId: string, projectId: string): string {
+  return `${nodeId}:${projectId}`
+}
+
 // 辅助函数：检查节点是否正在生成代码
 function isGeneratingAICode(nodeId: string): boolean {
-  return generatingStates.value.has(nodeId)
+  const projectId = options.value.project
+  return generatingStates.value.has(getStateKey(nodeId, projectId))
 }
 
 // 辅助函数：初始化或获取生成状态
 function getGenerationState(nodeId: string): GenerationState {
-  if (!generatingStates.value.has(nodeId)) {
-    generatingStates.value.set(nodeId, {
+  const projectId = options.value.project
+  const stateKey = getStateKey(nodeId, projectId)
+  if (!generatingStates.value.has(stateKey)) {
+    generatingStates.value.set(stateKey, {
       loading: null,
       controller: null,
       code: '',
@@ -59,17 +67,19 @@ function getGenerationState(nodeId: string): GenerationState {
       promise: null
     })
   }
-  return generatingStates.value.get(nodeId)!
+  return generatingStates.value.get(stateKey)!
 }
 
 // 辅助函数：清理生成状态
 function clearGenerationState(nodeId: string) {
-  const state = generatingStates.value.get(nodeId)
+  const projectId = options.value.project
+  const stateKey = getStateKey(nodeId, projectId)
+  const state = generatingStates.value.get(stateKey)
   if (state) {
     state.loading?.stop()
     state.controller?.abort()
     state.status = 'completed'
-    generatingStates.value.delete(nodeId)
+    generatingStates.value.delete(stateKey)
   }
 }
 
@@ -146,8 +156,10 @@ async function checkAndApplyCache(node: SelectionNode | null) {
   if (!node) return
 
   const nodeId = node.id
-  const result = getGenerationResult(nodeId)
-  const state = generatingStates.value.get(nodeId)
+  const projectId = options.value.project
+  console.log(projectId, 'projectId')
+  const result = getGenerationResult(nodeId, projectId)
+  const state = generatingStates.value.get(getStateKey(nodeId, projectId))
   if (result) {
     if (result.status === 'completed') {
       // 使用已完成的缓存结果
@@ -193,7 +205,8 @@ async function checkAndApplyCache(node: SelectionNode | null) {
 
 // 处理已完成的缓存结果
 async function handleCompletedCache(nodeId: string) {
-  const result = getGenerationResult(nodeId)
+  const projectId = options.value.project
+  const result = getGenerationResult(nodeId, projectId)
   if (result?.status === 'completed') {
     // 清理每个代码块中的Markdown标记
     result.codeBlocks.forEach((block) => {
@@ -208,7 +221,8 @@ async function handleCompletedCache(nodeId: string) {
 
 // 处理待处理的缓存结果
 async function handlePendingCache(nodeId: string) {
-  const result = getGenerationResult(nodeId)
+  const projectId = options.value.project
+  const result = getGenerationResult(nodeId, projectId)
   if (result?.status === 'pending') {
     // 继续显示正在生成的状态
     codeBlocks.value.unshift(...result.codeBlocks)
@@ -243,7 +257,7 @@ async function handlePendingCache(nodeId: string) {
         aiCodeBlock.value.title = 'AI Generated Code'
 
         // 更新缓存为完成状态
-        updateGenerationResult(nodeId, [aiCodeBlock.value])
+        updateGenerationResult(nodeId, projectId, [aiCodeBlock.value])
 
         // 清除代码块的Markdown语法标记
         aiCodeBlock.value.code = cleanMarkdownCode(aiCodeBlock.value.code)
@@ -267,7 +281,8 @@ async function handlePendingCache(nodeId: string) {
 
 // 初始化新的生成过程
 async function initNewGeneration(nodeId: string) {
-  const pendingResult = initPendingResult(nodeId)
+  const projectId = options.value.project
+  const pendingResult = initPendingResult(nodeId, projectId)
   if (!pendingResult) {
     // 如果返回 null，说明已经有完成的结果，再次检查
     return await handleCompletedCache(nodeId)
@@ -308,7 +323,7 @@ async function initNewGeneration(nodeId: string) {
       aiCodeBlock.value.title = 'AI Generated Code'
 
       // 更新缓存为完成状态
-      updateGenerationResult(nodeId, [aiCodeBlock.value])
+      updateGenerationResult(nodeId, projectId, [aiCodeBlock.value])
 
       // 清除代码块的Markdown语法标记
       aiCodeBlock.value.code = cleanMarkdownCode(aiCodeBlock.value.code)
@@ -328,8 +343,9 @@ async function initNewGeneration(nodeId: string) {
   return state.promise
 }
 
+const supportProject = ['mvvm', 'cbg', 'ios', 'android']
 async function generateAICode() {
-  if (options.value.project !== 'mvvm') {
+  if (!supportProject.includes(options.value.project)) {
     show('AI code generation is not supported in this project')
     return
   }
@@ -344,8 +360,8 @@ async function generateAICode() {
     // 移除已存在的 AI 生成代码块（如果有）
     codeBlocks.value = codeBlocks.value.filter((block) => block.name !== 'ai-generated')
 
-    // 1. 检查是否有已完成的缓存
-    if (await handleCompletedCache(nodeId)) return
+    // // 1. 检查是否有已完成的缓存
+    // if (await handleCompletedCache(nodeId)) return
 
     // 2. 检查是否有待处理的缓存
     if (await handlePendingCache(nodeId)) return
@@ -370,14 +386,42 @@ watch(options, updateCode, {
   deep: true
 })
 
+// 监听project变化，清理相关状态
+watch(
+  () => options.value.project,
+  () => {
+    // 清理所有生成状态
+    for (const [stateKey] of generatingStates.value) {
+      const state = generatingStates.value.get(stateKey)
+      if (state) {
+        state.loading?.stop()
+        state.controller?.abort()
+      }
+    }
+    generatingStates.value.clear()
+
+    // 清理当前显示的AI生成代码
+    codeBlocks.value = codeBlocks.value.filter((block) => block.name !== 'ai-generated')
+
+    // 如果有选中节点，重新检查新project的缓存
+    if (selectedNode.value) {
+      checkAndApplyCache(selectedNode.value)
+    }
+  }
+)
+
 function open() {
   window.open(componentLink.value)
 }
 
 // 组件卸载时清理所有状态
 onUnmounted(() => {
-  for (const [nodeId] of generatingStates.value) {
-    clearGenerationState(nodeId)
+  for (const [stateKey] of generatingStates.value) {
+    const state = generatingStates.value.get(stateKey)
+    if (state) {
+      state.loading?.stop()
+      state.controller?.abort()
+    }
   }
   generatingStates.value.clear()
 })

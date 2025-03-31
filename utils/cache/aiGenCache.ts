@@ -1,17 +1,14 @@
 import type { SupportedLang } from '@/plugins/src'
 
 import { useStorage } from '@vueuse/core'
+import type { CodeBlock } from '@/codegen/types'
 
 interface AIGenResult {
-  nodeId: string  // 节点ID，格式如 "444:2835"
+  nodeId: string // 节点ID，格式如 "444:2835"
+  projectId: string // 添加projectId字段
   timestamp: number
-  codeBlocks: Array<{
-    name: string
-    title: string
-    code: string
-    lang: SupportedLang
-  }>
-  status: 'pending' | 'completed'  // 生成状态
+  codeBlocks: CodeBlock[]
+  status: 'pending' | 'completed' // 生成状态
 }
 
 interface AIGenCache {
@@ -25,21 +22,29 @@ const cache = useStorage<AIGenCache>('tempad-ai-gen-cache', {
 
 const MAX_CACHE_SIZE = 5
 
-export function initPendingResult(nodeId: string) {
+// 生成缓存key
+function getCacheKey(nodeId: string, projectId: string): string {
+  return `${nodeId}:${projectId}`
+}
+
+export function initPendingResult(nodeId: string, projectId: string) {
   const newResult: AIGenResult = {
     nodeId,
+    projectId,
     timestamp: Date.now(),
-    codeBlocks: [{
-      name: 'ai-generated',
-      title: 'AI Generating...',
-      lang: 'vue',
-      code: ''
-    }],
+    codeBlocks: [
+      {
+        name: 'ai-generated',
+        title: 'AI Generating...',
+        lang: 'vue',
+        code: ''
+      }
+    ],
     status: 'pending'
   }
 
   const existingIndex = cache.value.results.findIndex(
-    result => result.nodeId === nodeId
+    (result) => getCacheKey(result.nodeId, result.projectId) === getCacheKey(nodeId, projectId)
   )
 
   if (existingIndex !== -1) {
@@ -55,8 +60,8 @@ export function initPendingResult(nodeId: string) {
     cache.value.results.push(newResult)
     if (cache.value.results.length > MAX_CACHE_SIZE) {
       // 只考虑已完成的结果进行清理
-      const completed = cache.value.results.filter(r => r.status === 'completed')
-      const pending = cache.value.results.filter(r => r.status === 'pending')
+      const completed = cache.value.results.filter((r) => r.status === 'completed')
+      const pending = cache.value.results.filter((r) => r.status === 'pending')
       completed.sort((a, b) => b.timestamp - a.timestamp)
       cache.value.results = [...pending, ...completed.slice(0, MAX_CACHE_SIZE - pending.length)]
     }
@@ -64,22 +69,20 @@ export function initPendingResult(nodeId: string) {
   }
 }
 
-export function updateGenerationResult(nodeId: string, codeBlocks: AIGenResult['codeBlocks']) {
+export function updateGenerationResult(nodeId: string, projectId: string, codeBlocks: CodeBlock[]) {
   const existingIndex = cache.value.results.findIndex(
-    result => result.nodeId === nodeId
+    (result) => getCacheKey(result.nodeId, result.projectId) === getCacheKey(nodeId, projectId)
   )
 
   if (existingIndex !== -1) {
-    // 更新已存在的结果
-    cache.value.results[existingIndex] = {
-      nodeId,
-      timestamp: Date.now(),
-      codeBlocks,
-      status: 'completed'
-    }
+    cache.value.results[existingIndex].codeBlocks = codeBlocks
+    cache.value.results[existingIndex].status = 'completed'
   }
 }
 
-export function getGenerationResult(nodeId: string): AIGenResult | null {
-  return cache.value.results.find(result => result.nodeId === nodeId) || null
-} 
+export function getGenerationResult(nodeId: string, projectId: string): AIGenResult | null {
+  const result = cache.value.results.find(
+    (result) => getCacheKey(result.nodeId, result.projectId) === getCacheKey(nodeId, projectId)
+  )
+  return result || null
+}
