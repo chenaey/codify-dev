@@ -21,7 +21,7 @@ interface UINode {
     y: number // 布局y坐标
     width?: number | '100%' // 布局宽度
     height?: number | '100%' // 布局高度
-    rotation?: number 
+    rotation?: number
     layoutMode?: string // 布局模式 (HORIZONTAL | VERTICAL)
     layoutAlign?: string // 布局对齐方式 (STRETCH | CENTER | MIN | MAX)
     padding?: {
@@ -33,7 +33,7 @@ interface UINode {
     // 布局信息关系字段
     spacing?: {
       siblings?: {
-        after?: number  // 与后一个兄弟节点的间距 (只设置after以使用margin-bottom样式)
+        after?: number // 与后一个兄弟节点的间距 (只设置after以使用margin-bottom样式)
         direction?: 'horizontal' | 'vertical' // 间距方向，水平或垂直
       }
     }
@@ -84,7 +84,7 @@ interface UINode {
   }
   // 矢量/图标信息
   vector?: {
-    type: string  // 节点类型
+    type: string // 节点类型
     width: number // 图标宽度
     height: number // 图标高度
     viewBox: string // SVG viewBox属性
@@ -97,6 +97,7 @@ interface UINode {
       fillRule?: 'evenodd' | 'nonzero' // 填充规则
     }>
     isMultiPath?: boolean // 是否包含多个路径
+    dataUrl?: string // 可选的data URL
   }
   children?: UINode[]
   // 添加自定义样式字段
@@ -118,45 +119,47 @@ function extractVectorData(node: any) {
   // 1. 首先检查是否为矢量类型的节点
   const vectorTypes = ['VECTOR', 'BOOLEAN_OPERATION', 'STAR', 'POLYGON', 'ELLIPSE', 'RECTANGLE', 'LINE']
   const isVectorType = vectorTypes.includes(node.type)
-  
+
   // 2. 检查是否为图标类型
-  const isIconNode = 
+  const isIconNode =
     // 通过名称判断
-    node.name.toLowerCase().includes('icon') || 
+    node.name.toLowerCase().includes('icon') ||
     node.name.toLowerCase().includes('图标') ||
     // 通过尺寸判断 - 小尺寸方形通常是图标
-    (node.width === node.height && node.width <= 64 && node.width > 0);
-  
+    (node.width === node.height && node.width <= 64 && node.width > 0)
+
   // 3. 检查是否具有矢量数据的关键属性
-  const hasVectorData = 
+  const hasVectorData =
     ('vectorPaths' in node && Array.isArray(node.vectorPaths) && node.vectorPaths.length > 0) ||
-    ('vectorNetwork' in node && node.vectorNetwork);
-  
+    ('vectorNetwork' in node && node.vectorNetwork)
+
   // 只有同时满足以下条件之一才处理:
   // - 是矢量类型且有矢量数据
   // - 是图标节点且有矢量数据
   // - 是矢量类型且是图标节点
-  if (!(
-    (isVectorType && hasVectorData) || 
-    (isIconNode && hasVectorData) || 
-    (isVectorType && isIconNode)
-  )) {
-    return undefined;
+  if (
+    !(
+      (isVectorType && hasVectorData) ||
+      (isIconNode && hasVectorData) ||
+      (isVectorType && isIconNode)
+    )
+  ) {
+    return undefined
   }
-  
+
   // 创建矢量数据对象
   const vectorData: any = {
     type: node.type,
     // 提供适合SVG使用的尺寸信息
-    width: node.width || 24,  // 默认常见图标尺寸
+    width: node.width || 24, // 默认常见图标尺寸
     height: node.height || 24,
     viewBox: `0 0 ${node.width || 24} ${node.height || 24}`
   }
-  
+
   // 提取矢量路径数据
   if ('vectorPaths' in node && node.vectorPaths && node.vectorPaths.length > 0) {
     vectorData.paths = node.vectorPaths.map((path: any) => ({
-      d: path.data,  // SVG路径数据，与SVG中path元素的d属性一致
+      d: path.data, // SVG路径数据，与SVG中path元素的d属性一致
       fill: node.fills && node.fills.length > 0 ? extractFills(node)[0]?.color : 'currentColor',
       stroke: node.strokes && node.strokes.length > 0 ? extractStrokes(node)[0]?.color : undefined,
       strokeWidth: node.strokeWeight,
@@ -164,41 +167,41 @@ function extractVectorData(node: any) {
     }))
   } else if ('children' in node && node.children && node.children.length > 0 && isIconNode) {
     // 对于包含子节点的图标组件，标记为复杂图标
-    vectorData.isMultiPath = true;
-    
+    vectorData.isMultiPath = true
+
     // 检查子节点是否包含矢量元素，如果一个也没有，则不视为矢量图标
-    const hasVectorChildren = node.children.some((child: any) => 
-      vectorTypes.includes(child.type) || 
-      ('vectorPaths' in child && child.vectorPaths?.length > 0)
-    );
-    
+    const hasVectorChildren = node.children.some(
+      (child: any) =>
+        vectorTypes.includes(child.type) ||
+        ('vectorPaths' in child && child.vectorPaths?.length > 0)
+    )
+
     if (!hasVectorChildren) {
-      return undefined;
+      return undefined
     }
   } else if (!hasVectorData) {
     // 没有任何矢量数据时，不处理
-    return undefined;
+    return undefined
   }
-  
+
   // 提取基本样式属性，优先使用fills中的颜色
-  const mainFill = node.fills && node.fills.length > 0 ? 
-                  (node.fills.find((f: any) => f.type === 'SOLID' && f.visible !== false) || node.fills[0]) : 
-                  null;
-  
+  const mainFill =
+    node.fills && node.fills.length > 0
+      ? node.fills.find((f: any) => f.type === 'SOLID' && f.visible !== false) || node.fills[0]
+      : null
+
   if (mainFill) {
-    vectorData.color = mainFill.type === 'SOLID' ? 
-                      extractColor(mainFill.color) : 
-                      'currentColor'; // 默认使用当前颜色，以便于前端轻松更改
+    vectorData.color = mainFill.type === 'SOLID' ? extractColor(mainFill.color) : 'currentColor' // 默认使用当前颜色，以便于前端轻松更改
   } else {
-    vectorData.color = 'currentColor';
+    vectorData.color = 'currentColor'
   }
-  
+
   // 最后检查：如果没有paths且不是复杂多路径图标，则不视为矢量图标
   if (!vectorData.paths && !vectorData.isMultiPath) {
-    return undefined;
+    return undefined
   }
-  
-  return vectorData;
+
+  return vectorData
 }
 
 // 提取填充信息
@@ -354,45 +357,44 @@ function getNodePosition(node: any) {
   }
 }
 
-
 // 计算与兄弟节点的间距
 function calculateSiblingSpacing(node: any, siblings: any[], parent: any) {
   if (!siblings.length || !parent) return undefined
-  
+
   const isHorizontal = parent.layoutMode === 'HORIZONTAL'
   const isVertical = parent.layoutMode === 'VERTICAL'
-  
+
   // 仅在自动布局容器中计算
   if (!isHorizontal && !isVertical) return undefined
-  
+
   // 首先检查父容器是否有设置统一的itemSpacing
   if ('itemSpacing' in parent && parent.itemSpacing !== undefined) {
     // 对于有统一间距的自动布局，使用更智能的方式
     // 只在节点的一侧设置间距，避免重复
     // 水平布局: 只在右侧（after）设置间距，使用margin-right样式
     // 垂直布局: 只在下方（after）设置间距，使用margin-bottom样式
-    const result: {after?: number, direction?: 'horizontal' | 'vertical'} = {
+    const result: { after?: number; direction?: 'horizontal' | 'vertical' } = {
       direction: isHorizontal ? 'horizontal' : 'vertical'
     }
-    
+
     // 找出当前节点在兄弟节点中的位置
     const sortedSiblings = [...siblings].sort((a, b) => {
       const posA = getNodePosition(a)
       const posB = getNodePosition(b)
       return isHorizontal ? posA.x - posB.x : posA.y - posB.y
     })
-    
-    const nodeIndex = sortedSiblings.findIndex(s => s.id === node.id)
+
+    const nodeIndex = sortedSiblings.findIndex((s) => s.id === node.id)
     if (nodeIndex === -1) return undefined
-    
+
     // 只有非最后一个元素才设置after间距
     if (nodeIndex < sortedSiblings.length - 1) {
       result.after = parent.itemSpacing
     }
-    
+
     return result
   }
-  
+
   // 如果没有统一的itemSpacing，则需要计算实际间距
   // 排序兄弟节点
   const sortedSiblings = [...siblings].sort((a, b) => {
@@ -400,49 +402,49 @@ function calculateSiblingSpacing(node: any, siblings: any[], parent: any) {
     const posB = getNodePosition(b)
     return isHorizontal ? posA.x - posB.x : posA.y - posB.y
   })
-  
+
   // 找到当前节点在排序后兄弟节点中的位置
-  const nodeIndex = sortedSiblings.findIndex(s => s.id === node.id)
+  const nodeIndex = sortedSiblings.findIndex((s) => s.id === node.id)
   if (nodeIndex === -1) return undefined
-  
-  const result: {after?: number, direction?: 'horizontal' | 'vertical'} = {
+
+  const result: { after?: number; direction?: 'horizontal' | 'vertical' } = {
     direction: isHorizontal ? 'horizontal' : 'vertical'
   }
   const nodePos = getNodePosition(node)
-  
+
   // 智能间距计算: 只计算当前元素后面的间距
   // 对于最后一个元素，不设置after
   // 对于其他元素，设置after
   if (nodeIndex < sortedSiblings.length - 1) {
     const nextSibling = sortedSiblings[nodeIndex + 1]
     const nextPos = getNodePosition(nextSibling)
-    
+
     result.after = isHorizontal
       ? toDecimalPlace(nextPos.x - (nodePos.x + nodePos.width))
       : toDecimalPlace(nextPos.y - (nodePos.y + nodePos.height))
   }
-  
+
   return result
 }
 
 // 提取布局信息
 function extractLayout(node: any, parent?: any, siblings?: any[], rootNode?: any) {
-  let relativeX, relativeY;
-  
+  let relativeX, relativeY
+
   // 获取当前节点和根节点的位置
-  const nodePos = getNodePosition(node);
-  
+  const nodePos = getNodePosition(node)
+
   if (rootNode) {
     // 计算相对于根节点的坐标
-    const rootPos = getNodePosition(rootNode);
-    relativeX = nodePos.x - rootPos.x;
-    relativeY = nodePos.y - rootPos.y;
+    const rootPos = getNodePosition(rootNode)
+    relativeX = nodePos.x - rootPos.x
+    relativeY = nodePos.y - rootPos.y
   } else {
     // 如果没有根节点，使用原始坐标
-    relativeX = nodePos.x;
-    relativeY = nodePos.y;
+    relativeX = nodePos.x
+    relativeY = nodePos.y
   }
-  
+
   const layout: UINode['layout'] = {
     x: toDecimalPlace(relativeX),
     y: toDecimalPlace(relativeY)
@@ -461,12 +463,10 @@ function extractLayout(node: any, parent?: any, siblings?: any[], rootNode?: any
     layout.rotation = toDecimalPlace(node.rotation)
   }
 
-
-
   if ('layoutAlign' in node) {
     layout.layoutAlign = node.layoutAlign
   }
-  
+
   // 提取布局模式
   if ('layoutMode' in node) {
     layout.layoutMode = node.layoutMode
@@ -486,11 +486,11 @@ function extractLayout(node: any, parent?: any, siblings?: any[], rootNode?: any
       left: node.paddingLeft || 0
     }
   }
-  
+
   // 只添加与兄弟节点的间距关系
   if (siblings?.length && node !== rootNode && parent) {
     layout.spacing = {}
-    
+
     const siblingSpacing = calculateSiblingSpacing(node, siblings, parent)
     if (siblingSpacing && siblingSpacing.after !== undefined) {
       layout.spacing.siblings = siblingSpacing
@@ -514,7 +514,13 @@ function extractCustomComponent(node: any) {
 }
 
 // 主函数：提取UI节点信息
-export async function extractUINode(node: any, maxDepth = Infinity, parent?: any, siblings?: any[], rootNode?: any): Promise<UINode | null> {
+export async function extractUINode(
+  node: any,
+  maxDepth = Infinity,
+  parent?: any,
+  siblings?: any[],
+  rootNode?: any
+): Promise<UINode | null> {
   // 过滤掉隐藏的节点
   if ('visible' in node && node.visible === false) {
     return null
@@ -553,6 +559,28 @@ export async function extractUINode(node: any, maxDepth = Infinity, parent?: any
   const vectorData = extractVectorData(node)
   if (vectorData) {
     uiNode.vector = vectorData
+
+    // 对于图标/矢量节点，尝试使用Figma API直接导出SVG
+    // try {
+    //   if ('exportAsync' in node) {
+    //     // 使用Figma的API导出SVG，只指定格式，不使用constraint参数
+    //     const svgData = await node.exportAsync({
+    //       format: 'SVG'
+    //     });
+        
+    //     // 将二进制数据转换为字符串
+    //     const svgString = new TextDecoder().decode(svgData);
+        
+    //     // 存储SVG字符串
+    //     if (svgString && svgString.length > 0 && uiNode.vector) {
+    //       // 生成data URI，可以直接在img标签中使用
+    //       const base64Data = btoa(svgString);
+    //       uiNode.vector.dataUrl = `data:image/svg+xml;base64,${base64Data}`;
+    //     }
+    //   }
+    // } catch (error) {
+    //   console.error(`Failed to export SVG for node ${node.id}:`, error);
+    // }
   }
 
   try {
@@ -598,7 +626,9 @@ export async function extractUINode(node: any, maxDepth = Infinity, parent?: any
   if (!customComponent && maxDepth > 0 && 'children' in node && node.children) {
     // 提取所有子节点信息，并传递当前节点作为它们的父节点
     const childNodes = await Promise.all(
-      node.children.map((child: any) => extractUINode(child, maxDepth - 1, node, node.children, rootNode))
+      node.children.map((child: any) =>
+        extractUINode(child, maxDepth - 1, node, node.children, rootNode)
+      )
     )
     uiNode.children = childNodes.filter((node): node is UINode => node !== null)
   }
@@ -612,12 +642,14 @@ export async function extractSelectedNodes(selection: readonly any[]) {
   if (!selection.length) {
     return []
   }
-  
+
   // 以选中的第一个节点作为根节点
   const rootNode = selection[0]
-  
+
   const nodes = await Promise.all(
-    selection.map((node) => extractUINode(node, Infinity, node.parent, node.parent?.children, rootNode))
+    selection.map((node) =>
+      extractUINode(node, Infinity, node.parent, node.parent?.children, rootNode)
+    )
   )
   // 过滤掉null节点
   return nodes.filter((node): node is UINode => node !== null)

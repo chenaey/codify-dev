@@ -2,6 +2,7 @@
 import type { CodeBlock } from '@/codegen/types'
 import type { SelectionNode } from '@/ui/state'
 
+import AIChatInput from '@/components/AIChatInput.vue'
 import Badge from '@/components/Badge.vue'
 import Code from '@/components/Code.vue'
 import IconButton from '@/components/IconButton.vue'
@@ -11,13 +12,20 @@ import Section from '@/components/Section.vue'
 import { useToast } from '@/composables/toast'
 import { selection, selectedNode, options, selectedTemPadComponent, activePlugin } from '@/ui/state'
 import { getDesignComponent } from '@/utils'
-import { generateCode } from '@/utils/ai/client'
+import { 
+  generateCode, 
+  clearConversation, 
+  sendUserMessage as sendMessage,
+  createResponseGenerator
+} from '@/utils/ai/client'
 import {
   initPendingResult,
   updateGenerationResult,
   getGenerationResult
 } from '@/utils/cache/aiGenCache'
 import { extractSelectedNodes } from '@/utils/uiExtractor'
+import { parseUIInfo } from '@/utils/uiParser'
+import { ref, computed, shallowRef, watch, onUnmounted, nextTick } from 'vue'
 
 interface GenerationState {
   loading: { stop: () => void } | null
@@ -242,7 +250,7 @@ async function handlePendingCache(nodeId: string) {
         const uiInfo = await extractSelectedNodes([selectedNode.value])
 
         // 使用生成器获取流式响应并实时更新
-        for await (const chunk of generateCode(uiInfo, options.value.project)) {
+        for await (const chunk of generateCode(uiInfo, options.value.project, nodeId)) {
           if (controller.signal.aborted) {
             return false
           }
@@ -286,7 +294,7 @@ async function initNewGeneration(nodeId: string) {
     // 如果返回 null，说明已经有完成的结果，再次检查
     return await handleCompletedCache(nodeId)
   }
-
+  clearChatHistory()
   // 将待生成的代码块添加到列表开头
   codeBlocks.value.unshift(...pendingResult.codeBlocks)
   const aiCodeBlock = ref(codeBlocks.value[0])
@@ -305,9 +313,10 @@ async function initNewGeneration(nodeId: string) {
     try {
       // 获取选中节点的信息
       const uiInfo = await extractSelectedNodes([selectedNode.value])
-
+      const parsedInfo = parseUIInfo(uiInfo, options.value.project)
+      console.log(parsedInfo, 'parsedInfo')
       // 使用生成器获取流式响应并实时更新
-      for await (const chunk of generateCode(uiInfo, options.value.project)) {
+      for await (const chunk of generateCode(parsedInfo, options.value.project, nodeId)) {
         if (controller.signal.aborted) {
           return false
         }
@@ -424,6 +433,71 @@ onUnmounted(() => {
   }
   generatingStates.value.clear()
 })
+
+// 处理用户发送消息的函数
+async function sendUserMessage(message: string) {
+  if (!selectedNode.value) return
+
+  const nodeId = selectedNode.value.id
+  const projectId = options.value.project
+
+  // 如果没有AI生成的代码，先生成
+  if (!codeBlocks.value.some((block) => block.name === 'ai-generated')) {
+    await generateAICode()
+    await nextTick()
+  }
+
+  const aiCodeBlock = codeBlocks.value.find((block) => block.name === 'ai-generated')
+  if (!aiCodeBlock) return
+
+  // 清除当前代码内容，准备接收新内容
+  aiCodeBlock.code = ''
+  aiCodeBlock.title = 'AI Generating...'
+
+  try {
+    // 获取选中节点的信息(仅用于首次使用)
+    const uiInfo = await extractSelectedNodes([selectedNode.value])
+
+    // 创建消息生成器
+    const generator = createResponseGenerator(uiInfo, projectId, nodeId)
+    
+    // 定义更新函数
+    const updateCode = (content: string) => {
+      aiCodeBlock.code = content
+    }
+
+    // 使用会话管理API发送用户消息
+    await sendMessage(nodeId, projectId, message, uiInfo, generator, updateCode)
+
+    // 清除代码块的Markdown语法标记
+    aiCodeBlock.code = cleanMarkdownCode(aiCodeBlock.code)
+    aiCodeBlock.title = 'AI Updated Code'
+
+    show('Code updated')
+  } catch (error: any) {
+    console.error('生成失败:', error)
+    aiError.value = '生成失败: ' + (error.message || '未知错误')
+  }
+}
+
+// 清除历史对话
+function clearChatHistory() {
+  if (!selectedNode.value) return
+  clearConversation(selectedNode.value.id, options.value.project)
+}
+
+// 检查是否有AI生成的代码块且生成成功
+const showAIChatInput = computed(() => {
+  if (!selectedNode.value) return false
+  
+  // 检查是否有AI生成的代码块
+  const hasGeneratedCode = codeBlocks.value.some(block => 
+    block.name === 'ai-generated' && 
+    (block.title === 'AI Generated Code' || block.title === 'AI Updated Code' || block.title === 'AI Generated Cache')
+  )
+  
+  return hasGeneratedCode
+})
 </script>
 
 <template>
@@ -451,6 +525,14 @@ onUnmounted(() => {
     <div v-if="aiError" class="error">
       {{ aiError }}
     </div>
+    <!-- 在最后添加聊天输入框，只在生成成功后显示 -->
+    <AIChatInput
+      v-if="showAIChatInput"
+      :disabled="!selectedNode"
+      :loading="selectedNode && isGeneratingAICode(selectedNode.id)"
+      @send="sendUserMessage"
+      @clear="clearChatHistory"
+    />
 
     <Code
       v-if="componentCode"

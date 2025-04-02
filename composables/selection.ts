@@ -15,16 +15,16 @@ async function syncSelection() {
   console.log('[selection]', figma.currentPage.selection)
 
   // Print CSS info for the first selected node
-  // const selectedNode = figma.currentPage.selection[0]
-  // if (selectedNode) {
-  //   try {
-  //     // 提取UI信息（包含每个节点的CSS）
-  //     // const uiInfo = await extractSelectedNodes(figma.currentPage.selection)
-  //     console.log('[UI Info]')
-  //   } catch (error) {
-  //     console.error('Failed to extract UI info:', error)
-  //   }
-  // }
+  const selectedNode = figma.currentPage.selection[0]
+  if (selectedNode) {
+    try {
+      // 提取UI信息（包含每个节点的CSS）
+      const uiInfo = await extractSelectedNodes(figma.currentPage.selection)
+      console.log('[UI Info]', uiInfo)
+    } catch (error) {
+      console.error('Failed to extract UI info:', error)
+    }
+  }
 }
 
 async function handleClick() {

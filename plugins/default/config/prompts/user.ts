@@ -34,23 +34,33 @@ const mvvmPrompt = `
 
 5. 图标/SVG处理：
    - 当节点包含vector字段时，表示这是一个矢量图标或SVG元素（注意：只有真正的图标节点才会有vector字段）
-   - 对于带有paths的vector，需要将其转换为内联SVG，例如：
-     <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-       <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" 
-             fill="currentColor" 
-             stroke="none"
-             stroke-width="1" />
-     </svg>
+   - 优先使用以下方式处理SVG图标（按优先级顺序）：
+     
+     1. 如果存在vector.dataUrl，直接使用img标签：
+        <img :src="vector.dataUrl" :width="vector.width" :height="vector.height" alt="图标" />
+     
+     2. 如果不存在dataUrl但有paths数据，则转换为内联SVG：
+        <svg :width="vector.width" :height="vector.height" :viewBox="vector.viewBox" xmlns="http://www.w3.org/2000/svg">
+          <path 
+            v-for="(path, index) in vector.paths" 
+            :key="index"
+            :d="path.d" 
+            :fill="path.fill || vector.color || 'currentColor'" 
+            :stroke="path.stroke"
+            :stroke-width="path.strokeWidth"
+            :fill-rule="path.fillRule" />
+        </svg>
    
-   - 对于isMultiPath为true的复杂图标，可以简化为单色图标，例如：
-     <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-       <rect width="100%" height="100%" fill="#FF0000" />
-     </svg>
+     3. 对于isMultiPath为true的复杂图标，简化为色块：
+        <svg :width="vector.width" :height="vector.height" :viewBox="vector.viewBox" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100%" height="100%" :fill="vector.color || '#409EFF'" />
+        </svg>
 
 6. 严格遵循数据驱动视图原则：将模板内容数据化，避免硬编码，使数据和视图解耦。
    - template中的文本内容都应该使用数据驱动，
      如： <div>标题</div> 应该转换为 <div>{{ data.title }}</div> 
    - 根据提供的JSON结构设计合理的组件数据结构，比如根据children字段来设计应用v-for的列表数据结构,注意不是所有的都需要v-for。
+   - 确保组件数据结构合理，必须包含JSON中所有可见文本节点，不要遗漏任何数据。
 
 样式处理规则：
 
@@ -128,18 +138,27 @@ const cbgPrompt = `
 
 5. 图标/SVG处理：
    - 当节点包含vector字段时，表示这是一个矢量图标或SVG元素（注意：只有真正的图标节点才会有vector字段）
-   - 对于带有paths的vector，需要将其转换为内联SVG，例如：
-     <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-       <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" 
-             fill="currentColor" 
-             stroke="none"
-             stroke-width="1" />
-     </svg>
+   - 优先使用以下方式处理SVG图标（按优先级顺序）：
+     
+     1. 如果存在vector.dataUrl，直接使用img标签：
+        <img :src="vector.dataUrl" :width="vector.width" :height="vector.height" alt="图标" />
+     
+     2. 如果不存在dataUrl但有paths数据，则转换为内联SVG：
+        <svg :width="vector.width" :height="vector.height" :viewBox="vector.viewBox" xmlns="http://www.w3.org/2000/svg">
+          <path 
+            v-for="(path, index) in vector.paths" 
+            :key="index"
+            :d="path.d" 
+            :fill="path.fill || vector.color || 'currentColor'" 
+            :stroke="path.stroke"
+            :stroke-width="path.strokeWidth"
+            :fill-rule="path.fillRule" />
+        </svg>
    
-   - 对于isMultiPath为true的复杂图标，可简化为单色图标：
-     <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-       <rect width="100%" height="100%" fill="#409EFF" />
-     </svg>
+     3. 对于isMultiPath为true的复杂图标，简化为色块：
+        <svg :width="vector.width" :height="vector.height" :viewBox="vector.viewBox" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100%" height="100%" :fill="vector.color || '#409EFF'" />
+        </svg>
 
 样式处理规则：
 
