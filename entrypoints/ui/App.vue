@@ -12,7 +12,7 @@ import PrefSection from '@/components/sections/PrefSection.vue'
 import Toast from '@/components/Toast.vue'
 import { useKeyLock, useSelection } from '@/composables'
 import { ui } from '@/ui/figma'
-import { options, isQuirksMode } from '@/ui/state'
+import { options, runtimeMode } from '@/ui/state'
 import { showDuplicateItem } from '@/utils'
 
 useSelection()
@@ -33,9 +33,13 @@ const panelWidth = `${ui.tempadPanelWidth}px`
       <div class="tp-row">
         CBG DEV
         <IconButton
-          v-if="isQuirksMode"
+          v-if="runtimeMode !== 'standard'"
           variant="secondary"
-          title="TemPad Dev is running in quirks mode. Enter normal mode by duplicating this file to your drafts."
+          :title="
+            runtimeMode === 'quirks'
+              ? 'TemPad Dev is running in quirks mode. Enter standard mode by duplicating this file to your drafts.'
+              : 'TemPad Dev is not able to run in view-only mode. Enter standard mode by duplicating this file to your drafts.'
+          "
           dull
           @click="showDuplicateItem"
         >
