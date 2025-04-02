@@ -1,6 +1,6 @@
 import { getTemPadComponent } from '@/utils'
-import { useStorage, computedAsync, createGlobalState } from '@vueuse/core'
-import { shallowRef, computed, ref, watch } from 'vue'
+import { useStorage, computedAsync } from '@vueuse/core'
+import { shallowRef, computed } from 'vue'
 
 import type { QuirksNode, GhostNode } from './quirks'
 
@@ -69,47 +69,6 @@ export const options = useStorage<Options>('tempad-dev', {
   scale: 1,
   plugins: {},
   activePluginSource: null
-})
-
-export const useGlobalState = createGlobalState(() => {
-  const scaleInputs = ref<ScaleSelectionType[]>([
-    {
-      scale: '1x',
-      fileType: 'PNG',
-      suffix: ''
-    }
-  ])
-
-  function addScaleInput() {
-    const scaleInputsLen = scaleInputs.value.length + 1
-    scaleInputs.value.unshift({
-      scale: `${scaleInputsLen > 4 ? '1' : scaleInputsLen}x`,
-      fileType: 'PNG',
-      suffix: ''
-    })
-  }
-
-  function removeScaleInput(index: number) {
-    scaleInputs.value.splice(index, 1)
-  }
-
-  watch(
-    selectedNode,
-    () => {
-      scaleInputs.value = [
-        {
-          scale: '1x',
-          fileType: 'PNG',
-          suffix: ''
-        }
-      ]
-    },
-    {
-      immediate: true
-    }
-  )
-
-  return { scaleInputs, addScaleInput, removeScaleInput }
 })
 
 export const isQuirksMode = shallowRef<boolean>(false)

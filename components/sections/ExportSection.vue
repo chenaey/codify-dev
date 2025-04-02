@@ -1,16 +1,11 @@
 <script lang="ts" setup>
 import { computed, ref, watch, onUnmounted } from 'vue'
-import { selectedNode, ScaleSelectionType, useGlobalState } from '@/ui/state'
+import { selectedNode, ScaleSelectionType } from '@/ui/state'
 import Button from '../Button.vue'
 import Section from '../Section.vue'
 import JSZip from 'jszip'
 
-const { scaleInputs } = useGlobalState()
-const currentSelection = computed(() => ({
-  fileType: 'PNG',
-  scale: '1x',
-  suffix: ''
-}))
+
 const previewUrl = ref('')
 const exportableNodes = ref<{ node: SceneNode; name: string; type: string }[]>([])
 const isExporting = ref(false)
@@ -104,22 +99,6 @@ onUnmounted(() => {
     URL.revokeObjectURL(previewUrl.value)
   }
 })
-
-const scaleOptions = [
-  { value: '0.5x', label: '0.5x' },
-  { value: '1x', label: '1x' },
-  { value: '1.5x', label: '1.5x' },
-  { value: '2x', label: '2x' },
-  { value: '3x', label: '3x' },
-  { value: '4x', label: '4x' },
-  { value: '512w', label: '512w' },
-  { value: '512h', label: '512h' }
-]
-const fileTypes = [
-  { value: 'PNG', label: 'PNG' },
-  { value: 'JPG', label: 'JPG' },
-  { value: 'SVG', label: 'SVG' }
-]
 
 // 添加导出选项设置（隐藏的默认设置）
 const exportOptions = ref({
@@ -287,7 +266,7 @@ function handleFileSelectChange(select: ScaleSelectionType) {
 </script>
 
 <template>
-  <Section class="tp-export" v-if="scaleInputs.length && filteredExportNodes.length">
+  <Section class="tp-export" v-if="filteredExportNodes.length">
     <template #header>
       <div class="tp-code-header tp-row tp-shrink tp-gap-l">
         Export
