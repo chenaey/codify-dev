@@ -33,13 +33,14 @@ const mvvmPrompt = `
    - 使用组件时遵循props中定义的属性列表
 
 5. 图标/SVG处理：
-   - 当节点包含vector字段时，表示这是一个矢量图标或SVG元素（注意：只有真正的图标节点才会有vector字段）
+   - 当节点包含vector字段时，表示这是一个矢量图标或SVG元素（
    - 优先使用以下方式处理SVG图标（按优先级顺序）：
      
-     1. 如果存在vector.dataUrl，直接使用img标签：
-        <img :src="vector.dataUrl" :width="vector.width" :height="vector.height" alt="图标" />
+     1. 如果存在vector.assetPath，使用require导入本地资源：
+        <img :src="require([vector.assetPath])"  alt="图标" />
+        注意：这里不需要遵循数据驱动视图原则
      
-     2. 如果不存在dataUrl但有paths数据，则转换为内联SVG：
+     2. 如果不存在vector.resourceId但有paths数据，则转换为内联SVG：
         <svg :width="vector.width" :height="vector.height" :viewBox="vector.viewBox" xmlns="http://www.w3.org/2000/svg">
           <path 
             v-for="(path, index) in vector.paths" 
@@ -57,7 +58,8 @@ const mvvmPrompt = `
         </svg>
 
 6. 严格遵循数据驱动视图原则：将模板内容数据化，避免硬编码，使数据和视图解耦。
-   - template中的文本内容都应该使用数据驱动，
+   - 数据结构相似性达70%时，应该明确使用v-for，差异的部分用字段来标识
+   - template中的文本内容都应该使用数据驱动，需要明确定义在 data/props 中
      如： <div>标题</div> 应该转换为 <div>{{ data.title }}</div> 
    - 根据提供的JSON结构设计合理的组件数据结构，比如根据children字段来设计应用v-for的列表数据结构,注意不是所有的都需要v-for。
    - 确保组件数据结构合理，必须包含JSON中所有可见文本节点，不要遗漏任何数据。
@@ -107,43 +109,44 @@ const mvvmPrompt = `
 `
 const cbgPrompt = `
 
-
 核心要求：
 1. 基于提供的Figma节点JSON数据，生成Vue3组件
-2. 使用Script Setup + CSS Module + Less语法
+2. 使用Script Setup +CSS Module + Less语法
 3. 严格遵循响应式设计原则
-4. 符合Vue3组件开发最佳实践
-5. 输出组件代码，不要输出任何解释
-
+4. 输出组件代码，不要输出任何解释
 
 组件开发规范：
 
 1. 响应式铁律：
-   - 容器组件禁止设置：width/height/min-width/min-height
+   - 容器组件禁止设置：width/height/min-width/min-height这些属性为固定数值，允许设置100%。
    - 允许设置：max-width/max-height（仅限非容器元素）
 
 2. 布局准则：
    - 使用Flex实现弹性布局
+   - 严格遵循数据的嵌套结构，严格遵循节点中的layoutMode定义：
+     'HORIZONTAL' - 水平布局模式，相当于CSS中的 display: flex，子元素会在水平方向上排列。
+     'VERTICAL' - 垂直布局模式，相当于CSS中的 display: flex 和 flex-direction: column，子元素会在垂直方向上排列。
 
-3. 代码质量要求：
-   - 重复节点必须转换为v-for循环
-   - 提取共用的样式类
-   - 使用语义化的class命名
-   - 添加必要的注释
 
-4. 特殊处理标记：
+3. 特殊处理标记：
    固定尺寸元素仅限：
    - 按钮/图标/头像等原子元素
    - 需要精确控制大小的UI控件
 
+4. 自定义组件处理：
+   - 当节点包含custom_component字段时，表示这是一个自定义Vue2组件
+   - 需要在组件内添加对应的import语句，使用importPath信息
+   - 使用组件时遵循props中定义的属性列表
+
 5. 图标/SVG处理：
-   - 当节点包含vector字段时，表示这是一个矢量图标或SVG元素（注意：只有真正的图标节点才会有vector字段）
+   - 当节点包含vector字段时，表示这是一个矢量图标或SVG元素（
    - 优先使用以下方式处理SVG图标（按优先级顺序）：
      
-     1. 如果存在vector.dataUrl，直接使用img标签：
-        <img :src="vector.dataUrl" :width="vector.width" :height="vector.height" alt="图标" />
+     1. 如果存在vector.assetPath，使用require导入本地资源：
+        <img :src="require([vector.assetPath])"  alt="图标" />
+        注意：这里不需要遵循数据驱动视图原则
      
-     2. 如果不存在dataUrl但有paths数据，则转换为内联SVG：
+     2. 如果不存在vector.resourceId但有paths数据，则转换为内联SVG：
         <svg :width="vector.width" :height="vector.height" :viewBox="vector.viewBox" xmlns="http://www.w3.org/2000/svg">
           <path 
             v-for="(path, index) in vector.paths" 
@@ -160,15 +163,55 @@ const cbgPrompt = `
           <rect width="100%" height="100%" :fill="vector.color || '#409EFF'" />
         </svg>
 
+6. 严格遵循数据驱动视图原则：将模板内容数据化，避免硬编码，使数据和视图解耦。
+   - 数据结构相似性达70%时，应该明确使用v-for，差异的部分用字段来标识
+   - template中的文本内容都应该使用数据驱动，需要明确定义在 data/props 中
+     如： <div>标题</div> 应该转换为 <div>{{ data.title }}</div> 
+   - 根据提供的JSON结构设计合理的组件数据结构，比如根据children字段来设计应用v-for的列表数据结构,注意不是所有的都需要v-for。
+   - 确保组件数据结构合理，必须包含JSON中所有可见文本节点，不要遗漏任何数据。
+
 样式处理规则：
 
 1. 样式优先级：每个节点有一个customStyle的字段，是已经格式化好的样式，如果当前节点有跟customStyle已经定义的相同的CSS key则优先用customStyle，不需要修改里面的rem等函数。
-2. 单位保留：不转换rem()等函数，原样保留
-3. 默认值过滤：如font-size:normal等默认值应省略
-4.CSS Module请直接使用$style
+2. 当customStyle没有包含间距相关样式时，应该回退到layout.spacing数据
+3. 单位保留：不转换rem()等函数，原样保留
+4. 默认值过滤：如font-size:normal等默认值应省略
+5. 非必要不使用:style绑定样式
+6. 在使用customStyle、style的基础上，应该用每个节点layout.spacing.siblings字段（如有）来推算出准确的父子元素之间、兄弟元素之间的间距，其中direction代表间距方向。
+  这是layout的相关字段定义和描述
+  layout: {
+    x: number // 布局x坐标
+    y: number // 布局y坐标
+    width?: number // 布局宽度
+    height?: number // 布局高度
+    rotation?: number 
+    layoutMode?: string // 布局模式 (HORIZONTAL | VERTICAL)
+    layoutAlign?: string // 布局对齐方式 (STRETCH | CENTER | MIN | MAX)
+    padding?: {
+      top: number
+      right: number
+      bottom: number
+      left: number
+    }
+    // 布局信息关系字段
+    spacing?: {
+      siblings?: {
+        after?: number  // 与后一个兄弟节点的间距
+        direction?: 'horizontal' | 'vertical' // 间距方向，水平或垂直
+      }
+    }
+    // 布局意图描述
+    intent?: string
+  }
+ 
+代码质量要求：
+   - 减少重复代码：将重复的节点转换为 v-for 循环，提高复用性。
+   - 优化样式管理：提取共用的样式类，避免内联样式，并使用语义化的 class 命名。
+   - 提高可读性：优化模板逻辑，使代码更加清晰，避免不必要的逻辑嵌套。
+   - 增强可维护性：添加必要的注释，说明关键代码的作用，方便后续维护。
 
 禁止事项：
-- 出现重复的模板代码
+   - 出现重复的模板代码
 `
 const iosPrompt = `
 核心要求：
@@ -307,7 +350,6 @@ const projectMap: Record<string, string> = {
 }
 
 const getPrompt = (projectId: string) => {
-  console.log(projectId)
   if (!projectMap[projectId]) {
     throw new Error(`Project ID ${projectId} not found`)
   }

@@ -21,6 +21,11 @@ export function parseUIInfo(uiInfo: any, projectType?: string): any {
   
   // 处理单个节点或节点数组
   const processNode = (node: any) => {
+    // 处理图标信息
+    if (node.vector) {
+      processVectorInfo(node.vector, projectType)
+    }
+    
     // 处理layout和spacing
     if (node.layout) {
       // 如果是MVVM项目，调整spacing值
@@ -73,5 +78,72 @@ export function parseUIInfo(uiInfo: any, projectType?: string): any {
     return parsedInfo.map(processNode)
   } else {
     return processNode(parsedInfo)
+  }
+}
+
+/**
+ * 处理矢量/图标信息，根据项目类型转换图标尺寸单位
+ * @param vector - 矢量/图标数据
+ * @param projectType - 项目类型
+ */
+function processVectorInfo(vector: any, projectType?: string): void {
+  if (!vector) return
+  
+  // 添加资源路径信息，使用预先生成的fileName
+  if (vector.resourceId && !vector.assetPath && vector.fileName) {    
+    // 根据不同项目类型设置资源路径格式
+    switch (projectType) {
+      case 'mvvm':
+        // Vue2 项目使用 @/assets 路径
+        vector.assetPath = `@/assets/${vector.fileName}`
+        break
+      case 'cbg':
+        // Vue3 项目使用相对路径
+        vector.assetPath = `@/assets/${vector.fileName}`
+        break
+      case 'ios':
+        // iOS 项目使用资源名称
+        vector.assetPath = vector.fileName
+        break
+      case 'android':
+        // Android 项目使用资源ID
+        vector.assetPath = `@drawable/${vector.fileName}`
+        break
+      default:
+        vector.assetPath = `icons/${vector.fileName}`
+    }
+  }
+  
+  // 根据项目类型处理宽高单位
+  if (projectType) {
+    // 调整宽高值
+    if (typeof vector.width === 'number' && typeof vector.height === 'number') {
+      switch (projectType) {
+        case 'mvvm':
+          // MVVM项目宽高乘以2
+          vector.width *= 2
+          vector.height *= 2
+          
+          // 添加单位信息
+          vector.widthUnit = 'rem'
+          vector.heightUnit = 'rem'
+          break
+        case 'cbg':
+          // CBG项目保持原始值，但添加单位
+          vector.widthUnit = 'px'
+          vector.heightUnit = 'px'
+          break
+        case 'ios':
+          // iOS项目使用点单位
+          vector.widthUnit = 'pt'
+          vector.heightUnit = 'pt'
+          break
+        case 'android':
+          // Android项目使用dp单位
+          vector.widthUnit = 'dp'
+          vector.heightUnit = 'dp'
+          break
+      }
+    }
   }
 } 

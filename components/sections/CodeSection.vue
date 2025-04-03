@@ -26,6 +26,8 @@ import {
 import { extractSelectedNodes } from '@/utils/uiExtractor'
 import { parseUIInfo } from '@/utils/uiParser'
 import { ref, computed, shallowRef, watch, onUnmounted, nextTick } from 'vue'
+import { downloadIconResources } from '@/utils/download'
+import Button from '../Button.vue'
 
 interface GenerationState {
   loading: { stop: () => void } | null
@@ -247,7 +249,7 @@ async function handlePendingCache(nodeId: string) {
     state.promise = (async () => {
       try {
         // 获取选中节点的信息并继续生成
-        const uiInfo = await extractSelectedNodes([selectedNode.value])
+        const { nodes: uiInfo } = await extractSelectedNodes([selectedNode.value])
 
         // 使用生成器获取流式响应并实时更新
         for await (const chunk of generateCode(uiInfo, options.value.project, nodeId)) {
@@ -312,9 +314,10 @@ async function initNewGeneration(nodeId: string) {
   state.promise = (async () => {
     try {
       // 获取选中节点的信息
-      const uiInfo = await extractSelectedNodes([selectedNode.value])
+      const { nodes: uiInfo, resources } = await extractSelectedNodes([selectedNode.value])
       const parsedInfo = parseUIInfo(uiInfo, options.value.project)
       console.log(parsedInfo, 'parsedInfo')
+      console.log('Resources collected:', resources)
       // 使用生成器获取流式响应并实时更新
       for await (const chunk of generateCode(parsedInfo, options.value.project, nodeId)) {
         if (controller.signal.aborted) {
@@ -456,7 +459,7 @@ async function sendUserMessage(message: string) {
 
   try {
     // 获取选中节点的信息(仅用于首次使用)
-    const uiInfo = await extractSelectedNodes([selectedNode.value])
+    const { nodes: uiInfo } = await extractSelectedNodes([selectedNode.value])
 
     // 创建消息生成器
     const generator = createResponseGenerator(uiInfo, projectId, nodeId)
@@ -498,12 +501,44 @@ const showAIChatInput = computed(() => {
   
   return hasGeneratedCode
 })
+
+const resources = ref<Map<string, any>>(new Map())
+const isDownloading = ref(false)
+
+// 处理图标下载
+async function handleDownloadIcons() {
+  if (!resources.value?.size) return
+  
+  isDownloading.value = true
+  try {
+    const filename = `${selectedNode.value?.name || 'icons'}-export.zip`
+    await downloadIconResources(resources.value, filename)
+  } finally {
+    isDownloading.value = false
+  }
+}
+// 更新资源列表
+watch(selectedNode, async (node) => {
+  if (!node) {
+    resources.value.clear()
+    return
+  }
+
+  try {
+    const { nodes: uiInfo, resources: newResources } = await extractSelectedNodes([node])
+    resources.value = newResources
+  } catch (error) {
+    console.error('Failed to extract resources:', error)
+    resources.value.clear()
+  }
+}, { immediate: true })
+
 </script>
 
 <template>
   <Section :collapsed="!selectedNode || !(componentCode || codeBlocks.length)">
     <template #header>
-      <div class="tp-code-header tp-row tp-shrink tp-gap-l">
+      <div class="tp-code-header tp-row tp-shrink tp-gap-l code-section-header">
         Code
         <Badge v-if="activePlugin" title="Code in this section is transformed by this plugin">{{
           activePlugin.name
@@ -516,6 +551,17 @@ const showAIChatInput = computed(() => {
         >
           AI
         </IconButton>
+        <div class="tp-code-actions tp-row tp-gap-s">
+          <!-- 添加图标下载按钮 -->
+          <Button
+            v-if="resources?.size"
+            class="tp-icon-download-btn"
+            @click="handleDownloadIcons"
+            :disabled="isDownloading"
+          >
+            {{ isDownloading ? 'Exporting...' : `Export ${resources.size} icons` }}
+          </Button>
+        </div>
       </div>
       <IconButton v-if="warning" variant="secondary" :title="warning" dull>
         <Info />
@@ -569,6 +615,10 @@ const showAIChatInput = computed(() => {
   gap: var(--spacer-l, 8px);
 }
 
+.code-section-header {
+  padding-bottom: 8px;
+}
+
 .tp-code-code {
   margin-bottom: 8px;
 }
@@ -576,5 +626,24 @@ const showAIChatInput = computed(() => {
 .error {
   color: var(--color-error);
   margin-bottom: 8px;
+}
+
+.tp-icon-download-btn {
+  --btn-height: 2rem;
+  --btn-padding: 0 0.75rem;
+  border-radius: 0.375rem;
+  font-weight: var(--text-body-medium-strong-font-weight);
+  letter-spacing: var(--text-body-medium-strong-letter-spacing);
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+.tp-icon-download-btn:hover {
+  background: var(--color-primary-hover);
+}
+
+.tp-icon-download-btn:disabled {
+  background: var(--color-primary-disabled);
+  cursor: not-allowed;
 }
 </style>

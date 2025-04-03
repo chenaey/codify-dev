@@ -3,6 +3,11 @@ import { getComponentMapping } from './componentMap'
 import { codegen } from './codegen'
 import { getDesignComponent } from './component'
 import { toDecimalPlace } from './index'
+import { 
+  isIconNode, 
+  extractVectorData, 
+} from './iconExtractor'
+import { generateUniqueIconName } from './iconNaming'
 
 // UI Node 类型定义
 interface UINode {
@@ -84,20 +89,24 @@ interface UINode {
   }
   // 矢量/图标信息
   vector?: {
-    type: string // 节点类型
-    width: number // 图标宽度
-    height: number // 图标高度
-    viewBox: string // SVG viewBox属性
-    color: string // 主色调
+    id: string
+    resourceId?: string
+    name?: string // 添加name属性
+    type: string
+    width: number
+    height: number
+    viewBox?: string
+    color?: string
     paths?: Array<{
-      d: string // SVG路径数据，与path元素的d属性对应
-      fill?: string // 填充颜色
-      stroke?: string // 描边颜色
-      strokeWidth?: number // 描边宽度
-      fillRule?: 'evenodd' | 'nonzero' // 填充规则
+      d: string
+      fill?: string
+      stroke?: string
+      strokeWidth?: number
+      fillRule?: 'evenodd' | 'nonzero'
     }>
-    isMultiPath?: boolean // 是否包含多个路径
-    dataUrl?: string // 可选的data URL
+    isMultiPath?: boolean
+    dataUrl?: string
+    fileName?: string
   }
   children?: UINode[]
   // 添加自定义样式字段
@@ -105,103 +114,11 @@ interface UINode {
 }
 
 // 提取颜色信息
-function extractColor(color: { r: number; g: number; b: number; a?: number }) {
+export function extractColor(color: { r: number; g: number; b: number; a?: number }) {
   if (!color) return 'null'
   return `rgba(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(
     color.b * 255
   )}, ${color.a ?? 1})`
-}
-
-// 提取矢量图标数据 - 精简版
-function extractVectorData(node: any) {
-  if (!node) return undefined
-  
-  // 1. 首先检查是否为矢量类型的节点
-  const vectorTypes = ['VECTOR', 'BOOLEAN_OPERATION', 'STAR', 'POLYGON', 'ELLIPSE', 'RECTANGLE', 'LINE']
-  const isVectorType = vectorTypes.includes(node.type)
-
-  // 2. 检查是否为图标类型
-  const isIconNode =
-    // 通过名称判断
-    node.name.toLowerCase().includes('icon') ||
-    node.name.toLowerCase().includes('图标') ||
-    // 通过尺寸判断 - 小尺寸方形通常是图标
-    (node.width === node.height && node.width <= 64 && node.width > 0)
-
-  // 3. 检查是否具有矢量数据的关键属性
-  const hasVectorData =
-    ('vectorPaths' in node && Array.isArray(node.vectorPaths) && node.vectorPaths.length > 0) ||
-    ('vectorNetwork' in node && node.vectorNetwork)
-
-  // 只有同时满足以下条件之一才处理:
-  // - 是矢量类型且有矢量数据
-  // - 是图标节点且有矢量数据
-  // - 是矢量类型且是图标节点
-  if (
-    !(
-      (isVectorType && hasVectorData) ||
-      (isIconNode && hasVectorData) ||
-      (isVectorType && isIconNode)
-    )
-  ) {
-    return undefined
-  }
-
-  // 创建矢量数据对象
-  const vectorData: any = {
-    type: node.type,
-    // 提供适合SVG使用的尺寸信息
-    width: node.width || 24, // 默认常见图标尺寸
-    height: node.height || 24,
-    viewBox: `0 0 ${node.width || 24} ${node.height || 24}`
-  }
-
-  // 提取矢量路径数据
-  if ('vectorPaths' in node && node.vectorPaths && node.vectorPaths.length > 0) {
-    vectorData.paths = node.vectorPaths.map((path: any) => ({
-      d: path.data, // SVG路径数据，与SVG中path元素的d属性一致
-      fill: node.fills && node.fills.length > 0 ? extractFills(node)[0]?.color : 'currentColor',
-      stroke: node.strokes && node.strokes.length > 0 ? extractStrokes(node)[0]?.color : undefined,
-      strokeWidth: node.strokeWeight,
-      fillRule: path.windingRule === 'EVENODD' ? 'evenodd' : 'nonzero'
-    }))
-  } else if ('children' in node && node.children && node.children.length > 0 && isIconNode) {
-    // 对于包含子节点的图标组件，标记为复杂图标
-    vectorData.isMultiPath = true
-
-    // 检查子节点是否包含矢量元素，如果一个也没有，则不视为矢量图标
-    const hasVectorChildren = node.children.some(
-      (child: any) =>
-        vectorTypes.includes(child.type) ||
-        ('vectorPaths' in child && child.vectorPaths?.length > 0)
-    )
-
-    if (!hasVectorChildren) {
-      return undefined
-    }
-  } else if (!hasVectorData) {
-    // 没有任何矢量数据时，不处理
-    return undefined
-  }
-
-  // 提取基本样式属性，优先使用fills中的颜色
-  const mainFill =
-    node.fills && node.fills.length > 0
-      ? node.fills.find((f: any) => f.type === 'SOLID' && f.visible !== false) || node.fills[0]
-      : null
-
-  if (mainFill) {
-    vectorData.color = mainFill.type === 'SOLID' ? extractColor(mainFill.color) : 'currentColor' // 默认使用当前颜色，以便于前端轻松更改
-  } else {
-    vectorData.color = 'currentColor'
-  }
-
-  // 最后检查：如果没有paths且不是复杂多路径图标，则不视为矢量图标
-  if (!vectorData.paths && !vectorData.isMultiPath) {
-    return undefined
-  }
-
-  return vectorData
 }
 
 // 提取填充信息
@@ -519,10 +436,16 @@ export async function extractUINode(
   maxDepth = Infinity,
   parent?: any,
   siblings?: any[],
-  rootNode?: any
+  rootNode?: any,
+  resources: Map<string, any> = new Map()
 ): Promise<UINode | null> {
   // 过滤掉隐藏的节点
   if ('visible' in node && node.visible === false) {
+    return null
+  }
+
+  // 如果父节点是图标，则跳过子节点的处理
+  if (parent && isIconNode(parent)) {
     return null
   }
 
@@ -558,29 +481,27 @@ export async function extractUINode(
   // 提取矢量/图标数据
   const vectorData = extractVectorData(node)
   if (vectorData) {
-    uiNode.vector = vectorData
-
-    // 对于图标/矢量节点，尝试使用Figma API直接导出SVG
-    // try {
-    //   if ('exportAsync' in node) {
-    //     // 使用Figma的API导出SVG，只指定格式，不使用constraint参数
-    //     const svgData = await node.exportAsync({
-    //       format: 'SVG'
-    //     });
-        
-    //     // 将二进制数据转换为字符串
-    //     const svgString = new TextDecoder().decode(svgData);
-        
-    //     // 存储SVG字符串
-    //     if (svgString && svgString.length > 0 && uiNode.vector) {
-    //       // 生成data URI，可以直接在img标签中使用
-    //       const base64Data = btoa(svgString);
-    //       uiNode.vector.dataUrl = `data:image/svg+xml;base64,${base64Data}`;
-    //     }
-    //   }
-    // } catch (error) {
-    //   console.error(`Failed to export SVG for node ${node.id}:`, error);
-    // }
+    if (node.type === 'INSTANCE' || 'exportAsync' in node) {
+      // 使用新的函数生成唯一的文件名
+      const fileName = generateUniqueIconName(resources, node);
+      
+      // 对于组件实例或可导出节点，以 {node, fileName} 格式保存到 resources
+      resources.set(node.id, {
+        node,
+        fileName
+      })
+      
+      // 同时设置到 uiNode.vector 中
+      uiNode.vector = { 
+        id: node.id, 
+        ...vectorData, 
+        resourceId: node.id,
+        fileName // 添加标准化的文件名
+      }
+    } else {
+      // 对于其他节点，直接使用提取的矢量数据
+      uiNode.vector = { id: node.id, ...vectorData }
+    }
   }
 
   try {
@@ -622,12 +543,12 @@ export async function extractUINode(
     console.error(`Failed to get CSS for node ${node.id}:`, error)
   }
 
-  // 如果不是自定义组件，才处理子节点
-  if (!customComponent && maxDepth > 0 && 'children' in node && node.children) {
+  // 如果当前节点不是图标且不是自定义组件，才处理子节点
+  if (!isIconNode(node) && !customComponent && maxDepth > 0 && 'children' in node && node.children) {
     // 提取所有子节点信息，并传递当前节点作为它们的父节点
     const childNodes = await Promise.all(
       node.children.map((child: any) =>
-        extractUINode(child, maxDepth - 1, node, node.children, rootNode)
+        extractUINode(child, maxDepth - 1, node, node.children, rootNode, resources)
       )
     )
     uiNode.children = childNodes.filter((node): node is UINode => node !== null)
@@ -638,19 +559,25 @@ export async function extractUINode(
 
 // 导出函数：处理选中的节点
 export async function extractSelectedNodes(selection: readonly any[]) {
-  // 如果没有选中节点，返回空数组
+  // 如果没有选中节点，返回空对象
   if (!selection.length) {
-    return []
+    return { nodes: [], resources: new Map() }
   }
 
   // 以选中的第一个节点作为根节点
   const rootNode = selection[0]
+  
+  // 创建资源收集器
+  const resources = new Map<string, any>()
 
-  const nodes = await Promise.all(
+  const uiNodes = await Promise.all(
     selection.map((node) =>
-      extractUINode(node, Infinity, node.parent, node.parent?.children, rootNode)
+      extractUINode(node, Infinity, node.parent, node.parent?.children, rootNode, resources)
     )
   )
   // 过滤掉null节点
-  return nodes.filter((node): node is UINode => node !== null)
+  const nodes = uiNodes.filter((node): node is UINode => node !== null)
+  
+  // 返回包含节点和资源的对象
+  return { nodes, resources }
 }
