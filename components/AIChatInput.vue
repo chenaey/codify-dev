@@ -120,7 +120,8 @@ function clearHistory() {
 
 .chat-input::placeholder {
   font-size: 14px;
-  color: rgba(248, 250, 255, 0.6);
+  color: var(--color-text, #F8FAFF);
+  opacity: 0.5;
 }
 
 .button-group {
