@@ -114,7 +114,6 @@ export function isIconNode(node: any): boolean {
 // 判断是否为简单单色SVG
 function isSimpleSvg(node: any): boolean {
   // 检查节点的复杂度
-
   // 检查当前节点的 vectorPaths
   if (node.vectorPaths) {
     const pathData = node.vectorPaths.map((path: any) => path.data || '').join('');
@@ -186,9 +185,15 @@ export async function extractVectorData(node: any): Promise<BaseVectorData | Ful
       });      // 转换为字符串
       const decoder = new TextDecoder();
       const svgString = decoder.decode(svgBytes);
-
-      // 简单单色SVG：保留SVG内容，用于内联
-      vectorData.svgContent = svgString;
+      // 导出之后再判断更准确
+      const path = svgString.match(/<path d="([^"]+)"/)?.[1]
+      if (path && path?.length <= 300) {
+        // 简单单色SVG：保留SVG内容，用于内联
+        vectorData.svgContent = svgString;
+      } else {
+        // 复杂SVG：设置resourceId，用于文件引用
+        vectorData.resourceId = node.id;
+      }
     } else {
       // 复杂SVG：设置resourceId，用于文件引用
       vectorData.resourceId = node.id;

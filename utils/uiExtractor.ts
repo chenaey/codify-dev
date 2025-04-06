@@ -272,16 +272,9 @@ const shouldAddWidthHeight = (node: any) => {
     node.constraints?.vertical === 'SCALE' ||
     node.constraints?.horizontal === 'STRETCH' ||
     node.constraints?.vertical === 'STRETCH'
-
-  // 4. 检查是否为固定尺寸元素（如图标、按钮等）
-  const isFixedSizeElement =
-    node.type === 'VECTOR' ||
-    node.type === 'BOOLEAN_OPERATION' ||
-    (node.name.toLowerCase().includes('icon') && !isContainer) ||
-    (node.name.toLowerCase().includes('button') && !hasAutoLayout)
-
+    
   // 返回判断结果
-  return isFixedSizeElement || (!isContainer && !hasAutoLayout && !hasFlexibleConstraints)
+  return isIconNode(node) || (!isContainer && !hasAutoLayout && !hasFlexibleConstraints)
 }
 
 // 获取节点位置的通用函数（优先使用绝对坐标）
@@ -386,7 +379,6 @@ function extractLayout(node: any, parent?: any, siblings?: any[], rootNode?: any
     x: toDecimalPlace(relativeX),
     y: toDecimalPlace(relativeY)
   }
-
   // 根据判断结果添加宽高
   if (shouldAddWidthHeight(node)) {
     layout.width = toDecimalPlace(nodePos.width)
@@ -716,17 +708,15 @@ export async function extractUINode(
   const vector = await processVectorData(node, resources);
   if (vector) {
     uiNode.vector = vector;
-    if (vector.fileName) {
-      // 清理可能影响图标渲染的填充
-      if (Array.isArray(uiNode.customStyle)) {
-        uiNode.customStyle = uiNode.customStyle.filter(
-          style => !style.includes('padding')
-        );
-      }
-      // 删除布局内的填充
-      if (uiNode.layout?.padding) {
-        delete uiNode.layout.padding;
-      }
+    // 清理可能影响图标渲染的填充
+    if (Array.isArray(uiNode.customStyle)) {
+      uiNode.customStyle = uiNode.customStyle.filter(
+        style => !style.includes('padding')
+      );
+    }
+    // 删除布局内的填充
+    if (uiNode.layout?.padding) {
+      delete uiNode.layout.padding;
     }
   }
 
@@ -742,8 +732,8 @@ export async function extractUINode(
     delete uiNode.layout.height;
     delete uiNode.layout.width;
     delete uiNode.layout.rotation;
-    delete uiNode.layout.x;
-    delete uiNode.layout.y;
+    // delete uiNode.layout.x;
+    // delete uiNode.layout.y;
     delete uiNode.style;
     // 删除customStyle属性
     delete uiNode.customStyle
