@@ -2,24 +2,20 @@ import { extractColor } from './uiExtractor'
 
 // 基础矢量数据类型
 interface BaseVectorData {
+  id: string
   type: string
   name: string
   width: number
   height: number
+  fileName?: string
+  resourceId?: string
 }
 
 // 完整矢量数据类型
 interface FullVectorData extends BaseVectorData {
-  viewBox: string
-  paths?: Array<{
-    d: string
-    fill?: string
-    stroke?: string
-    strokeWidth?: number
-    fillRule?: 'evenodd' | 'nonzero'
-  }>
-  isMultiPath?: boolean
-  color?: string
+  svgContent?: string  // SVG原始内容，用于直接内联使用
+  resourceId?: string  // 资源ID，用于文件引用方式
+  fileName?: string    // 文件名，与resourceId搭配使用
 }
 
 // 矢量节点类型
@@ -55,160 +51,155 @@ export function isContainerNode(node: any): boolean {
 }
 
 export function isIconName(node: any): boolean {
-  return node.name.toLowerCase().includes('icon') || 
-         node.name.toLowerCase().includes('图标')
+  return node.name.toLowerCase().includes('icon') ||
+    node.name.toLowerCase().includes('图标')
 }
 
 // 检查节点是否为图标节点
 export function isIconNode(node: any): boolean {
-  // 1. 组件或组件实例，通过名称判断
+  // 空节点检查
+  if (!node) return false;
+
+  // 不可见节点不是图标
+  if ('visible' in node && node.visible === false) return false;
+  // 优先使用Figma官方API的判断方法 - 如果Figma认为这是一个图标资源
+  if ('isAsset' in node && node.isAsset === true) {
+    return true;
+  }
+
+  // 名称检查 - 作为补充判断方法
+  const nameBasedIcon = isIconName(node) ||
+    (node.description?.toLowerCase()?.includes('icon') ||
+      node.description?.toLowerCase()?.includes('图标'));
+
+  // 尺寸检查 - 更宽松的条件，只要是小尺寸基本就是图标
+  const sizeBasedIcon = node.width <= 64 &&
+    node.height <= 64;
+
+  // 比例检查 - 图标通常是正方形或接近正方形的
+  const isSquarish = Math.abs(node.width - node.height) <= 2;
+
+  // 结合检查 - 针对不同类型节点的判断逻辑
   if (node.type === 'COMPONENT' || node.type === 'INSTANCE') {
-      return isIconName(node)
+    // 组件和实例优先看名称和描述
+    return nameBasedIcon || (sizeBasedIcon && isSquarish);
   }
 
-  // 2. 单个矢量节点
   if (isVectorNode(node)) {
-    return (
-      // 通过名称判断
-      isIconName(node) ||
-      // 通过尺寸判断（正方形且不大于64px）
-      (node.width === node.height && node.width <= 64 && node.width > 0)
-    )
+    // 矢量元素需要满足名称或尺寸条件
+    return nameBasedIcon || (sizeBasedIcon && isSquarish && node.width > 0);
   }
 
-  // 3. 容器节点（GROUP/FRAME）
-  if (node.type === 'GROUP' || node.type === 'FRAME' || node.type === 'COMPONENT') {
-    // 基本条件：合适的尺寸
-    const hasValidSize = node.width <= 64 && 
-                        node.height <= 64 && 
-                        Math.abs(node.width - node.height) <= 1
+  // 容器类型（FRAME, GROUP）需要进一步检查
+  if (isContainerNode(node)) {
+    // 如果名称包含关键词，或尺寸合适且为正方形
+    if (nameBasedIcon || (sizeBasedIcon && isSquarish)) {
+      return true;
+    }
 
-    // 条件1：通过名称判断
+    // 检查子节点 - 如果所有子节点都是矢量，很可能是图标
+    if ('children' in node && node.children?.length > 0) {
+      const hasOnlyVectorChildren = node.children.length > 0 &&
+        node.children.every((child: any) => isVectorNode(child));
 
-    // 条件2：检查是否只包含矢量节点
-    const hasOnlyVectorChildren = node.children?.length > 0 && 
-                                 node.children.every((child: any) => isVectorNode(child))
-    return hasValidSize  || hasOnlyVectorChildren
+      if (sizeBasedIcon && hasOnlyVectorChildren) {
+        return true;
+      }
+    }
   }
 
-  return false
+  return false;
 }
 
-// 提取填充信息
-function extractFills(node: any) {
-  if (!('fills' in node) || !node.fills || !Array.isArray(node.fills)) return undefined
-  return node.fills
-    .filter((fill: any) => fill.visible !== false)
-    .map((fill: any) => {
-      const base = {
-        type: fill.type,
-        visible: fill.visible !== false,
-        opacity: fill.opacity,
-        blendMode: fill.blendMode
+// 判断是否为简单单色SVG
+function isSimpleSvg(node: any): boolean {
+  // 检查节点的复杂度
+
+  // 检查当前节点的 vectorPaths
+  if (node.vectorPaths) {
+    const pathData = node.vectorPaths.map((path: any) => path.data || '').join('');
+    if (pathData.length >= 100) return false;
+  }
+
+  // 检查子节点的 vectorPaths
+  if (node.children && node.children.length > 0) {
+    for (const child of node.children) {
+      if (child.vectorPaths) {
+        const childPathData = child.vectorPaths.map((path: any) => path.data || '').join('');
+        if (childPathData.length >= 100) return false;
       }
+    }
+  }
+  // 检查是否只有一种填充颜色
+  const fills = node.fills || [];
+  const visibleFills = fills.filter((fill: any) => fill.visible !== false);
+  // 检查填充类型 - 只接受纯色填充
+  const hasNonSolidFill = visibleFills.some((fill: any) =>
+    fill.type !== 'SOLID' ||
+    (typeof fill.opacity !== 'undefined' && fill.opacity < 1)
+  );
+  if (hasNonSolidFill) return false;
 
-      if (fill.type === 'SOLID') {
-        return {
-          ...base,
-          color: extractColor(fill.color)
-        }
-      }
+  // 检查是否有复杂效果
+  const hasEffects = node.effects && node.effects.some((effect: any) => effect.visible !== false);
+  if (hasEffects) return false;
 
-      return base
-    })
+  // 检查是否有描边
+  const hasStrokes = node.strokes && node.strokes.some((stroke: any) => stroke.visible !== false);
+  if (hasStrokes) return false;
+  // 尺寸检查 - 简单图标通常较小
+  const isSmallIcon = node.width <= 16 && node.height <= 16;
+  return isSmallIcon;
 }
 
-// 提取描边信息
-function extractStrokes(node: any) {
-  if (!('strokes' in node) || !node.strokes) return undefined
+// 提取图标数据
+export async function extractVectorData(node: any): Promise<BaseVectorData | FullVectorData | undefined> {
+  // 首先判断是否为图标节点
+  if (!node || !isIconNode(node)) return undefined;
 
-  return node.strokes
-    .filter((stroke: any) => stroke?.visible !== false && stroke?.color)
-    .map((stroke: any) => ({
-      type: stroke.type,
-      color: extractColor(stroke.color),
-      width: node.strokeWeight,
-      position: node.strokeAlign
-    }))
-}
-
-// 提取矢量图标数据
-export function extractVectorData(node: any): BaseVectorData | FullVectorData | undefined {
-  if (!node || !isIconNode(node)) return undefined
-
-  // 基础矢量数据
+  // 创建基础矢量数据
   const baseVectorData: BaseVectorData = {
+    id: node.id,
     type: node.type,
     name: node.name,
-    width: node.width,
-    height: node.height
-  }
+    width: Math.round(node.width),
+    height: Math.round(node.height)
+  };
 
-  // 如果是组件实例或可导出节点，直接返回基础信息
-  if (node.type === 'INSTANCE' || 'exportAsync' in node) {
-    return baseVectorData
-  }
+  // 判断是否为简单图标
+  const isSimple = isSimpleSvg(node);
 
-  // 构建完整的矢量数据
+  // 创建完整矢量数据
   const vectorData: FullVectorData = {
-    ...baseVectorData,
-    viewBox: `0 0 ${baseVectorData.width} ${baseVectorData.height}`
+    ...baseVectorData
+  };
+
+
+
+  // 如果节点支持导出SVG，使用Figma API导出
+  try {
+    console.log('[extractVectorData]', node, node.name, isSimple)
+    if (isSimple) {
+      // 直接导出SVG
+      const svgBytes = await node.exportAsync({
+        format: 'SVG'
+      });      // 转换为字符串
+      const decoder = new TextDecoder();
+      const svgString = decoder.decode(svgBytes);
+
+      // 简单单色SVG：保留SVG内容，用于内联
+      vectorData.svgContent = svgString;
+    } else {
+      // 复杂SVG：设置resourceId，用于文件引用
+      vectorData.resourceId = node.id;
+    }
+    return vectorData;
+  } catch (error) {
+    console.error('Error exporting SVG:', error);
   }
 
-  // 处理不同类型的节点
-  if (isVectorNode(node)) {
-    // 单个矢量节点
-    if (node.vectorPaths?.length > 0) {
-      vectorData.paths = node.vectorPaths.map((path: any) => ({
-        d: path.data,
-        fill: node.fills?.length > 0 ? extractFills(node)[0]?.color : 'currentColor',
-        stroke: node.strokes?.length > 0 ? extractStrokes(node)[0]?.color : undefined,
-        strokeWidth: node.strokeWeight,
-        fillRule: path.windingRule === 'EVENODD' ? 'evenodd' : 'nonzero'
-      }))
-    }
-  } else if (isContainerNode(node) && node.children?.length > 0) {
-    // 容器节点（GROUP/FRAME）
-    vectorData.isMultiPath = true
-    vectorData.paths = []
-
-    // 递归处理所有子节点
-    const processChildPaths = (child: any) => {
-      if (isVectorNode(child) && child.vectorPaths?.length > 0) {
-        // 添加子节点的路径，保留其样式信息
-        vectorData.paths?.push(...child.vectorPaths.map((path: any) => ({
-          d: path.data,
-          fill: child.fills?.length > 0 ? extractFills(child)[0]?.color : 'currentColor',
-          stroke: child.strokes?.length > 0 ? extractStrokes(child)[0]?.color : undefined,
-          strokeWidth: child.strokeWeight,
-          fillRule: path.windingRule === 'EVENODD' ? 'evenodd' : 'nonzero'
-        })))
-      }
-      
-      // 递归处理子节点的子节点
-      if (child.children?.length > 0) {
-        child.children.forEach(processChildPaths)
-      }
-    }
-
-    node.children.forEach(processChildPaths)
-
-    // 如果没有找到任何路径，返回undefined
-    if (vectorData.paths.length === 0) {
-      return undefined
-    }
-  }
-
-  // 提取主颜色信息（用于预览和主题）
-  const mainFill = node.fills?.length > 0
-    ? node.fills.find((f: any) => f.type === 'SOLID' && f.visible !== false) || node.fills[0]
-    : null
-
-  vectorData.color = mainFill?.type === 'SOLID' 
-    ? extractColor(mainFill.color) 
-    : 'currentColor'
-
-  return vectorData
+  // 如果不支持导出SVG或导出失败，返回基础数据
+  return baseVectorData;
 }
 
 // 导出类型定义
