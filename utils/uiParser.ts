@@ -95,11 +95,11 @@ function processVectorInfo(vector: any, projectType?: string): void {
     switch (projectType) {
       case 'mvvm':
         // Vue2 项目使用 @/assets 路径
-        vector.assetPath = `@/assets/${vector.fileName}`
+        vector.assetPath = `../assets/${vector.fileName}`
         break
       case 'cbg':
         // Vue3 项目使用相对路径
-        vector.assetPath = `@/assets/${vector.fileName}`
+        vector.assetPath = `../assets/${vector.fileName}`
         break
       case 'ios':
         // iOS 项目使用资源名称
