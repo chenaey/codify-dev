@@ -187,7 +187,7 @@ export async function extractVectorData(node: any): Promise<BaseVectorData | Ful
       const svgString = decoder.decode(svgBytes);
       // 导出之后再判断更准确
       const path = svgString.match(/<path d="([^"]+)"/)?.[1]
-      if (path && path?.length <= 300) {
+      if (svgString.length <= 100) {
         // 简单单色SVG：保留SVG内容，用于内联
         vectorData.svgContent = svgString;
       } else {
