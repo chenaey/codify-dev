@@ -39,7 +39,7 @@ const mvvmPrompt = `
      
      1. 如果存在vector.assetPath，使用require导入本地资源：
         <img :src="require([vector.assetPath])"  alt="图标" />
-        注意：这里不需要遵循数据驱动视图原则，不需要在data中定义，直接在template中使用。
+        特别注意：图标不需要遵循数据驱动视图原则, vector.assetPath不需要在data中定义，直接在template中使用。
      
      2. 如果不存在vector.resourceId但有paths数据，则转换为内联SVG：
         <svg :width="vector.width" :height="vector.height" :viewBox="vector.viewBox" xmlns="http://www.w3.org/2000/svg">
@@ -174,7 +174,7 @@ const cbgPrompt = `
      
      1. 如果存在vector.assetPath，使用require导入本地资源：
         <img :src="require([vector.assetPath])"  alt="图标" />
-        注意：这里不需要遵循数据驱动视图原则
+        特别注意：图标不需要遵循数据驱动视图原则, vector.assetPath不需要在data中定义，直接在template中使用。
      
      2. 如果不存在vector.resourceId但有paths数据，则转换为内联SVG：
         <svg :width="vector.width" :height="vector.height" :viewBox="vector.viewBox" xmlns="http://www.w3.org/2000/svg">

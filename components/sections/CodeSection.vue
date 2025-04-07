@@ -12,9 +12,9 @@ import Section from '@/components/Section.vue'
 import { useToast } from '@/composables/toast'
 import { selection, selectedNode, options, selectedTemPadComponent, activePlugin } from '@/ui/state'
 import { getDesignComponent } from '@/utils'
-import { 
-  generateCode, 
-  clearConversation, 
+import {
+  generateCode,
+  clearConversation,
   sendUserMessage as sendMessage,
   createResponseGenerator
 } from '@/utils/ai/client'
@@ -171,14 +171,7 @@ async function checkAndApplyCache(node: SelectionNode | null) {
   const result = getGenerationResult(nodeId, projectId)
   const state = generatingStates.value.get(getStateKey(nodeId, projectId))
   if (result) {
-    if (result.status === 'completed') {
-      // 使用已完成的缓存结果
-      result.codeBlocks.forEach((block) => {
-        block.code = cleanMarkdownCode(block.code)
-        block.title = 'AI Generated Cache'
-      })
-      codeBlocks.value.unshift(...result.codeBlocks)
-    } else if (result.status === 'pending') {
+    if (result.status === 'pending') {
       // 显示待处理状态
       codeBlocks.value.unshift(...result.codeBlocks)
       const aiCodeBlock = ref(codeBlocks.value[0])
@@ -209,6 +202,13 @@ async function checkAndApplyCache(node: SelectionNode | null) {
         // 否则只显示生成中的标题
         aiCodeBlock.value.title = 'AI Generating...'
       }
+    } else if (result.status === 'completed') {
+      // 使用已完成的缓存结果
+      result.codeBlocks.forEach((block) => {
+        block.code = cleanMarkdownCode(block.code)
+        block.title = 'AI Generated Cache'
+      })
+      codeBlocks.value.unshift(...result.codeBlocks)
     }
   }
 }
@@ -315,7 +315,9 @@ async function initNewGeneration(nodeId: string) {
   state.promise = (async () => {
     try {
       // 获取选中节点的信息
-      const { nodes: uiInfo, resources: newResources } = await extractSelectedNodes([selectedNode.value])
+      const { nodes: uiInfo, resources: newResources } = await extractSelectedNodes([
+        selectedNode.value
+      ])
       resources.value = newResources
       console.log(resources.value, 'resources')
       const parsedInfo = parseUIInfo(uiInfo, options.value.project)
@@ -466,7 +468,7 @@ async function sendUserMessage(message: string) {
 
     // 创建消息生成器
     const generator = createResponseGenerator(uiInfo, projectId, nodeId)
-    
+
     // 定义更新函数
     const updateCode = (content: string) => {
       aiCodeBlock.code = content
@@ -495,13 +497,16 @@ function clearChatHistory() {
 // 检查是否有AI生成的代码块且生成成功
 const showAIChatInput = computed(() => {
   if (!selectedNode.value) return false
-  
+
   // 检查是否有AI生成的代码块
-  const hasGeneratedCode = codeBlocks.value.some(block => 
-    block.name === 'ai-generated' && 
-    (block.title === 'AI Generated Code' || block.title === 'AI Updated Code' || block.title === 'AI Generated Cache')
+  const hasGeneratedCode = codeBlocks.value.some(
+    (block) =>
+      block.name === 'ai-generated' &&
+      (block.title === 'AI Generated Code' ||
+        block.title === 'AI Updated Code' ||
+        block.title === 'AI Generated Cache')
   )
-  
+
   return hasGeneratedCode
 })
 
@@ -510,7 +515,7 @@ const isDownloading = ref(false)
 // 处理图标下载
 async function handleDownloadIcons() {
   if (!resources.value?.size) return
-  
+
   isDownloading.value = true
   try {
     const filename = `${selectedNode.value?.name || 'icons'}-export.zip`
@@ -534,7 +539,6 @@ async function handleDownloadIcons() {
 //     resources.value.clear()
 //   }
 // }, { immediate: true })
-
 </script>
 
 <template>
@@ -556,7 +560,7 @@ async function handleDownloadIcons() {
         <div class="tp-code-actions tp-row tp-gap-s">
           <!-- 添加图标下载按钮 -->
           <Button
-            v-if="resources?.size"
+            v-if="resources?.size && (selectedNode && isGeneratingAICode(selectedNode.id)) || !selectedNode"
             class="tp-icon-download-btn"
             @click="handleDownloadIcons"
             :disabled="isDownloading"
