@@ -128,7 +128,9 @@ const mvvmPrompt = `
    - 减少重复代码：必须将所有重复的节点转换为 v-for 循环，提高复用性。
    - 优化样式管理：提取共用的样式类，避免内联样式，并使用语义化的 class 命名。
    - 提高可读性：优化模板逻辑，使代码更加清晰，避免不必要的逻辑嵌套。
-   - 增强可维护性：添加必要的注释，说明关键代码的作用，方便后续维护。
+   - 提高可维护性：添加必要的注释，说明关键代码的作用，方便后续维护。
+     不应该使用v-if index ===1 v-if index ===2 这种写法来区分 如果有需要区分应该定义一个变量来区分
+
 
 禁止事项：
    - 出现重复的模板代码
@@ -146,12 +148,14 @@ const cbgPrompt = `
 1. 响应式铁律：
    - 容器组件禁止设置：width/height/min-width/min-height这些属性为固定数值，允许设置100%。
    - 允许设置：max-width/max-height（仅限非容器元素）
+   - 考虑容器的自适应
 
 2. 布局准则：
    - 使用Flex实现弹性布局
    - 严格遵循数据的嵌套结构，严格遵循节点中的layoutMode定义：
      'HORIZONTAL' - 水平布局模式，相当于CSS中的 display: flex，子元素会在水平方向上排列。
      'VERTICAL' - 垂直布局模式，相当于CSS中的 display: flex 和 flex-direction: column，子元素会在垂直方向上排列。
+   - 必须递归处理所有嵌套层级的layoutMode，不要遗漏任何子节点
 
 
 3. 特殊处理标记：
@@ -190,7 +194,7 @@ const cbgPrompt = `
         </svg>
 
 6. 严格遵循数据驱动视图原则：将模板内容数据化，避免硬编码，使数据和视图解耦。
-   - 数据结构相似性达70%时，应该明确使用v-for，差异的部分用字段来标识
+   - 数据结构相似性/UI相似性达60%以上时，应该明确使用v-for，差异的部分用字段来标识
    - template中的文本内容都应该使用数据驱动，需要明确定义在 data/props 中
      如： <div>标题</div> 应该转换为 <div>{{ data.title }}</div> 
    - 根据提供的JSON结构设计合理的组件数据结构，比如根据children字段来设计应用v-for的列表数据结构,注意不是所有的都需要v-for。
@@ -204,6 +208,7 @@ const cbgPrompt = `
 4. 默认值过滤：如font-size:normal等默认值应省略
 5. 非必要不使用:style绑定样式
 6. 在使用customStyle、style的基础上，应该用每个节点layout.spacing.siblings字段（如有）来推算出准确的父子元素之间、兄弟元素之间的间距，其中direction代表间距方向。
+  - spacing.siblings.after需严格遵循"最近优先"的嵌套间距原则
   这是layout的相关字段定义和描述
   layout: {
     x: number // 布局x坐标
@@ -229,12 +234,38 @@ const cbgPrompt = `
     // 布局意图描述
     intent?: string
   }
- 
+
+7. 分割线处理：当节点包含divider字段时，表示这是一个分割线，必须使用以下方式处理分割线：
+   - 作为父元素/兄弟元素的border，根据实际情况判断应该运用的位置
+   这是相关的字段定义和描述
+   divider?: {
+      orientation: 'horizontal' | 'vertical'
+      // 分割线样式
+      style: {
+         // 分割线颜色，用于border-color
+         color: string
+         // 分割线粗细，用于border-width
+         thickness: number
+         // 线条样式，用于border-style
+         lineStyle?: 'solid' | 'dashed' | 'dotted'
+      }
+      // 分割线布局
+      layout: {
+         // 是否全宽，true表示width:100%
+         fullWidth?: boolean
+         // 是否全高，true表示height:100%
+         fullHeight?: boolean
+      }
+   }
+8.需注意浏览器默认样式，比如button等元素，默认有border，需要根据实际情况判断是否需要去除。
+
 代码质量要求：
-   - 减少重复代码：将重复的节点转换为 v-for 循环，提高复用性。
+   - 减少重复代码：必须将所有重复的节点转换为 v-for 循环，提高复用性。
    - 优化样式管理：提取共用的样式类，避免内联样式，并使用语义化的 class 命名。
    - 提高可读性：优化模板逻辑，使代码更加清晰，避免不必要的逻辑嵌套。
-   - 增强可维护性：添加必要的注释，说明关键代码的作用，方便后续维护。
+   - 提高可维护性：添加必要的注释，说明关键代码的作用，方便后续维护。
+     不应该使用v-if index ===1 v-if index ===2 这种写法来区分 如果有需要区分应该定义一个变量来区分
+
 
 禁止事项：
    - 出现重复的模板代码

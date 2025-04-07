@@ -43,6 +43,7 @@ const codeBlocks = ref<CodeBlock[]>([])
 const warning = shallowRef('')
 const aiError = ref('')
 const { show } = useToast()
+const resources = ref<Map<string, any>>(new Map())
 
 // 使用 Map 来跟踪每个节点的生成状态
 const generatingStates = ref(new Map<string, GenerationState>())
@@ -314,7 +315,9 @@ async function initNewGeneration(nodeId: string) {
   state.promise = (async () => {
     try {
       // 获取选中节点的信息
-      const { nodes: uiInfo, resources } = await extractSelectedNodes([selectedNode.value])
+      const { nodes: uiInfo, resources: newResources } = await extractSelectedNodes([selectedNode.value])
+      resources.value = newResources
+      console.log(resources.value, 'resources')
       const parsedInfo = parseUIInfo(uiInfo, options.value.project)
       console.log(parsedInfo, 'parsedInfo')
       console.log('Resources collected:', resources)
@@ -502,7 +505,6 @@ const showAIChatInput = computed(() => {
   return hasGeneratedCode
 })
 
-const resources = ref<Map<string, any>>(new Map())
 const isDownloading = ref(false)
 
 // 处理图标下载
@@ -518,20 +520,20 @@ async function handleDownloadIcons() {
   }
 }
 // 更新资源列表
-watch(selectedNode, async (node) => {
-  if (!node) {
-    resources.value.clear()
-    return
-  }
+// watch(selectedNode, async (node) => {
+//   if (!node) {
+//     resources.value.clear()
+//     return
+//   }
 
-  try {
-    const { nodes: uiInfo, resources: newResources } = await extractSelectedNodes([node])
-    resources.value = newResources
-  } catch (error) {
-    console.error('Failed to extract resources:', error)
-    resources.value.clear()
-  }
-}, { immediate: true })
+//   try {
+//     const { nodes: uiInfo, resources: newResources } = await extractSelectedNodes([node])
+//     resources.value = newResources
+//   } catch (error) {
+//     console.error('Failed to extract resources:', error)
+//     resources.value.clear()
+//   }
+// }, { immediate: true })
 
 </script>
 
