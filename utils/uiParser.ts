@@ -1,6 +1,6 @@
 /**
  * uiParser.ts
- * 
+ *
  * 用于处理和转换UI信息的工具函数
  */
 
@@ -18,14 +18,14 @@ export function parseUIInfo(uiInfo: any, projectType?: string): any {
 
   // 深拷贝防止修改原始对象
   const parsedInfo = JSON.parse(JSON.stringify(uiInfo))
-  
+
   // 处理单个节点或节点数组
   const processNode = (node: any) => {
     // 处理图标信息
     if (node.vector) {
       processVectorInfo(node.vector, projectType)
     }
-    
+
     // 处理layout和spacing
     if (node.layout) {
       // 如果是MVVM项目，调整spacing值
@@ -38,23 +38,14 @@ export function parseUIInfo(uiInfo: any, projectType?: string): any {
             }
           }
         }
-        
-        // 处理与兄弟节点的间距
-        if (node.layout.spacing.siblings) {
-          if (typeof node.layout.spacing.siblings.before === 'number') {
-            node.layout.spacing.siblings.before *= 2
-          }
-          if (typeof node.layout.spacing.siblings.after === 'number') {
-            node.layout.spacing.siblings.after *= 2
-          }
-        }
+
       }
-      
+
       // 如果节点有itemSpacing属性，也需要处理
       if (projectType === 'mvvm' && typeof node.layout.itemSpacing === 'number') {
         node.layout.itemSpacing *= 2
       }
-      
+
       // 处理padding
       if (projectType === 'mvvm' && node.layout.padding) {
         for (const key of ['top', 'right', 'bottom', 'left']) {
@@ -63,16 +54,25 @@ export function parseUIInfo(uiInfo: any, projectType?: string): any {
           }
         }
       }
+
+      // 处理margin
+      if (projectType === 'mvvm' && node.layout.margin) {
+        for (const key of ['top', 'right', 'bottom', 'left']) {
+          if (typeof node.layout.margin[key] === 'number') {
+            node.layout.margin[key] *= 2
+          }
+        }
+      }
     }
-    
+
     // 递归处理子节点
     if (Array.isArray(node.children)) {
       node.children.forEach(processNode)
     }
-    
+
     return node
   }
-  
+
   // 处理数组或单个对象
   if (Array.isArray(parsedInfo)) {
     return parsedInfo.map(processNode)
@@ -88,9 +88,9 @@ export function parseUIInfo(uiInfo: any, projectType?: string): any {
  */
 function processVectorInfo(vector: any, projectType?: string): void {
   if (!vector) return
-  
+
   // 添加资源路径信息，使用预先生成的fileName
-  if (vector.resourceId && !vector.assetPath && vector.fileName) {    
+  if (vector.resourceId && !vector.assetPath && vector.fileName) {
     // 根据不同项目类型设置资源路径格式
     switch (projectType) {
       case 'mvvm':
@@ -113,7 +113,7 @@ function processVectorInfo(vector: any, projectType?: string): void {
         vector.assetPath = `icons/${vector.fileName}`
     }
   }
-  
+
   // 根据项目类型处理宽高单位
   if (projectType) {
     // 调整宽高值
@@ -123,7 +123,7 @@ function processVectorInfo(vector: any, projectType?: string): void {
           // MVVM项目宽高乘以2
           vector.width *= 2
           vector.height *= 2
-          
+
           // 添加单位信息
           vector.widthUnit = 'rem'
           vector.heightUnit = 'rem'
@@ -146,4 +146,4 @@ function processVectorInfo(vector: any, projectType?: string): void {
       }
     }
   }
-} 
+}

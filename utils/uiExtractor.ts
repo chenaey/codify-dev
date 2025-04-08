@@ -10,6 +10,9 @@ import {
 import { generateUniqueIconName } from './iconNaming'
 import { toDecimalPlace } from './index'
 
+// 添加布局模式类型
+type LayoutMode = 'NONE' | 'HORIZONTAL' | 'VERTICAL'
+
 // UI Node 类型定义
 interface UINode {
   id: string
@@ -27,8 +30,7 @@ interface UINode {
     y?: number // 布局y坐标
     width?: number | '100%' // 布局宽度
     height?: number | '100%' // 布局高度
-    rotation?: number
-    layoutMode?: string // 布局模式 (HORIZONTAL | VERTICAL)
+    layoutMode: LayoutMode // 改为必填，永远会有值
     layoutAlign?: string // 布局对齐方式 (STRETCH | CENTER | MIN | MAX)
     padding?: {
       top: number
@@ -36,15 +38,12 @@ interface UINode {
       bottom: number
       left: number
     }
-    // 布局信息关系字段
-    spacing?: {
-      siblings?: {
-        after?: number // 与后一个兄弟节点的间距 (只设置after以使用margin-bottom样式)
-        direction?: 'horizontal' | 'vertical' // 间距方向，水平或垂直
-      }
+    margin?: {
+      top?: number
+      right?: number
+      bottom?: number
+      left?: number
     }
-    // 布局意图描述
-    intent?: string
   }
   style?: {
     fills?: Array<{
@@ -244,7 +243,7 @@ function extractText(node: any) {
   return {
     content: node.characters,
     fontSize: node.fontSize,
-    fontFamily: node.fontName?.family,
+    // fontFamily: node.fontName?.family,
     fontWeight: node.fontName?.style,
     letterSpacing: node.letterSpacing?.value || 0,
     lineHeight:
@@ -287,74 +286,92 @@ function getNodePosition(node: any) {
   }
 }
 
-// 计算与兄弟节点的间距
-function calculateSiblingSpacing(node: any, siblings: any[], parent: any) {
-  if (!siblings.length || !parent) return undefined
-
-  const isHorizontal = parent.layoutMode === 'HORIZONTAL'
-  const isVertical = parent.layoutMode === 'VERTICAL'
-
-  // 仅在自动布局容器中计算
-  if (!isHorizontal && !isVertical) return undefined
-
-  // 首先检查父容器是否有设置统一的itemSpacing
-  if ('itemSpacing' in parent && parent.itemSpacing !== undefined) {
-    // 对于有统一间距的自动布局，使用更智能的方式
-    // 只在节点的一侧设置间距，避免重复
-    // 水平布局: 只在右侧（after）设置间距，使用margin-right样式
-    // 垂直布局: 只在下方（after）设置间距，使用margin-bottom样式
-    const result: { after?: number; direction?: 'horizontal' | 'vertical' } = {
-      direction: isHorizontal ? 'horizontal' : 'vertical'
-    }
-
-    // 找出当前节点在兄弟节点中的位置
-    const sortedSiblings = [...siblings].sort((a, b) => {
-      const posA = getNodePosition(a)
-      const posB = getNodePosition(b)
-      return isHorizontal ? posA.x - posB.x : posA.y - posB.y
-    })
-
-    const nodeIndex = sortedSiblings.findIndex((s) => s.id === node.id)
-    if (nodeIndex === -1) return undefined
-
-    // 只有非最后一个元素才设置after间距
-    if (nodeIndex < sortedSiblings.length - 1) {
-      result.after = parent.itemSpacing
-    }
-
-    return result
+// 获取节点的布局模式
+function getLayoutMode(node: any): LayoutMode {
+  // 1. 如果节点显式设置了layoutMode，使用设置的值
+  if ('layoutMode' in node && node.layoutMode) {
+    return node.layoutMode as LayoutMode
   }
+  return 'NONE'
+}
 
-  // 如果没有统一的itemSpacing，则需要计算实际间距
-  // 排序兄弟节点
-  const sortedSiblings = [...siblings].sort((a, b) => {
+// 判断是否需要计算margin
+function shouldCalculateMargin(node: any, parent: any): boolean {
+  // 1. 父节点必须是自动布局容器
+  if (getLayoutMode(parent) === 'NONE') return false
+
+  // 2. 节点不能是绝对定位
+  if (node.position === 'ABSOLUTE') return false
+
+  // 3. 父节点必须设置了itemSpacing
+  if (parent.itemSpacing === undefined) return false
+
+  // 4. 父节点必须有多个子元素
+  const visibleSiblings = (parent.children || []).filter((child: any) => 
+    child.visible !== false
+  )
+  if (visibleSiblings.length <= 1) return false
+
+  return true
+}
+
+// 获取排序后的兄弟节点
+function getSortedSiblings(siblings: any[], layoutMode: LayoutMode): any[] {
+  return [...siblings].sort((a, b) => {
     const posA = getNodePosition(a)
     const posB = getNodePosition(b)
-    return isHorizontal ? posA.x - posB.x : posA.y - posB.y
+    return layoutMode === 'HORIZONTAL' ? posA.x - posB.x : posA.y - posB.y
   })
+}
 
-  // 找到当前节点在排序后兄弟节点中的位置
-  const nodeIndex = sortedSiblings.findIndex((s) => s.id === node.id)
-  if (nodeIndex === -1) return undefined
+// 计算实际间距
+function calculateActualSpacing(currentNode: any, nextNode: any): number {
+  const currentPos = getNodePosition(currentNode)
+  const nextPos = getNodePosition(nextNode)
 
-  const result: { after?: number; direction?: 'horizontal' | 'vertical' } = {
-    direction: isHorizontal ? 'horizontal' : 'vertical'
-  }
-  const nodePos = getNodePosition(node)
+  // 考虑padding的影响
+  const currentPadding = currentNode.padding || {}
+  const nextPadding = nextNode.padding || {}
 
-  // 智能间距计算: 只计算当前元素后面的间距
-  // 对于最后一个元素，不设置after
-  // 对于其他元素，设置after
-  if (nodeIndex < sortedSiblings.length - 1) {
-    const nextSibling = sortedSiblings[nodeIndex + 1]
-    const nextPos = getNodePosition(nextSibling)
-
-    result.after = isHorizontal
-      ? toDecimalPlace(nextPos.x - (nodePos.x + nodePos.width))
-      : toDecimalPlace(nextPos.y - (nodePos.y + nodePos.height))
+  if (currentNode.parent?.layoutMode === 'HORIZONTAL') {
+    return toDecimalPlace(
+      nextPos.x - (currentPos.x + currentPos.width) -
+      (currentPadding.right || 0) - (nextPadding.left || 0)
+    )
   }
 
-  return result
+  return toDecimalPlace(
+    nextPos.y - (currentPos.y + currentPos.height) -
+    (currentPadding.bottom || 0) - (nextPadding.top || 0)
+  )
+}
+
+// 计算margin
+function calculateMargin(node: any, siblings: any[], parent: any) {
+  if (!shouldCalculateMargin(node, parent)) return null
+
+  // 过滤掉隐藏的兄弟节点
+  const visibleSiblings = siblings.filter(sibling => sibling.visible !== false)
+  
+  // 获取节点在可见兄弟中的位置
+  const sortedSiblings = getSortedSiblings(visibleSiblings, parent.layoutMode as LayoutMode)
+  const nodeIndex = sortedSiblings.findIndex(s => s.id === node.id)
+  
+  // 最后一个元素不需要margin
+  if (nodeIndex === sortedSiblings.length - 1) return null
+
+  // 使用父节点的itemSpacing作为margin值
+  const marginValue = parent.itemSpacing
+
+  if (marginValue <= 0) return null
+
+  // 根据布局方向设置对应的margin
+  return {
+    ...(parent.layoutMode === 'HORIZONTAL' 
+      ? { right: marginValue }
+      : { bottom: marginValue }
+    )
+  }
 }
 
 // 提取布局信息
@@ -377,28 +394,21 @@ function extractLayout(node: any, parent?: any, siblings?: any[], rootNode?: any
 
   const layout: UINode['layout'] = {
     x: toDecimalPlace(relativeX),
-    y: toDecimalPlace(relativeY)
+    y: toDecimalPlace(relativeY),
+    layoutMode: getLayoutMode(node)
   }
+
   // 根据判断结果添加宽高
   if (shouldAddWidthHeight(node)) {
     layout.width = toDecimalPlace(nodePos.width)
     layout.height = toDecimalPlace(nodePos.height)
   } else {
     layout.width = '100%'
-    // layout.height = '100%'
   }
 
-  if ('rotation' in node) {
-    layout.rotation = toDecimalPlace(node.rotation)
-  }
 
   if ('layoutAlign' in node) {
     layout.layoutAlign = node.layoutAlign
-  }
-
-  // 提取布局模式
-  if ('layoutMode' in node) {
-    layout.layoutMode = node.layoutMode
   }
 
   // 对于容器节点，保留 padding 信息以便于布局
@@ -416,13 +426,11 @@ function extractLayout(node: any, parent?: any, siblings?: any[], rootNode?: any
     }
   }
 
-  // 只添加与兄弟节点的间距关系
-  if (siblings?.length && node !== rootNode && parent) {
-    layout.spacing = {}
-
-    const siblingSpacing = calculateSiblingSpacing(node, siblings, parent)
-    if (siblingSpacing && siblingSpacing.after !== undefined) {
-      layout.spacing.siblings = siblingSpacing
+  // 计算margin
+  if (siblings?.length && parent) {
+    const margin = calculateMargin(node, siblings, parent)
+    if (margin) {
+      layout.margin = margin
     }
   }
 
@@ -731,7 +739,6 @@ export async function extractUINode(
     };
     delete uiNode.layout.height;
     delete uiNode.layout.width;
-    delete uiNode.layout.rotation;
     // delete uiNode.layout.x;
     // delete uiNode.layout.y;
     delete uiNode.style;

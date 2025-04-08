@@ -23,17 +23,26 @@ const mvvmPrompt = `
      'VERTICAL' - 垂直布局模式，相当于CSS中的 display: flex 和 flex-direction: column，子元素会在垂直方向上排列。
    - 必须递归处理所有嵌套层级的layoutMode，不要遗漏任何子节点
 
-3. 特殊处理标记：
+3. 层级优化：
+   - 相同布局方向的连续Frame可以合并
+   - 没有实际样式/间距影响的中间层Frame可以去除
+   - 避免不必要的div嵌套，不需要多余的div，对于这种情况 在不影响布局的情况下，必须简化为。
+      例如这里有三层嵌套一个内容：
+         <div ><div> <div>内容 </div> </div> </div>
+      应该简化为：
+         <div> 内容 </div>
+
+4. 特殊处理标记：
    固定尺寸元素仅限：
    - 按钮/图标/头像等原子元素
    - 需要精确控制大小的UI控件
 
-4. 自定义组件处理：
+5. 自定义组件处理：
    - 当节点包含custom_component字段时，表示这是一个自定义Vue2组件
    - 需要在组件内添加对应的import语句，使用importPath信息
    - 使用组件时遵循props中定义的属性列表
 
-5. 图标/SVG处理：
+6. 图标/SVG处理：
    - 当节点包含vector字段时，表示这是一个矢量图标或SVG元素（
    - 优先使用以下方式处理SVG图标（按优先级顺序）：
      
@@ -41,24 +50,10 @@ const mvvmPrompt = `
         <img :src="require([vector.assetPath])"  alt="图标" />
         特别注意：图标不需要遵循数据驱动视图原则, vector.assetPath不需要在data中定义，直接在template中使用。
      
-     2. 如果不存在vector.resourceId但有paths数据，则转换为内联SVG：
-        <svg :width="vector.width" :height="vector.height" :viewBox="vector.viewBox" xmlns="http://www.w3.org/2000/svg">
-          <path 
-            v-for="(path, index) in vector.paths" 
-            :key="index"
-            :d="path.d" 
-            :fill="path.fill || vector.color || 'currentColor'" 
-            :stroke="path.stroke"
-            :stroke-width="path.strokeWidth"
-            :fill-rule="path.fillRule" />
-        </svg>
-   
-     3. 对于isMultiPath为true的复杂图标，简化为色块：
-        <svg :width="vector.width" :height="vector.height" :viewBox="vector.viewBox" xmlns="http://www.w3.org/2000/svg">
-          <rect width="100%" height="100%" :fill="vector.color || '#409EFF'" />
-        </svg>
+     2. 如果不存在vector.resourceId但有svgContent数据，则转换为内联SVG：
+        
 
-6. 严格遵循数据驱动视图原则：将模板内容数据化，避免硬编码，使数据和视图解耦。
+7. 严格遵循数据驱动视图原则：将模板内容数据化，避免硬编码，使数据和视图解耦。
    - 数据结构相似性/UI相似性达60%以上时，应该明确使用v-for，差异的部分用字段来标识
    - template中的文本内容都应该使用数据驱动，需要明确定义在 data/props 中
      如： <div>标题</div> 应该转换为 <div>{{ data.title }}</div> 
@@ -72,15 +67,14 @@ const mvvmPrompt = `
 3. 单位保留：不转换rem()等函数，原样保留
 4. 默认值过滤：如font-size:normal等默认值应省略
 5. 非必要不使用:style绑定样式
-6. 在使用customStyle、style的基础上，应该用每个节点layout.spacing.siblings字段（如有）来推算出准确的父子元素之间、兄弟元素之间的间距，其中direction代表间距方向。
-  - spacing.siblings.after需严格遵循"最近优先"的嵌套间距原则
+6. 在使用customStyle、style的基础上，应该用每个节点layout.margin字段（如有）来计算准确兄弟元素之间的间距
+
   这是layout的相关字段定义和描述
   layout: {
     x: number // 布局x坐标
     y: number // 布局y坐标
     width?: number // 布局宽度
     height?: number // 布局高度
-    rotation?: number 
     layoutMode?: string // 布局模式 (HORIZONTAL | VERTICAL)
     layoutAlign?: string // 布局对齐方式 (STRETCH | CENTER | MIN | MAX)
     padding?: {
@@ -89,15 +83,13 @@ const mvvmPrompt = `
       bottom: number
       left: number
     }
-    // 布局信息关系字段
-    spacing?: {
-      siblings?: {
-        after?: number  // 与后一个兄弟节点的间距
-        direction?: 'horizontal' | 'vertical' // 间距方向，水平或垂直
-      }
+    // margin相关信息
+    margin?: {
+      top?: number
+      right?: number
+      bottom?: number
+      left?: number
     }
-    // 布局意图描述
-    intent?: string
   }
 
 7. 分割线处理：当节点包含divider字段时，表示这是一个分割线，必须使用以下方式处理分割线：
@@ -215,7 +207,6 @@ const cbgPrompt = `
     y: number // 布局y坐标
     width?: number // 布局宽度
     height?: number // 布局高度
-    rotation?: number 
     layoutMode?: string // 布局模式 (HORIZONTAL | VERTICAL)
     layoutAlign?: string // 布局对齐方式 (STRETCH | CENTER | MIN | MAX)
     padding?: {
@@ -231,8 +222,6 @@ const cbgPrompt = `
         direction?: 'horizontal' | 'vertical' // 间距方向，水平或垂直
       }
     }
-    // 布局意图描述
-    intent?: string
   }
 
 7. 分割线处理：当节点包含divider字段时，表示这是一个分割线，必须使用以下方式处理分割线：

@@ -21,7 +21,8 @@ import {
 import {
   initPendingResult,
   updateGenerationResult,
-  getGenerationResult
+  getGenerationResult,
+  clearGenerationResult
 } from '@/utils/cache/aiGenCache'
 import { extractSelectedNodes } from '@/utils/uiExtractor'
 import { parseUIInfo } from '@/utils/uiParser'
@@ -321,7 +322,7 @@ async function initNewGeneration(nodeId: string) {
       resources.value = newResources
       console.log(resources.value, 'resources')
       const parsedInfo = parseUIInfo(uiInfo, options.value.project)
-      console.log(parsedInfo, 'parsedInfo')
+      console.log(parsedInfo, '[parsedInfo]')
       console.log('Resources collected:', resources)
       // 使用生成器获取流式响应并实时更新
       for await (const chunk of generateCode(parsedInfo, options.value.project, nodeId)) {
@@ -381,6 +382,8 @@ async function generateAICode() {
 
     // 2. 检查是否有待处理的缓存
     if (await handlePendingCache(nodeId)) return
+    // 2. 清除缓存系统中的数据
+    clearGenerationResult(nodeId, options.value.project)
 
     // 3. 开始新的生成过程
     await initNewGeneration(nodeId)
@@ -560,7 +563,10 @@ async function handleDownloadIcons() {
         <div class="tp-code-actions tp-row tp-gap-s">
           <!-- 添加图标下载按钮 -->
           <Button
-            v-if="resources?.size && (selectedNode && isGeneratingAICode(selectedNode.id)) || !selectedNode"
+            v-if="
+              (resources?.size && selectedNode && isGeneratingAICode(selectedNode.id)) ||
+              !selectedNode
+            "
             class="tp-icon-download-btn"
             @click="handleDownloadIcons"
             :disabled="isDownloading"

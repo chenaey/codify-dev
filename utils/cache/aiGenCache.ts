@@ -87,3 +87,10 @@ export function getGenerationResult(nodeId: string, projectId: string): AIGenRes
   )
   return result || null
 }
+
+// 在 aiGenCache.ts 中添加
+export function clearGenerationResult(nodeId: string, projectId: string) {
+  const key = `${nodeId}:${projectId}`
+  // 从缓存中删除指定节点的生成结果
+  cache.value.results = cache.value.results.filter((result) => getCacheKey(result.nodeId, result.projectId) !== key)
+}

@@ -177,7 +177,6 @@ export async function extractVectorData(node: any): Promise<BaseVectorData | Ful
 
   // 如果节点支持导出SVG，使用Figma API导出
   try {
-    console.log('[extractVectorData]', node, node.name, isSimple)
     if (isSimple) {
       // 直接导出SVG
       const svgBytes = await node.exportAsync({
