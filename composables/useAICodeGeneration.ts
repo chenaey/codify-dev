@@ -1,15 +1,17 @@
 import type { SelectionNode } from '@/ui/state'
 
-import { ref, shallowRef, computed } from 'vue'
 import { useToast } from '@/composables/toast'
+import { selectedNode, options } from '@/ui/state'
 import { 
   generateCode, 
   clearConversation, 
   sendUserMessage as sendMessage,
   createResponseGenerator 
 } from '@/utils/ai/client'
+import { getStateFromCache, saveStateToCache } from '@/utils/cache/aiStateCache'
 import { extractSelectedNodes } from '@/utils/uiExtractor'
 import { parseUIInfo } from '@/utils/uiParser'
+import { ref, shallowRef, computed, watch } from 'vue'
 
 // 定义生成状态类型
 export interface GenerationState {
@@ -27,18 +29,39 @@ export default function useAICodeGeneration() {
   // AI代码状态管理
   const aiGenerationAbortController = shallowRef<AbortController | null>(null)
   const aiError = ref('')
-  const currentNodeId = ref<string | null>(null)
-  const currentProjectId = ref<string | null>(null)
+  
+  // 直接使用全局状态的计算属性
+  const currentNodeId = computed(() => selectedNode.value?.id || null)
+  const currentProjectId = computed(() => options.value.project || null)
   
   // 生成状态Map
   const generatingStates = ref(new Map<string, GenerationState>())
   
+  // 获取状态Map的键
+  function getStateKey(nodeId: string, projectId: string): string {
+    return `${nodeId}:${projectId}`
+  }
+  
   // 创建计算属性来获取当前节点的生成状态
   const currentState = computed(() => {
     if (!currentNodeId.value || !currentProjectId.value) return null
+    
     const stateKey = getStateKey(currentNodeId.value, currentProjectId.value)
-    console.log('[currentState]', generatingStates.value.get(stateKey))
-    return generatingStates.value.get(stateKey) || null
+    
+    // 优先从内存中获取状态
+    let state = generatingStates.value.get(stateKey)
+    
+    // 如果内存中没有，尝试从缓存中获取
+    if (!state) {
+      const cachedState = getStateFromCache(stateKey)
+      if (cachedState) {
+        // 将缓存的状态添加到内存中
+        generatingStates.value.set(stateKey, cachedState)
+        state = cachedState
+      }
+    }
+    
+    return state || null
   })
   
   // 将componentAiCode改为计算属性
@@ -77,11 +100,6 @@ export default function useAICodeGeneration() {
     return aiCodeStatus.value !== 'init'
   })
 
-  // 获取状态Map的键
-  function getStateKey(nodeId: string, projectId: string): string {
-    return `${nodeId}:${projectId}`
-  }
-
   // 清除Markdown语法标记
   function cleanMarkdownCode(code: string): string {
     return code
@@ -96,10 +114,7 @@ export default function useAICodeGeneration() {
   }
   
   // 启动加载动画
-  function startLoadingAnimation(stateKey: string) {
-    const state = generatingStates.value.get(stateKey)
-    if (!state) return
-    
+  function startLoadingAnimation(state: GenerationState) {
     const dots = ['.', '..', '...', '....']
     let index = 0
     
@@ -115,46 +130,24 @@ export default function useAICodeGeneration() {
   }
   
   // 停止加载动画
-  function stopLoadingAnimation(stateKey: string) {
-    const state = generatingStates.value.get(stateKey)
-    if (!state || !state.loadingTimer) return
+  function stopLoadingAnimation(state: GenerationState) {
+    if (!state.loadingTimer) return
     
     window.clearInterval(state.loadingTimer)
     state.loadingTimer = undefined
     state.loadingDots = ''
   }
-
-  // 检查并恢复生成状态
-  async function checkAndRestoreGeneration(node: SelectionNode | null, projectId: string) {
-    // 更新当前节点和项目ID
-    currentNodeId.value = node?.id || null
-    currentProjectId.value = projectId
+  
+  // 只监听当前状态的变化，管理加载动画
+  watch(() => currentState.value?.status, (newStatus, oldStatus) => {
+    if (!currentState.value) return
     
-    if (!node) return
-    
-    const nodeId = node.id
-    const stateKey = getStateKey(nodeId, projectId)
-    
-    // 检查是否有保存的状态
-    const savedState = generatingStates.value.get(stateKey)
-    
-    if (savedState) {
-      // 如果状态是pending，需要重新启动生成过程
-      if (savedState.status === 'pending' && savedState.controller) {
-        aiGenerationAbortController.value = savedState.controller
-        // 重新启动加载动画
-        startLoadingAnimation(stateKey)
-      }
-    } else {
-      // 初始化一个空状态
-      generatingStates.value.set(stateKey, {
-        code: '',
-        status: 'init',
-        controller: null,
-        resources: new Map<string, any>()
-      })
+    if (newStatus === 'pending' && !currentState.value.loadingTimer) {
+      startLoadingAnimation(currentState.value)
+    } else if (newStatus !== 'pending' && currentState.value.loadingTimer) {
+      stopLoadingAnimation(currentState.value)
     }
-  }
+  })
 
   // 中止当前生成
   function abortGeneration() {
@@ -168,7 +161,7 @@ export default function useAICodeGeneration() {
       const state = generatingStates.value.get(stateKey)
       if (state) {
         state.status = 'completed'
-        stopLoadingAnimation(stateKey)
+        // 动画会通过watch自动停止
       }
     }
   }
@@ -181,12 +174,11 @@ export default function useAICodeGeneration() {
     for (const [stateKey, state] of generatingStates.value.entries()) {
       if (state.loadingTimer) {
         window.clearInterval(state.loadingTimer)
+        state.loadingTimer = undefined
       }
     }
     
     generatingStates.value.clear()
-    currentNodeId.value = null
-    currentProjectId.value = null
     aiError.value = ''
   }
 
@@ -203,10 +195,6 @@ export default function useAICodeGeneration() {
     
     if (!node) return
     
-    // 更新当前节点和项目ID
-    currentNodeId.value = node.id
-    currentProjectId.value = projectId
-    
     const nodeId = node.id
     const stateKey = getStateKey(nodeId, projectId)
     
@@ -219,7 +207,6 @@ export default function useAICodeGeneration() {
         resources: new Map<string, any>()
       })
     }
-    console.log('[generatingStates]', generatingStates.value)
     
     const state = generatingStates.value.get(stateKey)!
     
@@ -238,9 +225,6 @@ export default function useAICodeGeneration() {
       const controller = new AbortController()
       state.controller = controller
       aiGenerationAbortController.value = controller
-      
-      // 启动加载动画
-      startLoadingAnimation(stateKey)
       
       // 清除历史对话
       clearChatHistory(nodeId, projectId)
@@ -270,12 +254,12 @@ export default function useAICodeGeneration() {
       state.controller = null
       aiGenerationAbortController.value = null
       
-      // 停止加载动画
-      stopLoadingAnimation(stateKey)
+      // 将完成的状态保存到缓存
+      saveStateToCache(stateKey, state)
       
       show('AI Generated Code Successfully')
       
-      // 返回生成结果
+      // 返回资源信息
       return { code: state.code, resources: state.resources }
     } catch (err) {
       if (aiGenerationAbortController.value?.signal.aborted) {
@@ -285,9 +269,6 @@ export default function useAICodeGeneration() {
       state.status = 'error'
       aiError.value = err instanceof Error ? err.message : 'Failed to generate AI code'
       console.error('Failed to generate AI code:', err)
-      
-      // 停止加载动画
-      stopLoadingAnimation(stateKey)
       
       return null
     } finally {
@@ -300,10 +281,6 @@ export default function useAICodeGeneration() {
   // 发送用户消息
   async function sendUserMessage(message: string, node: SelectionNode | null, projectId: string) {
     if (!node) return
-    
-    // 更新当前节点和项目ID
-    currentNodeId.value = node.id
-    currentProjectId.value = projectId
     
     const nodeId = node.id
     const stateKey = getStateKey(nodeId, projectId)
@@ -333,9 +310,6 @@ export default function useAICodeGeneration() {
     state.code = ''
     state.status = 'pending'
     
-    // 启动加载动画
-    startLoadingAnimation(stateKey)
-
     try {
       // 获取选中节点的信息(仅用于首次使用)
       const { nodes: uiInfo } = await extractSelectedNodes([node])
@@ -355,8 +329,8 @@ export default function useAICodeGeneration() {
       state.code = cleanMarkdownCode(state.code)
       state.status = 'completed'
       
-      // 停止加载动画
-      stopLoadingAnimation(stateKey)
+      // 将更新后的状态保存到缓存
+      saveStateToCache(stateKey, state)
 
       show('Code updated')
       return state.code
@@ -364,9 +338,6 @@ export default function useAICodeGeneration() {
       console.error('Generation failed:', error)
       aiError.value = 'Generation failed: ' + (error.message || 'Unknown error')
       state.status = 'error'
-      
-      // 停止加载动画
-      stopLoadingAnimation(stateKey)
       
       return null
     }
@@ -386,7 +357,6 @@ export default function useAICodeGeneration() {
     // 方法
     generateAICode,
     sendUserMessage,
-    checkAndRestoreGeneration,
     clearChatHistory,
     abortGeneration,
     cleanup

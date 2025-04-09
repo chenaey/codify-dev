@@ -116,7 +116,7 @@ onUnmounted(() => {
 }
 
 .modal-body {
-  height: calc(100% - 40px);
+  height: calc(100% - 80px);
   padding: 0 16px 16px 16px;
 }
 </style> 

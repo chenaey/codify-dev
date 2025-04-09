@@ -34,7 +34,6 @@ const {
   shouldShowCodeBlock,
   generateAICode: generateAI,
   sendUserMessage,
-  checkAndRestoreGeneration,
   clearChatHistory,
   abortGeneration,
   cleanup: cleanupAI
@@ -109,26 +108,11 @@ function handleClearChatHistory() {
 watch([selectedNode, activePlugin], async ([node]) => {
   await updateCode()
   // 在更新完基础代码后，检查AI生成状态
-  await checkAndRestoreGeneration(node, options.value.project)
 })
 
 watch(options, updateCode, {
   deep: true
 })
-
-// 监听project变化
-watch(
-  () => options.value.project,
-  () => {
-    // 清理AI生成状态
-    abortGeneration()
-    
-    // 如果有选中节点，重新检查状态
-    if (selectedNode.value) {
-      checkAndRestoreGeneration(selectedNode.value, options.value.project)
-    }
-  }
-)
 
 function open() {
   window.open(componentLink.value)
