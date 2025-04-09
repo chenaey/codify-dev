@@ -152,16 +152,25 @@ a, button {
 `
 
 const store = useStore({})
+const previewContainer = ref<HTMLElement | null>(null)
 
 onMounted(() => {
+  // 设置代码文件
   store.setFiles({
     'src/App.vue': props.code
   })
+
+  // 阻止滚动事件冒泡到外层文档
+  if (previewContainer.value) {
+    previewContainer.value.addEventListener('wheel', (e) => {
+      e.stopPropagation()
+    }, { passive: false })
+  }
 })
 </script>
 
 <template>
-  <div class="preview-container">
+  <div class="preview-container" ref="previewContainer">
     <Repl :store="store" :editor="CodeMirror" :autoResize="true" :previewOptions="{ headHTML }" />
   </div>
 </template>
@@ -172,7 +181,8 @@ onMounted(() => {
   border: 1px solid var(--color-border);
   border-radius: 8px;
   overflow: hidden;
-  height: 700px; /* 设置一个固定高度 */
+  height: 100%; /* 改为100%高度，适应Modal容器 */
+  max-height: 700px; /* 添加最大高度 */
 }
 
 :deep(.vue-repl) {
