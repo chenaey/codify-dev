@@ -1,8 +1,8 @@
 {
-  "name": "tempad-dev",
-  "description": "Inspect panel on Figma, for everyone.",
+  "name": "cbg-dev",
+  "description": "Inspect panel on Figma, and ai tools, for cbg.",
   "private": true,
-  "version": "0.8.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "wxt",

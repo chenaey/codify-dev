@@ -13,7 +13,7 @@ export default defineConfig({
     disabled: true
   },
   manifest: {
-    name: 'TemPad Dev',
+    name: 'CBG Dev',
     web_accessible_resources: [
       {
         resources: ['/ui.js'],
