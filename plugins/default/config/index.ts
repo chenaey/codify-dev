@@ -50,6 +50,14 @@ export const PROJECTS = [
         }
     },
     {
+        id: 'vue3',
+        config: {
+            ...DEFAULT_CONFIG,
+            type: 'web',
+            scale: 1
+        }
+    },
+    {
         id: 'cbg',
         config: {
             ...DEFAULT_CONFIG,

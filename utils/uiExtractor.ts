@@ -711,6 +711,13 @@ export async function extractUINode(
   } catch (error) {
     console.error(`Failed to get CSS for node ${node.id}:`, error)
   }
+  // 过滤掉绝对定位的节点 这个需要额外处理
+  if (uiNode.customStyle && uiNode.customStyle.length > 0) {
+    const isAbsolute = uiNode.customStyle.some((style: string) => style.includes('position: absolute;'))
+    if (isAbsolute) {
+      return null;
+    }
+  }
 
   // 提取矢量/图标数据
   const vector = await processVectorData(node, resources);

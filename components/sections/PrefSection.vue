@@ -27,6 +27,10 @@ const projects = ref([
     label: 'MVVM'
   },
   {
+    value: 'vue3',
+    label: 'Vue3'
+  },
+  {
     value: 'cbg',
     label: 'CBG'
   },

@@ -84,6 +84,7 @@ const copy = useCopy(code)
   font-size: 11px;
   letter-spacing: 0.005em;
   overflow-x: auto;
+  max-height: 300px;
 }
 
 .tp-code-content::selection {

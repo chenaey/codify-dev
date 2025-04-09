@@ -49,6 +49,7 @@
     }
   },
   "dependencies": {
+    "@vue/repl": "^4.5.1",
     "jszip": "^3.10.1",
     "openai": "^4.90.0"
   }

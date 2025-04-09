@@ -19,8 +19,30 @@ export function parseUIInfo(uiInfo: any, projectType?: string): any {
   // 深拷贝防止修改原始对象
   const parsedInfo = JSON.parse(JSON.stringify(uiInfo))
 
+  // 检查节点复杂度
+  const isComplexNode = (node: any): boolean => {
+    if (!node.layout?.layoutMode || !Array.isArray(node.children)) {
+      return false
+    }
+    // 简单判断：垂直布局 + 子节点数量超过阈值
+    return node.layout.layoutMode === 'VERTICAL' && node.children.length >= 200
+  }
+
+  // 生成节点描述
+  const generateDescription = (node: any): string => {
+    const childrenCount = node.children?.length || 0
+    return `垂直布局容器，包含 ${childrenCount} 个子节点。`
+  }
+
   // 处理单个节点或节点数组
-  const processNode = (node: any) => {
+  const processNode = (node: any, shouldCheckComplexity: boolean = true) => {
+    // 只有当需要检查复杂度时才进行检查和生成描述
+    if (shouldCheckComplexity && isComplexNode(node)) {
+      node.description = generateDescription(node)
+      // 子节点不再需要检查复杂度
+      shouldCheckComplexity = false
+    }
+
     // 处理图标信息
     if (node.vector) {
       processVectorInfo(node.vector, projectType)
@@ -38,7 +60,6 @@ export function parseUIInfo(uiInfo: any, projectType?: string): any {
             }
           }
         }
-
       }
 
       // 如果节点有itemSpacing属性，也需要处理
@@ -65,9 +86,9 @@ export function parseUIInfo(uiInfo: any, projectType?: string): any {
       }
     }
 
-    // 递归处理子节点
+    // 递归处理子节点，传递是否需要检查复杂度的标志
     if (Array.isArray(node.children)) {
-      node.children.forEach(processNode)
+      node.children.forEach(child => processNode(child, shouldCheckComplexity))
     }
 
     return node
@@ -75,9 +96,9 @@ export function parseUIInfo(uiInfo: any, projectType?: string): any {
 
   // 处理数组或单个对象
   if (Array.isArray(parsedInfo)) {
-    return parsedInfo.map(processNode)
+    return parsedInfo.map(node => processNode(node, true))
   } else {
-    return processNode(parsedInfo)
+    return processNode(parsedInfo, true)
   }
 }
 
@@ -110,7 +131,7 @@ function processVectorInfo(vector: any, projectType?: string): void {
         vector.assetPath = `@drawable/${vector.fileName}`
         break
       default:
-        vector.assetPath = `icons/${vector.fileName}`
+        vector.assetPath = `@assets/${vector.fileName}`
     }
   }
 
@@ -143,6 +164,9 @@ function processVectorInfo(vector: any, projectType?: string): void {
           vector.widthUnit = 'dp'
           vector.heightUnit = 'dp'
           break
+        default:
+          vector.widthUnit = 'px'
+          vector.heightUnit = 'px'
       }
     }
   }

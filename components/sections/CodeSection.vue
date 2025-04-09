@@ -26,9 +26,11 @@ import {
 } from '@/utils/cache/aiGenCache'
 import { extractSelectedNodes } from '@/utils/uiExtractor'
 import { parseUIInfo } from '@/utils/uiParser'
-import { ref, computed, shallowRef, watch, onUnmounted, nextTick } from 'vue'
+import { ref, computed, shallowRef, watch, onUnmounted, nextTick, onMounted } from 'vue'
 import { downloadIconResources } from '@/utils/download'
 import Button from '../Button.vue'
+import PreviewSection from './PreviewSection.vue'
+import Modal from '../Modal.vue'
 
 interface GenerationState {
   loading: { stop: () => void } | null
@@ -290,6 +292,18 @@ async function handlePendingCache(nodeId: string) {
   return false
 }
 
+const componentAiCodeBlock = computed(() => {
+  return codeBlocks.value.find((block) => block.name === 'ai-generated')
+})
+
+const isReady = computed(() => {
+  return (
+    componentAiCodeBlock.value?.title === 'AI Generated Code' ||
+    componentAiCodeBlock.value?.title === 'AI Updated Code' ||
+    componentAiCodeBlock.value?.title === 'AI Generated Cache'
+  )
+})
+
 // 初始化新的生成过程
 async function initNewGeneration(nodeId: string) {
   const projectId = options.value.project
@@ -360,7 +374,7 @@ async function initNewGeneration(nodeId: string) {
   return state.promise
 }
 
-const supportProject = ['mvvm', 'cbg', 'ios', 'android']
+const supportProject = ['mvvm', 'vue3', 'cbg', 'ios', 'android']
 async function generateAICode() {
   if (!supportProject.includes(options.value.project)) {
     show('AI code generation is not supported in this project')
@@ -527,21 +541,17 @@ async function handleDownloadIcons() {
     isDownloading.value = false
   }
 }
-// 更新资源列表
-// watch(selectedNode, async (node) => {
-//   if (!node) {
-//     resources.value.clear()
-//     return
-//   }
 
-//   try {
-//     const { nodes: uiInfo, resources: newResources } = await extractSelectedNodes([node])
-//     resources.value = newResources
-//   } catch (error) {
-//     console.error('Failed to extract resources:', error)
-//     resources.value.clear()
-//   }
-// }, { immediate: true })
+// 添加控制弹窗显示的状态
+const showPreview = ref(false)
+
+// 修改打开预览的方法
+const openPreview = () => {
+  const block = codeBlocks.value.find((block) => block.name === 'ai-generated')
+  if (block) {
+    showPreview.value = true
+  }
+}
 </script>
 
 <template>
@@ -561,12 +571,19 @@ async function handleDownloadIcons() {
           AI
         </IconButton>
         <div class="tp-code-actions tp-row tp-gap-s">
+          <button
+            v-if="isReady"
+            :style="{
+              'margin-right': '8px'
+            }"
+            class="tp-button tp-button-primary"
+            @click="openPreview"
+          >
+            预览
+          </button>
           <!-- 添加图标下载按钮 -->
           <Button
-            v-if="
-              (resources?.size && selectedNode && isGeneratingAICode(selectedNode.id)) ||
-              !selectedNode
-            "
+            v-if="resources?.size && selectedNode && isReady"
             class="tp-icon-download-btn"
             @click="handleDownloadIcons"
             :disabled="isDownloading"
@@ -619,6 +636,11 @@ async function handleDownloadIcons() {
       :lang="lang"
       :code="code"
     />
+
+    <!-- 添加弹窗组件 -->
+    <Modal :show="showPreview" @close="showPreview = false">
+      <PreviewSection :code="componentAiCodeBlock?.code || ''" />
+    </Modal>
   </Section>
 </template>
 
@@ -657,5 +679,12 @@ async function handleDownloadIcons() {
 .tp-icon-download-btn:disabled {
   background: var(--color-primary-disabled);
   cursor: not-allowed;
+}
+
+.playground-overlay,
+.playground-container,
+.playground-header,
+.close-btn {
+  display: none;
 }
 </style>
