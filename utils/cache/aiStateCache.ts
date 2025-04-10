@@ -12,7 +12,7 @@ interface AiStateCache {
 }
 
 // 初始化本地存储
-const cache = useStorage<AiStateCache>('tempad-ai-state-cache', {
+const cache = useStorage<AiStateCache>('cbg-dev-ai-state-cache', {
   states: {},
   keys: []
 })

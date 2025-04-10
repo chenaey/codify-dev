@@ -52,7 +52,7 @@ export type SelectionNode =
   | QuirksNode
   | GhostNode
 
-export const options = useStorage<Options>('tempad-dev', {
+export const options = useStorage<Options>('cbg-dev-options-state', {
   minimized: false,
   panelPosition: {
     left: window.innerWidth - ui.nativePanelWidth - ui.tempadPanelWidth,
