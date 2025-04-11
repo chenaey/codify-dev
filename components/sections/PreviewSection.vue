@@ -2,9 +2,11 @@
 import { Repl, useStore } from '@vue/repl'
 import CodeMirror from '@vue/repl/codemirror-editor'
 import { onMounted, ref } from 'vue'
+import Button from '../Button.vue'
 
 const props = defineProps<{
   code: string
+  resources: Map<string, any>
 }>()
 
 // 自定义头部HTML，包含CSS样式
@@ -154,23 +156,119 @@ a, button {
 const store = useStore({})
 const previewContainer = ref<HTMLElement | null>(null)
 
-onMounted(() => {
-  // 设置代码文件
-  store.setFiles({
-    'src/App.vue': props.code
-  })
+// 从Figma导出图片为base64的函数
+async function exportFigmaNodeToBase64(node: any): Promise<string> {
+  try {
+    // 获取节点的导出设置
+    const settings = {
+      format: 'SVG' // 或者根据需要使用 'PNG', 'JPG'
+    }
 
+    // 调用Figma API导出图片
+    const response = await node.exportAsync(settings)
+
+    // 将二进制数据转换为base64
+    const base64 = btoa(
+      new Uint8Array(response).reduce((data, byte) => data + String.fromCharCode(byte), '')
+    )
+    console.log(base64, 'base64')
+    // 返回完整的base64 URL
+    return `data:image/svg+xml;base64,${base64}`
+  } catch (error) {
+    console.error('Error exporting Figma node:', error)
+    return ''
+  }
+}
+
+// 替换代码中的图片引用为base64
+async function replaceImagesWithBase64(code: string, resources: Map<string, any>): Promise<string> {
+  let modifiedCode = code
+
+  // 匹配两种格式：普通字符串和模板字符串
+  const patterns = [
+    /:src="require\(['"]@assets\/([^'"]+)['"]\)"/g, // 普通字符串格式
+    /:src="require\(`@assets\/([^${}]+(?:\$\{[^}]+\}[^${}]*)*)`\)"/g // 模板字符串格式
+  ]
+
+  for (const pattern of patterns) {
+    // 获取所有需要替换的图片
+    const matches = [...code.matchAll(pattern)]
+    console.log('Matches found:', matches)
+
+    // 处理所有匹配的图片
+    for (const [fullMatch, fileName] of matches) {
+      console.log('Processing file:', fileName)
+
+      // 处理包含${index}的情况
+      let processedFileName = fileName
+      if (fileName.includes('${index}')) {
+        processedFileName = fileName.replace('${index}', '1')
+      }
+
+      // 直接从Map中获取资源
+      for (const [nodeId, resource] of resources) {
+        if (resource.fileName === processedFileName) {
+          try {
+            // 导出为base64
+            const base64Data = await exportFigmaNodeToBase64(resource.node)
+            console.log('Base64 generated:', !!base64Data)
+
+            // 替换代码中的引用
+            modifiedCode = modifiedCode.replace(fullMatch, `src="${base64Data}"`)
+            break
+          } catch (error) {
+            console.error(`Error processing image ${processedFileName}:`, error)
+          }
+        }
+      }
+    }
+  }
+
+  return modifiedCode
+}
+
+async function initPreview() {
+  try {
+    console.log('Original code:', props.code)
+    console.log('Resources:', props.resources)
+    // 更新store
+    store.setFiles({
+      'src/App.vue': props.code
+    })
+  } catch (error) {
+    console.error('Error in initPreview:', error)
+  }
+}
+async function replaceImg() {
+  // 替换代码中的图片引用
+  const updatedCode = await replaceImagesWithBase64(props.code, props.resources)
+  console.log('Updated code:', updatedCode)
+  // 更新store
+  store.setFiles({
+    'src/App.vue': updatedCode
+  })
+}
+
+onMounted(() => {
   // 阻止滚动事件冒泡到外层文档
   if (previewContainer.value) {
-    previewContainer.value.addEventListener('wheel', (e) => {
-      e.stopPropagation()
-    }, { passive: false })
+    previewContainer.value.addEventListener(
+      'wheel',
+      (e) => {
+        e.stopPropagation()
+      },
+      { passive: false }
+    )
   }
+  initPreview()
 })
 </script>
 
 <template>
   <div class="preview-container" ref="previewContainer">
+    <div class="preview-header">
+      <Button @click="replaceImg">替换图片</Button>
+    </div>
     <Repl :store="store" :editor="CodeMirror" :autoResize="true" :previewOptions="{ headHTML }" />
   </div>
 </template>
@@ -185,8 +283,15 @@ onMounted(() => {
   max-height: 700px; /* 添加最大高度 */
 }
 
+.preview-header {
+  display: flex;
+  align-items: center;
+  padding-top: 8px;
+  padding-left: 8px;
+  border-bottom: 1px solid var(--color-border);
+}
 :deep(.vue-repl) {
-  height: 100%;
+  height: 96%;
   width: 100%;
 }
 :deep(.left) {

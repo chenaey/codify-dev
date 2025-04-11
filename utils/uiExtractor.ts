@@ -100,7 +100,7 @@ interface UINode {
   }
   children?: UINode[]
   // 添加自定义样式字段
-  customStyle?: string[]
+  customStyle?: Record<string, string>
 
   // 分割线数据，用于生成水平或垂直分隔线
   divider?: {
@@ -177,6 +177,19 @@ function extractStrokes(node: any) {
       width: node.strokeWeight,
       position: node.strokeAlign
     }))
+}
+
+
+const convertStyleArrayToObject = (styles: string[]) => {
+  return styles.reduce((acc: Record<string, string>, style: string) => {
+    // 移除末尾分号和空格
+    const cleanStyle = style.replace(/;$/, '').trim()
+    // 分割属性名和值
+    const [property, value] = cleanStyle.split(': ').map((s: string) => s.trim())
+    // 设置属性值
+    acc[property] = value
+    return acc
+  }, {})
 }
 
 // 提取效果信息
@@ -397,12 +410,11 @@ function extractLayout(node: any, parent?: any, siblings?: any[], rootNode?: any
     y: toDecimalPlace(relativeY),
     layoutMode: getLayoutMode(node)
   }
-
   // 根据判断结果添加宽高
   if (shouldAddWidthHeight(node)) {
     layout.width = toDecimalPlace(nodePos.width)
     layout.height = toDecimalPlace(nodePos.height)
-  } else {
+  } else if(!['TEXT'].includes(node.type)) {
     layout.width = '100%'
   }
 
@@ -706,14 +718,14 @@ export async function extractUINode(
         })
       }
 
-      uiNode.customStyle = styles
+      uiNode.customStyle = convertStyleArrayToObject(styles)
     }
   } catch (error) {
     console.error(`Failed to get CSS for node ${node.id}:`, error)
   }
   // 过滤掉绝对定位的节点 这个需要额外处理
-  if (uiNode.customStyle && uiNode.customStyle.length > 0) {
-    const isAbsolute = uiNode.customStyle.some((style: string) => style.includes('position: absolute;'))
+  if (uiNode.customStyle) {
+    const isAbsolute = uiNode.customStyle['position'] === 'absolute'
     if (isAbsolute) {
       return null;
     }
@@ -724,10 +736,12 @@ export async function extractUINode(
   if (vector) {
     uiNode.vector = vector;
     // 清理可能影响图标渲染的填充
-    if (Array.isArray(uiNode.customStyle)) {
-      uiNode.customStyle = uiNode.customStyle.filter(
-        style => !style.includes('padding')
-      );
+    if (uiNode.customStyle) {
+      delete uiNode.customStyle['padding']
+      delete uiNode.customStyle['padding-top']
+      delete uiNode.customStyle['padding-right']
+      delete uiNode.customStyle['padding-bottom']
+      delete uiNode.customStyle['padding-left']
     }
     // 删除布局内的填充
     if (uiNode.layout?.padding) {

@@ -10,7 +10,6 @@ import Info from '@/components/icons/Info.vue'
 import Preview from '@/components/icons/Preview.vue'
 import Section from '@/components/Section.vue'
 
-import { useToast } from '@/composables/toast'
 import useAICodeGeneration from '@/composables/useAICodeGeneration'
 import { selection, selectedNode, options, selectedTemPadComponent, activePlugin } from '@/ui/state'
 import { getDesignComponent } from '@/utils'
@@ -35,7 +34,6 @@ const {
   generateAICode: generateAI,
   sendUserMessage,
   clearChatHistory,
-  abortGeneration,
   cleanup: cleanupAI
 } = useAICodeGeneration()
 
@@ -43,7 +41,6 @@ const componentCode = shallowRef('')
 const componentLink = shallowRef('')
 const codeBlocks = ref<CodeBlock[]>([])
 const warning = shallowRef('')
-const { show } = useToast()
 const isDownloading = ref(false)
 
 const playButtonTitle = computed(() =>
@@ -255,7 +252,7 @@ const closePreview = () => {
 
     <!-- 添加弹窗组件 -->
     <Modal :show="showPreview" @close="closePreview">
-      <PreviewSection :code="componentAiCode" />
+      <PreviewSection :code="componentAiCode" :resources="unref(currentResources)" />
     </Modal>
   </Section>
 </template>

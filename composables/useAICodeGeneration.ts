@@ -237,7 +237,7 @@ export default function useAICodeGeneration() {
       
       // 解析UI信息并开始生成代码
       const parsedInfo = parseUIInfo(uiInfo, projectId)
-      
+      console.log('[data]', parsedInfo)
       // 使用生成器获取流式响应并实时更新
       for await (const chunk of generateCode(parsedInfo, projectId, nodeId)) {
         if (controller.signal.aborted) {

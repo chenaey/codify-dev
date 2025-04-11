@@ -150,14 +150,15 @@ const vue3Prompt = `
      'VERTICAL' - 垂直布局模式，相当于CSS中的 display: flex 和 flex-direction: column，子元素会在垂直方向上排列。
    - 必须递归处理所有嵌套层级的layoutMode，不要遗漏任何子节点
 
-3. 层级优化：
-   - 相同布局方向的连续Frame可以合并
+3. 层级优化&margin处理：
+   - 相同布局方向的连续Frame可以合并，合并时需要特别检查margin的影响，确保不丢失重要的间距信息。
    - 没有实际样式/间距影响的中间层Frame可以去除
    - 避免不必要的div嵌套，不需要多余的div，对于这种情况 在不影响布局的情况下，必须简化为。
       例如这里有三层嵌套一个内容：
          <div ><div> <div>内容 </div> </div> </div>
       应该简化为：
          <div> 内容 </div>
+   - 严格检查每个节点的margin数据，包含文本节点，为每个有margin的节点保留对应的间距样式
 
 4. 特殊处理标记：
    固定尺寸元素仅限：
@@ -195,6 +196,7 @@ const vue3Prompt = `
 4. 默认值过滤：如font-size:normal等默认值应省略
 5. 非必要不使用:style绑定样式
 6. 在使用customStyle、style的基础上，应该用每个节点layout.margin字段（如有）来计算准确兄弟元素之间的间距
+7. 文本节点不使用<p>、<h1>、<h2>、<h3>、<h4>、<h5>、<h6>等标签，必须使用<div>或<span>标签
 
   这是layout的相关字段定义和描述
   layout: {
