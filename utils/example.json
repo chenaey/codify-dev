@@ -1,0 +1,1763 @@
+[
+  {
+    "id": "1:11631",
+    "name": "商品分析",
+    "type": "INSTANCE",
+    "layout": {
+      "x": 0,
+      "y": 0,
+      "layoutMode": "VERTICAL",
+      "width": "100%",
+      "layoutAlign": "STRETCH",
+      "padding": {
+        "top": 4,
+        "right": 8,
+        "bottom": 12,
+        "left": 8
+      }
+    },
+    "customStyle": {
+      "display": "flex",
+      "flex-direction": "column",
+      "justify-content": "center",
+      "align-items": "center",
+      "align-self": "stretch",
+      "padding": "4px 8px 12px 8px",
+      "border-radius": "4px",
+      "background": "#FFF",
+      "margin-bottom": "8px"
+    },
+    "children": [
+      {
+        "id": "I1:11631;1:7338",
+        "name": "Frame 427320189",
+        "type": "FRAME",
+        "layout": {
+          "x": 8,
+          "y": 4,
+          "layoutMode": "VERTICAL",
+          "width": "100%",
+          "layoutAlign": "STRETCH"
+        },
+        "customStyle": {
+          "display": "flex",
+          "flex-direction": "column",
+          "align-items": "flex-start",
+          "align-self": "stretch"
+        },
+        "children": [
+          {
+            "id": "I1:11631;1:7339",
+            "name": "列表",
+            "type": "INSTANCE",
+            "layout": {
+              "x": 8,
+              "y": 4,
+              "layoutMode": "VERTICAL",
+              "width": "100%",
+              "layoutAlign": "STRETCH",
+              "padding": {
+                "top": 8,
+                "bottom": 8
+              }
+            },
+            "customStyle": {
+              "display": "flex",
+              "flex-direction": "column",
+              "justify-content": "center",
+              "align-items": "flex-start",
+              "align-self": "stretch",
+              "padding": "8px 0px",
+              "background": "#FFF",
+              "margin-bottom": "4px"
+            },
+            "children": [
+              {
+                "id": "I1:11631;1:7339;1:6915",
+                "name": "Frame 427319958",
+                "type": "FRAME",
+                "layout": {
+                  "x": 8,
+                  "y": 12,
+                  "layoutMode": "VERTICAL",
+                  "width": "100%",
+                  "layoutAlign": "STRETCH"
+                },
+                "customStyle": {
+                  "display": "flex",
+                  "flex-direction": "column",
+                  "align-items": "flex-start",
+                  "align-self": "stretch"
+                },
+                "children": [
+                  {
+                    "id": "I1:11631;1:7339;1:6927",
+                    "name": "Frame 427319939",
+                    "type": "FRAME",
+                    "layout": {
+                      "x": 8,
+                      "y": 12,
+                      "layoutMode": "VERTICAL",
+                      "width": "100%",
+                      "layoutAlign": "STRETCH"
+                    },
+                    "customStyle": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "align-items": "flex-start",
+                      "align-self": "stretch"
+                    },
+                    "children": [
+                      {
+                        "id": "I1:11631;1:7339;1:6928",
+                        "name": "Frame 280152",
+                        "type": "FRAME",
+                        "layout": {
+                          "x": 8,
+                          "y": 12,
+                          "layoutMode": "HORIZONTAL",
+                          "width": "100%",
+                          "layoutAlign": "STRETCH"
+                        },
+                        "customStyle": {
+                          "display": "flex",
+                          "justify-content": "space-between",
+                          "align-items": "flex-start",
+                          "align-self": "stretch",
+                          "background": "#FFF"
+                        },
+                        "children": [
+                          {
+                            "id": "I1:11631;1:7339;1:6929",
+                            "name": "Frame 2781",
+                            "type": "FRAME",
+                            "layout": {
+                              "x": 8,
+                              "y": 12,
+                              "layoutMode": "VERTICAL",
+                              "width": "100%",
+                              "layoutAlign": "INHERIT"
+                            },
+                            "customStyle": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "align-items": "flex-start"
+                            },
+                            "children": [
+                              {
+                                "id": "I1:11631;1:7339;1:6930",
+                                "name": "Frame 280149",
+                                "type": "FRAME",
+                                "layout": {
+                                  "x": 8,
+                                  "y": 12,
+                                  "layoutMode": "HORIZONTAL",
+                                  "width": "100%",
+                                  "layoutAlign": "INHERIT"
+                                },
+                                "customStyle": {
+                                  "display": "flex",
+                                  "align-items": "flex-start"
+                                },
+                                "children": [
+                                  {
+                                    "id": "I1:11631;1:7339;1:6931",
+                                    "name": "image 15",
+                                    "type": "RECTANGLE",
+                                    "layout": {
+                                      "x": 8,
+                                      "y": 12,
+                                      "layoutMode": "NONE",
+                                      "width": 40,
+                                      "height": 40,
+                                      "layoutAlign": "INHERIT"
+                                    },
+                                    "customStyle": {
+                                      "width": "40px",
+                                      "height": "40px",
+                                      "aspect-ratio": "1/1",
+                                      "background": "url(<path-to-image>) lightgray 50% / cover no-repeat",
+                                      "margin-right": "10px"
+                                    },
+                                    "vector": {
+                                      "id": "I1:11631;1:7339;1:6931",
+                                      "type": "RECTANGLE",
+                                      "name": "image 15",
+                                      "width": 40,
+                                      "height": 40,
+                                      "resourceId": "I1:11631;1:7339;1:6931",
+                                      "fileName": "icon-image-15.svg",
+                                      "assetPath": "@assets/icon-image-15.svg",
+                                      "widthUnit": "px",
+                                      "heightUnit": "px"
+                                    }
+                                  },
+                                  {
+                                    "id": "I1:11631;1:7339;1:6932",
+                                    "name": "左侧内容",
+                                    "type": "FRAME",
+                                    "layout": {
+                                      "x": 58,
+                                      "y": 12,
+                                      "layoutMode": "VERTICAL",
+                                      "layoutAlign": "INHERIT"
+                                    },
+                                    "customStyle": {
+                                      "display": "flex",
+                                      "flex-direction": "column",
+                                      "align-items": "flex-start"
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "I1:11631;1:7339;1:6933",
+                                        "name": "Frame 280185",
+                                        "type": "FRAME",
+                                        "layout": {
+                                          "x": 58,
+                                          "y": 12,
+                                          "layoutMode": "VERTICAL",
+                                          "layoutAlign": "INHERIT"
+                                        },
+                                        "customStyle": {
+                                          "display": "flex",
+                                          "flex-direction": "column",
+                                          "align-items": "flex-start",
+                                          "margin-bottom": "8px"
+                                        },
+                                        "children": [
+                                          {
+                                            "id": "I1:11631;1:7339;1:6934",
+                                            "name": "商品标题",
+                                            "type": "INSTANCE",
+                                            "layout": {
+                                              "x": 58,
+                                              "y": 12,
+                                              "layoutMode": "HORIZONTAL",
+                                              "layoutAlign": "INHERIT"
+                                            },
+                                            "customStyle": {
+                                              "display": "flex",
+                                              "justify-content": "center",
+                                              "align-items": "center",
+                                              "margin-bottom": "8px"
+                                            },
+                                            "children": [
+                                              {
+                                                "id": "I1:11631;1:7339;1:6934;164:8916",
+                                                "name": "月影仙",
+                                                "type": "TEXT",
+                                                "layout": {
+                                                  "x": 59.848,
+                                                  "y": 12.38,
+                                                  "layoutMode": "NONE",
+                                                  "layoutAlign": "INHERIT"
+                                                },
+                                                "text": {
+                                                  "content": "月影仙",
+                                                  "fontSize": 14,
+                                                  "fontWeight": "Bold",
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": {
+                                                    "value": 14,
+                                                    "unit": "PIXELS"
+                                                  },
+                                                  "textAlignHorizontal": "LEFT",
+                                                  "textAlignVertical": "TOP",
+                                                  "textCase": "ORIGINAL",
+                                                  "textDecoration": "NONE"
+                                                },
+                                                "customStyle": {
+                                                  "color": "#1A1A1A",
+                                                  "font-size": "14px",
+                                                  "line-height": "1",
+                                                  "margin-right": "4px"
+                                                }
+                                              },
+                                              {
+                                                "id": "I1:11631;1:7339;1:6934;164:8917",
+                                                "name": "| 100级",
+                                                "type": "TEXT",
+                                                "layout": {
+                                                  "x": 104.768,
+                                                  "y": 12.68,
+                                                  "layoutMode": "NONE",
+                                                  "layoutAlign": "INHERIT"
+                                                },
+                                                "text": {
+                                                  "content": "| 120级",
+                                                  "fontSize": 12,
+                                                  "fontWeight": "Regular",
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": {
+                                                    "value": 12,
+                                                    "unit": "PIXELS"
+                                                  },
+                                                  "textAlignHorizontal": "LEFT",
+                                                  "textAlignVertical": "TOP",
+                                                  "textCase": "ORIGINAL",
+                                                  "textDecoration": "NONE"
+                                                },
+                                                "customStyle": {
+                                                  "color": "#555",
+                                                  "font-size": "12px",
+                                                  "line-height": "1"
+                                                }
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "id": "I1:11631;1:7339;1:6935",
+                                            "name": "商品基础属性",
+                                            "type": "INSTANCE",
+                                            "layout": {
+                                              "x": 58,
+                                              "y": 34,
+                                              "layoutMode": "VERTICAL",
+                                              "layoutAlign": "INHERIT"
+                                            },
+                                            "customStyle": {
+                                              "display": "flex",
+                                              "flex-direction": "column",
+                                              "justify-content": "center",
+                                              "align-items": "flex-start"
+                                            },
+                                            "children": [
+                                              {
+                                                "id": "I1:11631;1:7339;1:6935;164:8914",
+                                                "name": "Frame 280147",
+                                                "type": "FRAME",
+                                                "layout": {
+                                                  "x": 58,
+                                                  "y": 34,
+                                                  "layoutMode": "HORIZONTAL",
+                                                  "layoutAlign": "INHERIT"
+                                                },
+                                                "customStyle": {
+                                                  "display": "flex",
+                                                  "align-items": "flex-start"
+                                                },
+                                                "children": [
+                                                  {
+                                                    "id": "I1:11631;1:7339;1:6935;164:8910",
+                                                    "name": "成长:1.225",
+                                                    "type": "TEXT",
+                                                    "layout": {
+                                                      "x": 58.54,
+                                                      "y": 34.16,
+                                                      "layoutMode": "NONE",
+                                                      "layoutAlign": "INHERIT"
+                                                    },
+                                                    "text": {
+                                                      "content": "成长:1.225",
+                                                      "fontSize": 12,
+                                                      "fontWeight": "Regular",
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": {
+                                                        "value": 12,
+                                                        "unit": "PIXELS"
+                                                      },
+                                                      "textAlignHorizontal": "LEFT",
+                                                      "textAlignVertical": "TOP",
+                                                      "textCase": "ORIGINAL",
+                                                      "textDecoration": "NONE"
+                                                    },
+                                                    "customStyle": {
+                                                      "color": "#555",
+                                                      "font-size": "12px",
+                                                      "line-height": "1",
+                                                      "margin-right": "6px"
+                                                    }
+                                                  },
+                                                  {
+                                                    "id": "I1:11631;1:7339;1:6935;164:8911",
+                                                    "name": "6技能",
+                                                    "type": "TEXT",
+                                                    "layout": {
+                                                      "x": 121.612,
+                                                      "y": 34.196,
+                                                      "layoutMode": "NONE",
+                                                      "layoutAlign": "INHERIT"
+                                                    },
+                                                    "text": {
+                                                      "content": "6技能",
+                                                      "fontSize": 12,
+                                                      "fontWeight": "Regular",
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": {
+                                                        "value": 12,
+                                                        "unit": "PIXELS"
+                                                      },
+                                                      "textAlignHorizontal": "LEFT",
+                                                      "textAlignVertical": "TOP",
+                                                      "textCase": "ORIGINAL",
+                                                      "textDecoration": "NONE"
+                                                    },
+                                                    "customStyle": {
+                                                      "color": "#555",
+                                                      "font-size": "12px",
+                                                      "line-height": "1"
+                                                    }
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "id": "I1:11631;1:7339;1:6938",
+                                        "name": "Frame 280148",
+                                        "type": "FRAME",
+                                        "layout": {
+                                          "x": 58,
+                                          "y": 54,
+                                          "layoutMode": "VERTICAL",
+                                          "layoutAlign": "INHERIT"
+                                        },
+                                        "customStyle": {
+                                          "display": "flex",
+                                          "flex-direction": "column",
+                                          "align-items": "flex-start"
+                                        },
+                                        "children": [
+                                          {
+                                            "id": "I1:11631;1:7339;1:6939",
+                                            "name": "Frame 427319929",
+                                            "type": "FRAME",
+                                            "layout": {
+                                              "x": 58,
+                                              "y": 54,
+                                              "layoutMode": "HORIZONTAL",
+                                              "layoutAlign": "INHERIT"
+                                            },
+                                            "customStyle": {
+                                              "display": "flex",
+                                              "align-items": "flex-start"
+                                            },
+                                            "children": [
+                                              {
+                                                "id": "I1:11631;1:7339;1:6940",
+                                                "name": "商品列表",
+                                                "type": "INSTANCE",
+                                                "layout": {
+                                                  "x": 58,
+                                                  "y": 54,
+                                                  "layoutMode": "HORIZONTAL",
+                                                  "layoutAlign": "INHERIT",
+                                                  "padding": {
+                                                    "top": 4,
+                                                    "right": 4,
+                                                    "bottom": 4,
+                                                    "left": 4
+                                                  }
+                                                },
+                                                "customStyle": {
+                                                  "display": "flex",
+                                                  "align-items": "center",
+                                                  "padding": "4px",
+                                                  "border-radius": "4px",
+                                                  "border": "0.50px solid #F7C9C9",
+                                                  "margin-right": "4px"
+                                                },
+                                                "children": [
+                                                  {
+                                                    "id": "I1:11631;1:7339;1:6940;15470:15186",
+                                                    "name": "灵性110",
+                                                    "type": "TEXT",
+                                                    "layout": {
+                                                      "x": 62.796,
+                                                      "y": 58.196,
+                                                      "layoutMode": "NONE",
+                                                      "layoutAlign": "INHERIT"
+                                                    },
+                                                    "text": {
+                                                      "content": "灵性110",
+                                                      "fontSize": 12,
+                                                      "fontWeight": "Medium",
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": {
+                                                        "value": 12,
+                                                        "unit": "PIXELS"
+                                                      },
+                                                      "textAlignHorizontal": "CENTER",
+                                                      "textAlignVertical": "TOP",
+                                                      "textCase": "ORIGINAL",
+                                                      "textDecoration": "NONE"
+                                                    },
+                                                    "customStyle": {
+                                                      "color": "#FF3A36",
+                                                      "text-align": "center",
+                                                      "font-size": "12px",
+                                                      "font-weight": "500",
+                                                      "line-height": "1"
+                                                    }
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "id": "I1:11631;1:7339;1:6941",
+                                                "name": "商品列表",
+                                                "type": "INSTANCE",
+                                                "layout": {
+                                                  "x": 111,
+                                                  "y": 54,
+                                                  "layoutMode": "HORIZONTAL",
+                                                  "layoutAlign": "INHERIT",
+                                                  "padding": {
+                                                    "top": 4,
+                                                    "right": 4,
+                                                    "bottom": 4,
+                                                    "left": 4
+                                                  }
+                                                },
+                                                "customStyle": {
+                                                  "display": "flex",
+                                                  "align-items": "center",
+                                                  "padding": "4px",
+                                                  "border-radius": "4px",
+                                                  "border": "0.50px solid #F7C9C9"
+                                                },
+                                                "children": [
+                                                  {
+                                                    "id": "I1:11631;1:7339;1:6941;15470:15186",
+                                                    "name": "出其遗忘须弥",
+                                                    "type": "TEXT",
+                                                    "layout": {
+                                                      "x": 116.164,
+                                                      "y": 58.112,
+                                                      "layoutMode": "NONE",
+                                                      "layoutAlign": "INHERIT"
+                                                    },
+                                                    "text": {
+                                                      "content": "出其遗忘须弥",
+                                                      "fontSize": 12,
+                                                      "fontWeight": "Medium",
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": {
+                                                        "value": 12,
+                                                        "unit": "PIXELS"
+                                                      },
+                                                      "textAlignHorizontal": "CENTER",
+                                                      "textAlignVertical": "TOP",
+                                                      "textCase": "ORIGINAL",
+                                                      "textDecoration": "NONE"
+                                                    },
+                                                    "customStyle": {
+                                                      "color": "#FF3A36",
+                                                      "text-align": "center",
+                                                      "font-size": "12px",
+                                                      "font-weight": "500",
+                                                      "line-height": "1"
+                                                    }
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "id": "I1:11631;1:7339;1:6942",
+                            "name": "Frame 2782",
+                            "type": "FRAME",
+                            "layout": {
+                              "x": 254,
+                              "y": 12,
+                              "layoutMode": "VERTICAL",
+                              "layoutAlign": "INHERIT"
+                            },
+                            "customStyle": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "align-items": "flex-end"
+                            },
+                            "children": [
+                              {
+                                "id": "I1:11631;1:7339;1:6943",
+                                "name": "区服",
+                                "type": "INSTANCE",
+                                "layout": {
+                                  "x": 254,
+                                  "y": 12,
+                                  "layoutMode": "HORIZONTAL",
+                                  "layoutAlign": "INHERIT"
+                                },
+                                "customStyle": {
+                                  "display": "flex",
+                                  "align-items": "flex-start",
+                                  "margin-bottom": "8px"
+                                },
+                                "children": [
+                                  {
+                                    "id": "I1:11631;1:7339;1:6943;164:8919",
+                                    "name": "山东4区-沂水雪山 copy",
+                                    "type": "TEXT",
+                                    "layout": {
+                                      "x": 255.35,
+                                      "y": 12.088,
+                                      "layoutMode": "NONE",
+                                      "layoutAlign": "INHERIT"
+                                    },
+                                    "text": {
+                                      "content": "全国1区-盛夏光年",
+                                      "fontSize": 12,
+                                      "fontWeight": "Regular",
+                                      "letterSpacing": 0,
+                                      "lineHeight": {
+                                        "value": 12,
+                                        "unit": "PIXELS"
+                                      },
+                                      "textAlignHorizontal": "RIGHT",
+                                      "textAlignVertical": "TOP",
+                                      "textCase": "ORIGINAL",
+                                      "textDecoration": "NONE"
+                                    },
+                                    "customStyle": {
+                                      "color": "#555",
+                                      "text-align": "right",
+                                      "font-size": "12px",
+                                      "line-height": "1"
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "I1:11631;1:7339;1:6944",
+                                "name": "Frame 11",
+                                "type": "FRAME",
+                                "layout": {
+                                  "x": 300,
+                                  "y": 32,
+                                  "layoutMode": "HORIZONTAL",
+                                  "layoutAlign": "INHERIT"
+                                },
+                                "customStyle": {
+                                  "display": "flex",
+                                  "justify-content": "center",
+                                  "align-items": "flex-end"
+                                },
+                                "children": [
+                                  {
+                                    "id": "I1:11631;1:7339;1:6945",
+                                    "name": "价格",
+                                    "type": "FRAME",
+                                    "layout": {
+                                      "x": 300,
+                                      "y": 32,
+                                      "layoutMode": "HORIZONTAL",
+                                      "layoutAlign": "INHERIT"
+                                    },
+                                    "customStyle": {
+                                      "display": "flex",
+                                      "justify-content": "flex-end",
+                                      "align-items": "center"
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "I1:11631;1:7339;1:6946",
+                                        "name": "￥6846",
+                                        "type": "TEXT",
+                                        "layout": {
+                                          "x": 303.109,
+                                          "y": 35.352,
+                                          "layoutMode": "NONE",
+                                          "layoutAlign": "INHERIT"
+                                        },
+                                        "text": {
+                                          "content": "￥6846",
+                                          "fontWeight": "Semibold",
+                                          "letterSpacing": 0,
+                                          "lineHeight": {
+                                            "value": 18,
+                                            "unit": "PIXELS"
+                                          },
+                                          "textAlignHorizontal": "RIGHT",
+                                          "textAlignVertical": "TOP",
+                                          "textCase": "ORIGINAL",
+                                          "textDecoration": "NONE"
+                                        },
+                                        "customStyle": {
+                                          "color": "#FF3A36",
+                                          "text-align": "right",
+                                          "font-size": "16px",
+                                          "font-weight": "600",
+                                          "line-height": "1.13"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "I1:11631;1:7340",
+            "name": "Frame 427320178",
+            "type": "FRAME",
+            "layout": {
+              "x": 8,
+              "y": 86,
+              "layoutMode": "HORIZONTAL",
+              "width": "100%",
+              "layoutAlign": "STRETCH",
+              "padding": {
+                "top": 8,
+                "right": 8,
+                "bottom": 8,
+                "left": 8
+              }
+            },
+            "customStyle": {
+              "display": "flex",
+              "justify-content": "center",
+              "align-items": "center",
+              "align-self": "stretch",
+              "padding": "8px",
+              "border-radius": "4px",
+              "background": "rgba(85, 97, 245, 0.05)"
+            },
+            "children": [
+              {
+                "id": "I1:11631;1:7341",
+                "name": "Frame 427320184",
+                "type": "FRAME",
+                "layout": {
+                  "x": 16,
+                  "y": 94,
+                  "layoutMode": "VERTICAL",
+                  "width": "100%",
+                  "layoutAlign": "INHERIT"
+                },
+                "customStyle": {
+                  "display": "flex",
+                  "flex-direction": "column",
+                  "justify-content": "center",
+                  "align-items": "flex-start"
+                },
+                "children": [
+                  {
+                    "id": "I1:11631;1:7342",
+                    "name": "Frame 279746",
+                    "type": "FRAME",
+                    "layout": {
+                      "x": 16,
+                      "y": 94,
+                      "layoutMode": "HORIZONTAL",
+                      "width": "100%",
+                      "layoutAlign": "INHERIT",
+                      "padding": {
+                        "top": 12,
+                        "right": 16,
+                        "bottom": 12,
+                        "left": 16
+                      }
+                    },
+                    "customStyle": {
+                      "display": "flex",
+                      "justify-content": "space-between",
+                      "align-items": "center",
+                      "padding": "12px 16px",
+                      "border-radius": "4px",
+                      "background": "#FFF",
+                      "margin-bottom": "8px"
+                    },
+                    "children": [
+                      {
+                        "id": "I1:11631;1:7343",
+                        "name": "Frame 279752",
+                        "type": "FRAME",
+                        "layout": {
+                          "x": 32,
+                          "y": 106,
+                          "layoutMode": "VERTICAL",
+                          "width": "100%",
+                          "layoutAlign": "INHERIT"
+                        },
+                        "customStyle": {
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "justify-content": "center",
+                          "align-items": "flex-start",
+                          "flex-shrink": "0",
+                          "border-radius": "4px",
+                          "margin-right": "16px"
+                        },
+                        "children": [
+                          {
+                            "id": "I1:11631;1:7344",
+                            "name": "Frame 279749",
+                            "type": "FRAME",
+                            "layout": {
+                              "x": 32,
+                              "y": 106,
+                              "layoutMode": "HORIZONTAL",
+                              "layoutAlign": "INHERIT"
+                            },
+                            "customStyle": {
+                              "display": "flex",
+                              "align-items": "center",
+                              "margin-bottom": "8px"
+                            },
+                            "children": [
+                              {
+                                "id": "I1:11631;1:7345",
+                                "name": "稀世时装",
+                                "type": "TEXT",
+                                "layout": {
+                                  "x": 32.624,
+                                  "y": 106.052,
+                                  "layoutMode": "NONE",
+                                  "layoutAlign": "INHERIT"
+                                },
+                                "text": {
+                                  "content": "装备",
+                                  "fontSize": 12,
+                                  "fontWeight": "Regular",
+                                  "letterSpacing": 0,
+                                  "lineHeight": {
+                                    "value": 12,
+                                    "unit": "PIXELS"
+                                  },
+                                  "textAlignHorizontal": "LEFT",
+                                  "textAlignVertical": "TOP",
+                                  "textCase": "ORIGINAL",
+                                  "textDecoration": "NONE"
+                                },
+                                "customStyle": {
+                                  "color": "#555",
+                                  "font-size": "12px",
+                                  "line-height": "1"
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "id": "I1:11631;1:7346",
+                            "name": "Frame 427320185",
+                            "type": "FRAME",
+                            "layout": {
+                              "x": 32,
+                              "y": 126,
+                              "layoutMode": "VERTICAL",
+                              "width": "100%",
+                              "layoutAlign": "INHERIT"
+                            },
+                            "customStyle": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "align-items": "flex-start"
+                            },
+                            "children": [
+                              {
+                                "id": "I1:11631;1:7347",
+                                "name": "Frame 279750",
+                                "type": "FRAME",
+                                "layout": {
+                                  "x": 32,
+                                  "y": 126,
+                                  "layoutMode": "HORIZONTAL",
+                                  "layoutAlign": "INHERIT"
+                                },
+                                "customStyle": {
+                                  "display": "flex",
+                                  "align-items": "center",
+                                  "margin-bottom": "4px"
+                                },
+                                "children": [
+                                  {
+                                    "id": "I1:11631;1:7348",
+                                    "name": "Frame 279758",
+                                    "type": "FRAME",
+                                    "layout": {
+                                      "x": 32,
+                                      "y": 126,
+                                      "layoutMode": "HORIZONTAL",
+                                      "layoutAlign": "INHERIT"
+                                    },
+                                    "customStyle": {
+                                      "display": "flex",
+                                      "align-items": "flex-start"
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "I1:11631;1:7349",
+                                        "name": "99",
+                                        "type": "TEXT",
+                                        "layout": {
+                                          "x": 32.72,
+                                          "y": 127.896,
+                                          "layoutMode": "NONE",
+                                          "layoutAlign": "INHERIT"
+                                        },
+                                        "text": {
+                                          "content": "99",
+                                          "fontSize": 18,
+                                          "fontWeight": "Heavy",
+                                          "letterSpacing": 0,
+                                          "lineHeight": {
+                                            "value": 18,
+                                            "unit": "PIXELS"
+                                          },
+                                          "textAlignHorizontal": "LEFT",
+                                          "textAlignVertical": "TOP",
+                                          "textCase": "ORIGINAL",
+                                          "textDecoration": "NONE"
+                                        },
+                                        "customStyle": {
+                                          "color": "#1A1A1A",
+                                          "font-size": "18px",
+                                          "line-height": "1"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "I1:11631;1:7350",
+                                "name": "Frame 279751",
+                                "type": "FRAME",
+                                "layout": {
+                                  "x": 32,
+                                  "y": 148,
+                                  "layoutMode": "HORIZONTAL",
+                                  "width": "100%",
+                                  "layoutAlign": "INHERIT"
+                                },
+                                "customStyle": {
+                                  "display": "flex",
+                                  "align-items": "center"
+                                },
+                                "children": [
+                                  {
+                                    "id": "I1:11631;1:7351",
+                                    "name": "Frame 279758",
+                                    "type": "FRAME",
+                                    "layout": {
+                                      "x": 32,
+                                      "y": 148,
+                                      "layoutMode": "HORIZONTAL",
+                                      "width": "100%",
+                                      "layoutAlign": "INHERIT"
+                                    },
+                                    "customStyle": {
+                                      "display": "flex",
+                                      "align-items": "center"
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "I1:11631;1:7352",
+                                        "name": "相似前",
+                                        "type": "TEXT",
+                                        "layout": {
+                                          "x": 32.468,
+                                          "y": 148.112,
+                                          "layoutMode": "NONE",
+                                          "layoutAlign": "INHERIT"
+                                        },
+                                        "text": {
+                                          "content": "相似前",
+                                          "fontSize": 12,
+                                          "fontWeight": "Regular",
+                                          "letterSpacing": 0,
+                                          "lineHeight": {
+                                            "value": 12,
+                                            "unit": "PIXELS"
+                                          },
+                                          "textAlignHorizontal": "LEFT",
+                                          "textAlignVertical": "TOP",
+                                          "textCase": "ORIGINAL",
+                                          "textDecoration": "NONE"
+                                        },
+                                        "customStyle": {
+                                          "color": "#555",
+                                          "font-size": "12px",
+                                          "line-height": "1",
+                                          "margin-right": "2px"
+                                        }
+                                      },
+                                      {
+                                        "id": "I1:11631;1:7353",
+                                        "name": "10%",
+                                        "type": "TEXT",
+                                        "layout": {
+                                          "x": 70.492,
+                                          "y": 149.264,
+                                          "layoutMode": "NONE",
+                                          "layoutAlign": "INHERIT"
+                                        },
+                                        "text": {
+                                          "content": "10%",
+                                          "fontSize": 12,
+                                          "fontWeight": "Medium",
+                                          "letterSpacing": 0,
+                                          "lineHeight": {
+                                            "value": 12,
+                                            "unit": "PIXELS"
+                                          },
+                                          "textAlignHorizontal": "LEFT",
+                                          "textAlignVertical": "TOP",
+                                          "textCase": "ORIGINAL",
+                                          "textDecoration": "NONE"
+                                        },
+                                        "customStyle": {
+                                          "color": "#1A1A1A",
+                                          "font-size": "12px",
+                                          "font-weight": "500",
+                                          "line-height": "1",
+                                          "margin-right": "2px"
+                                        }
+                                      },
+                                      {
+                                        "id": "I1:11631;1:7354",
+                                        "name": "Polygon 28",
+                                        "type": "VECTOR",
+                                        "layout": {
+                                          "x": 97.133,
+                                          "y": 151.562,
+                                          "layoutMode": "NONE",
+                                          "width": 7.734,
+                                          "height": 5.438,
+                                          "layoutAlign": "INHERIT"
+                                        },
+                                        "customStyle": {
+                                          "width": "10px",
+                                          "height": "6px",
+                                          "fill": "#FF3A36"
+                                        },
+                                        "vector": {
+                                          "id": "I1:11631;1:7354",
+                                          "type": "VECTOR",
+                                          "name": "Polygon 28",
+                                          "width": 10,
+                                          "height": 6,
+                                          "resourceId": "I1:11631;1:7354",
+                                          "fileName": "icon-polygon-28.svg",
+                                          "assetPath": "@assets/icon-polygon-28.svg",
+                                          "widthUnit": "px",
+                                          "heightUnit": "px"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": "I1:11631;1:7355",
+                        "name": "分割线",
+                        "type": "INSTANCE",
+                        "layout": {
+                          "x": 123.5,
+                          "y": 121,
+                          "layoutMode": "HORIZONTAL",
+                          "layoutAlign": "INHERIT",
+                          "padding": {
+                            "right": 10,
+                            "left": 10
+                          }
+                        },
+                        "divider": {
+                          "orientation": "vertical",
+                          "style": {
+                            "color": "#EFEFEF",
+                            "thickness": 1
+                          },
+                          "layout": {}
+                        },
+                        "children": [
+                          {
+                            "id": "I1:11631;1:7355;295:14685",
+                            "name": "Rectangle 1052",
+                            "type": "RECTANGLE",
+                            "layout": {
+                              "x": 123.75,
+                              "y": 121,
+                              "layoutMode": "NONE",
+                              "layoutAlign": "STRETCH"
+                            },
+                            "divider": {
+                              "orientation": "vertical",
+                              "style": {
+                                "color": "rgba(239, 239, 239, 1)",
+                                "thickness": 1
+                              },
+                              "layout": {
+                                "fullHeight": true
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "I1:11631;1:7356",
+                        "name": "Frame 279753",
+                        "type": "FRAME",
+                        "layout": {
+                          "x": 143,
+                          "y": 106,
+                          "layoutMode": "VERTICAL",
+                          "width": "100%",
+                          "layoutAlign": "INHERIT"
+                        },
+                        "customStyle": {
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "justify-content": "center",
+                          "align-items": "flex-start",
+                          "flex-shrink": "0",
+                          "border-radius": "4px",
+                          "margin-right": "16px"
+                        },
+                        "children": [
+                          {
+                            "id": "I1:11631;1:7357",
+                            "name": "Frame 279749",
+                            "type": "FRAME",
+                            "layout": {
+                              "x": 143,
+                              "y": 106,
+                              "layoutMode": "HORIZONTAL",
+                              "layoutAlign": "INHERIT"
+                            },
+                            "customStyle": {
+                              "display": "flex",
+                              "align-items": "center",
+                              "margin-bottom": "8px"
+                            },
+                            "children": [
+                              {
+                                "id": "I1:11631;1:7358",
+                                "name": "稀世时装",
+                                "type": "TEXT",
+                                "layout": {
+                                  "x": 143.468,
+                                  "y": 106.652,
+                                  "layoutMode": "NONE",
+                                  "layoutAlign": "INHERIT"
+                                },
+                                "text": {
+                                  "content": "器灵",
+                                  "fontSize": 12,
+                                  "fontWeight": "Regular",
+                                  "letterSpacing": 0,
+                                  "lineHeight": {
+                                    "value": 12,
+                                    "unit": "PIXELS"
+                                  },
+                                  "textAlignHorizontal": "LEFT",
+                                  "textAlignVertical": "TOP",
+                                  "textCase": "ORIGINAL",
+                                  "textDecoration": "NONE"
+                                },
+                                "customStyle": {
+                                  "color": "#555",
+                                  "font-size": "12px",
+                                  "line-height": "1"
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "id": "I1:11631;1:7359",
+                            "name": "Frame 427320186",
+                            "type": "FRAME",
+                            "layout": {
+                              "x": 143,
+                              "y": 126,
+                              "layoutMode": "VERTICAL",
+                              "width": "100%",
+                              "layoutAlign": "INHERIT"
+                            },
+                            "customStyle": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "align-items": "flex-start"
+                            },
+                            "children": [
+                              {
+                                "id": "I1:11631;1:7360",
+                                "name": "Frame 279750",
+                                "type": "FRAME",
+                                "layout": {
+                                  "x": 143,
+                                  "y": 126,
+                                  "layoutMode": "HORIZONTAL",
+                                  "layoutAlign": "INHERIT"
+                                },
+                                "customStyle": {
+                                  "display": "flex",
+                                  "align-items": "center",
+                                  "margin-bottom": "4px"
+                                },
+                                "children": [
+                                  {
+                                    "id": "I1:11631;1:7361",
+                                    "name": "Frame 279758",
+                                    "type": "FRAME",
+                                    "layout": {
+                                      "x": 143,
+                                      "y": 126,
+                                      "layoutMode": "HORIZONTAL",
+                                      "layoutAlign": "INHERIT"
+                                    },
+                                    "customStyle": {
+                                      "display": "flex",
+                                      "align-items": "flex-start"
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "I1:11631;1:7362",
+                                        "name": "14",
+                                        "type": "TEXT",
+                                        "layout": {
+                                          "x": 144.782,
+                                          "y": 128.148,
+                                          "layoutMode": "NONE",
+                                          "layoutAlign": "INHERIT"
+                                        },
+                                        "text": {
+                                          "content": "14",
+                                          "fontSize": 18,
+                                          "fontWeight": "Heavy",
+                                          "letterSpacing": 0,
+                                          "lineHeight": {
+                                            "value": 18,
+                                            "unit": "PIXELS"
+                                          },
+                                          "textAlignHorizontal": "LEFT",
+                                          "textAlignVertical": "TOP",
+                                          "textCase": "ORIGINAL",
+                                          "textDecoration": "NONE"
+                                        },
+                                        "customStyle": {
+                                          "color": "#1A1A1A",
+                                          "font-size": "18px",
+                                          "line-height": "1"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "I1:11631;1:7363",
+                                "name": "Frame 279751",
+                                "type": "FRAME",
+                                "layout": {
+                                  "x": 143,
+                                  "y": 148,
+                                  "layoutMode": "HORIZONTAL",
+                                  "width": "100%",
+                                  "layoutAlign": "INHERIT"
+                                },
+                                "customStyle": {
+                                  "display": "flex",
+                                  "align-items": "center"
+                                },
+                                "children": [
+                                  {
+                                    "id": "I1:11631;1:7364",
+                                    "name": "Frame 279758",
+                                    "type": "FRAME",
+                                    "layout": {
+                                      "x": 143,
+                                      "y": 148,
+                                      "layoutMode": "HORIZONTAL",
+                                      "width": "100%",
+                                      "layoutAlign": "INHERIT"
+                                    },
+                                    "customStyle": {
+                                      "display": "flex",
+                                      "align-items": "center"
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "I1:11631;1:7365",
+                                        "name": "相似前",
+                                        "type": "TEXT",
+                                        "layout": {
+                                          "x": 143.468,
+                                          "y": 148.112,
+                                          "layoutMode": "NONE",
+                                          "layoutAlign": "INHERIT"
+                                        },
+                                        "text": {
+                                          "content": "相似前",
+                                          "fontSize": 12,
+                                          "fontWeight": "Regular",
+                                          "letterSpacing": 0,
+                                          "lineHeight": {
+                                            "value": 12,
+                                            "unit": "PIXELS"
+                                          },
+                                          "textAlignHorizontal": "LEFT",
+                                          "textAlignVertical": "TOP",
+                                          "textCase": "ORIGINAL",
+                                          "textDecoration": "NONE"
+                                        },
+                                        "customStyle": {
+                                          "color": "#555",
+                                          "font-size": "12px",
+                                          "line-height": "1",
+                                          "margin-right": "2px"
+                                        }
+                                      },
+                                      {
+                                        "id": "I1:11631;1:7366",
+                                        "name": "10%",
+                                        "type": "TEXT",
+                                        "layout": {
+                                          "x": 181.492,
+                                          "y": 149.264,
+                                          "layoutMode": "NONE",
+                                          "layoutAlign": "INHERIT"
+                                        },
+                                        "text": {
+                                          "content": "10%",
+                                          "fontSize": 12,
+                                          "fontWeight": "Medium",
+                                          "letterSpacing": 0,
+                                          "lineHeight": {
+                                            "value": 12,
+                                            "unit": "PIXELS"
+                                          },
+                                          "textAlignHorizontal": "LEFT",
+                                          "textAlignVertical": "TOP",
+                                          "textCase": "ORIGINAL",
+                                          "textDecoration": "NONE"
+                                        },
+                                        "customStyle": {
+                                          "color": "#1A1A1A",
+                                          "font-size": "12px",
+                                          "font-weight": "500",
+                                          "line-height": "1",
+                                          "margin-right": "2px"
+                                        }
+                                      },
+                                      {
+                                        "id": "I1:11631;1:7367",
+                                        "name": "Polygon 28",
+                                        "type": "VECTOR",
+                                        "layout": {
+                                          "x": 208.133,
+                                          "y": 151.562,
+                                          "layoutMode": "NONE",
+                                          "width": 7.734,
+                                          "height": 5.438,
+                                          "layoutAlign": "INHERIT"
+                                        },
+                                        "customStyle": {
+                                          "width": "10px",
+                                          "height": "6px",
+                                          "fill": "#FF3A36"
+                                        },
+                                        "vector": {
+                                          "id": "I1:11631;1:7367",
+                                          "type": "VECTOR",
+                                          "name": "Polygon 28",
+                                          "width": 10,
+                                          "height": 6,
+                                          "resourceId": "I1:11631;1:7367",
+                                          "fileName": "icon-polygon-28-1.svg",
+                                          "assetPath": "@assets/icon-polygon-28-1.svg",
+                                          "widthUnit": "px",
+                                          "heightUnit": "px"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": "I1:11631;1:7368",
+                        "name": "分割线",
+                        "type": "INSTANCE",
+                        "layout": {
+                          "x": 234.5,
+                          "y": 121,
+                          "layoutMode": "HORIZONTAL",
+                          "layoutAlign": "INHERIT",
+                          "padding": {
+                            "right": 10,
+                            "left": 10
+                          }
+                        },
+                        "divider": {
+                          "orientation": "vertical",
+                          "style": {
+                            "color": "#EFEFEF",
+                            "thickness": 1
+                          },
+                          "layout": {}
+                        },
+                        "children": [
+                          {
+                            "id": "I1:11631;1:7368;295:14685",
+                            "name": "Rectangle 1052",
+                            "type": "RECTANGLE",
+                            "layout": {
+                              "x": 234.75,
+                              "y": 121,
+                              "layoutMode": "NONE",
+                              "layoutAlign": "STRETCH"
+                            },
+                            "divider": {
+                              "orientation": "vertical",
+                              "style": {
+                                "color": "rgba(239, 239, 239, 1)",
+                                "thickness": 1
+                              },
+                              "layout": {
+                                "fullHeight": true
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "I1:11631;1:7369",
+                        "name": "Frame 279754",
+                        "type": "FRAME",
+                        "layout": {
+                          "x": 254,
+                          "y": 106,
+                          "layoutMode": "VERTICAL",
+                          "width": "100%",
+                          "layoutAlign": "INHERIT"
+                        },
+                        "customStyle": {
+                          "display": "flex",
+                          "flex-direction": "column",
+                          "justify-content": "center",
+                          "align-items": "flex-start",
+                          "flex-shrink": "0",
+                          "border-radius": "4px"
+                        },
+                        "children": [
+                          {
+                            "id": "I1:11631;1:7370",
+                            "name": "Frame 279749",
+                            "type": "FRAME",
+                            "layout": {
+                              "x": 254,
+                              "y": 106,
+                              "layoutMode": "HORIZONTAL",
+                              "layoutAlign": "INHERIT"
+                            },
+                            "customStyle": {
+                              "display": "flex",
+                              "align-items": "center",
+                              "margin-bottom": "8px"
+                            },
+                            "children": [
+                              {
+                                "id": "I1:11631;1:7371",
+                                "name": "稀世时装",
+                                "type": "TEXT",
+                                "layout": {
+                                  "x": 254.684,
+                                  "y": 106.196,
+                                  "layoutMode": "NONE",
+                                  "layoutAlign": "INHERIT"
+                                },
+                                "text": {
+                                  "content": "召唤灵",
+                                  "fontSize": 12,
+                                  "fontWeight": "Regular",
+                                  "letterSpacing": 0,
+                                  "lineHeight": {
+                                    "value": 12,
+                                    "unit": "PIXELS"
+                                  },
+                                  "textAlignHorizontal": "LEFT",
+                                  "textAlignVertical": "TOP",
+                                  "textCase": "ORIGINAL",
+                                  "textDecoration": "NONE"
+                                },
+                                "customStyle": {
+                                  "color": "#555",
+                                  "font-size": "12px",
+                                  "line-height": "1"
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "id": "I1:11631;1:7372",
+                            "name": "Frame 427320187",
+                            "type": "FRAME",
+                            "layout": {
+                              "x": 254,
+                              "y": 126,
+                              "layoutMode": "VERTICAL",
+                              "width": "100%",
+                              "layoutAlign": "INHERIT"
+                            },
+                            "customStyle": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "align-items": "flex-start"
+                            },
+                            "children": [
+                              {
+                                "id": "I1:11631;1:7373",
+                                "name": "Frame 279750",
+                                "type": "FRAME",
+                                "layout": {
+                                  "x": 254,
+                                  "y": 126,
+                                  "layoutMode": "HORIZONTAL",
+                                  "layoutAlign": "INHERIT"
+                                },
+                                "customStyle": {
+                                  "display": "flex",
+                                  "align-items": "center",
+                                  "margin-bottom": "4px"
+                                },
+                                "children": [
+                                  {
+                                    "id": "I1:11631;1:7374",
+                                    "name": "Frame 279758",
+                                    "type": "FRAME",
+                                    "layout": {
+                                      "x": 254,
+                                      "y": 126,
+                                      "layoutMode": "HORIZONTAL",
+                                      "layoutAlign": "INHERIT"
+                                    },
+                                    "customStyle": {
+                                      "display": "flex",
+                                      "align-items": "flex-start"
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "I1:11631;1:7375",
+                                        "name": "30",
+                                        "type": "TEXT",
+                                        "layout": {
+                                          "x": 254.72,
+                                          "y": 127.896,
+                                          "layoutMode": "NONE",
+                                          "layoutAlign": "INHERIT"
+                                        },
+                                        "text": {
+                                          "content": "30",
+                                          "fontSize": 18,
+                                          "fontWeight": "Heavy",
+                                          "letterSpacing": 0,
+                                          "lineHeight": {
+                                            "value": 18,
+                                            "unit": "PIXELS"
+                                          },
+                                          "textAlignHorizontal": "LEFT",
+                                          "textAlignVertical": "TOP",
+                                          "textCase": "ORIGINAL",
+                                          "textDecoration": "NONE"
+                                        },
+                                        "customStyle": {
+                                          "color": "#1A1A1A",
+                                          "font-size": "18px",
+                                          "line-height": "1"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "I1:11631;1:7376",
+                                "name": "Frame 279751",
+                                "type": "FRAME",
+                                "layout": {
+                                  "x": 254,
+                                  "y": 148,
+                                  "layoutMode": "HORIZONTAL",
+                                  "width": "100%",
+                                  "layoutAlign": "INHERIT"
+                                },
+                                "customStyle": {
+                                  "display": "flex",
+                                  "align-items": "center"
+                                },
+                                "children": [
+                                  {
+                                    "id": "I1:11631;1:7377",
+                                    "name": "Frame 279758",
+                                    "type": "FRAME",
+                                    "layout": {
+                                      "x": 254,
+                                      "y": 148,
+                                      "layoutMode": "HORIZONTAL",
+                                      "width": "100%",
+                                      "layoutAlign": "INHERIT"
+                                    },
+                                    "customStyle": {
+                                      "display": "flex",
+                                      "align-items": "center"
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "I1:11631;1:7378",
+                                        "name": "相似前",
+                                        "type": "TEXT",
+                                        "layout": {
+                                          "x": 254.468,
+                                          "y": 148.112,
+                                          "layoutMode": "NONE",
+                                          "layoutAlign": "INHERIT"
+                                        },
+                                        "text": {
+                                          "content": "相似前",
+                                          "fontSize": 12,
+                                          "fontWeight": "Regular",
+                                          "letterSpacing": 0,
+                                          "lineHeight": {
+                                            "value": 12,
+                                            "unit": "PIXELS"
+                                          },
+                                          "textAlignHorizontal": "LEFT",
+                                          "textAlignVertical": "TOP",
+                                          "textCase": "ORIGINAL",
+                                          "textDecoration": "NONE"
+                                        },
+                                        "customStyle": {
+                                          "color": "#555",
+                                          "font-size": "12px",
+                                          "line-height": "1",
+                                          "margin-right": "2px"
+                                        }
+                                      },
+                                      {
+                                        "id": "I1:11631;1:7379",
+                                        "name": "30%",
+                                        "type": "TEXT",
+                                        "layout": {
+                                          "x": 292.516,
+                                          "y": 149.264,
+                                          "layoutMode": "NONE",
+                                          "layoutAlign": "INHERIT"
+                                        },
+                                        "text": {
+                                          "content": "30%",
+                                          "fontSize": 12,
+                                          "fontWeight": "Medium",
+                                          "letterSpacing": 0,
+                                          "lineHeight": {
+                                            "value": 12,
+                                            "unit": "PIXELS"
+                                          },
+                                          "textAlignHorizontal": "LEFT",
+                                          "textAlignVertical": "TOP",
+                                          "textCase": "ORIGINAL",
+                                          "textDecoration": "NONE"
+                                        },
+                                        "customStyle": {
+                                          "color": "#1A1A1A",
+                                          "font-size": "12px",
+                                          "font-weight": "500",
+                                          "line-height": "1",
+                                          "margin-right": "2px"
+                                        }
+                                      },
+                                      {
+                                        "id": "I1:11631;1:7380",
+                                        "name": "Polygon 28",
+                                        "type": "VECTOR",
+                                        "layout": {
+                                          "x": 322.133,
+                                          "y": 151,
+                                          "layoutMode": "NONE",
+                                          "width": 7.734,
+                                          "height": 5.438,
+                                          "layoutAlign": "INHERIT"
+                                        },
+                                        "customStyle": {
+                                          "width": "10px",
+                                          "height": "6px",
+                                          "fill": "#3CB034"
+                                        },
+                                        "vector": {
+                                          "id": "I1:11631;1:7380",
+                                          "type": "VECTOR",
+                                          "name": "Polygon 28",
+                                          "width": 10,
+                                          "height": 6,
+                                          "resourceId": "I1:11631;1:7380",
+                                          "fileName": "icon-polygon-28-2.svg",
+                                          "assetPath": "@assets/icon-polygon-28-2.svg",
+                                          "widthUnit": "px",
+                                          "heightUnit": "px"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": "I1:11631;1:7381",
+                    "name": "当前角色整号热度相对较低，比相似低10%；访问量逐步下降, 角色内包含X件装备、X件灵饰，其中双防一血镯近期较...",
+                    "type": "TEXT",
+                    "layout": {
+                      "x": 16.864,
+                      "y": 183.04,
+                      "layoutMode": "NONE",
+                      "layoutAlign": "INHERIT"
+                    },
+                    "text": {
+                      "content": "当前角色整号热度相对较低，比相似低10%；访问量逐步下降, 角色内包含X件装备、X件灵饰，其中双防一血镯近期较",
+                      "fontSize": 12,
+                      "fontWeight": "Medium",
+                      "letterSpacing": 0,
+                      "lineHeight": {
+                        "value": 18,
+                        "unit": "PIXELS"
+                      },
+                      "textAlignHorizontal": "LEFT",
+                      "textAlignVertical": "TOP",
+                      "textCase": "ORIGINAL",
+                      "textDecoration": "NONE"
+                    },
+                    "customStyle": {
+                      "color": "#555",
+                      "font-size": "12px",
+                      "font-weight": "500",
+                      "line-height": "1.50"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

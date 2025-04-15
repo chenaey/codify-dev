@@ -2,7 +2,7 @@
   "name": "cbg-dev",
   "description": "Inspect panel on Figma, and ai tools, for cbg.",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "scripts": {
     "dev": "wxt",

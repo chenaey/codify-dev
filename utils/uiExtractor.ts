@@ -9,12 +9,35 @@ import {
 } from './iconExtractor'
 import { generateUniqueIconName } from './iconNaming'
 import { toDecimalPlace } from './index'
-
+import { mergeStyles } from './styleMerger'
 // 添加布局模式类型
 type LayoutMode = 'NONE' | 'HORIZONTAL' | 'VERTICAL'
+// 添加尺寸调整模式类型
+type SizingMode = 'HUG' | 'FILL' | 'FIXED' | 'NONE'
+
+// --- Helper Types for Extracted Properties ---
+// Note: FlexProperties type is no longer directly used in UINode,
+// but kept here for potential internal use or reference.
+export type FlexProperties = {
+  display?: 'flex' | 'block' | 'inline-flex';
+  flexDirection?: 'row' | 'column';
+  justifyContent?: 'flex-start' | 'flex-end' | 'center' | 'space-between'; // Simplified, add others if needed
+  alignItems?: 'flex-start' | 'flex-end' | 'center' | 'stretch' | 'baseline';
+  alignSelf?: 'auto' | 'flex-start' | 'flex-end' | 'center' | 'stretch'; // Simplified
+  grow?: number;
+  shrink?: number;
+  basis?: string | number;
+  wrap?: 'nowrap' | 'wrap' | 'wrap-reverse';
+};
+
+// Note: SizingModeProperties type *is* now used again in UINode['layout'].
+type SizingModeProperties = {
+  horizontal: SizingMode;
+  vertical: SizingMode;
+};
 
 // UI Node 类型定义
-interface UINode {
+export interface UINode {
   id: string
   name: string
   type: string
@@ -31,12 +54,13 @@ interface UINode {
     width?: number | '100%' // 布局宽度
     height?: number | '100%' // 布局高度
     layoutMode: LayoutMode // 改为必填，永远会有值
+    // sizingMode?: SizingModeProperties
     layoutAlign?: string // 布局对齐方式 (STRETCH | CENTER | MIN | MAX)
     padding?: {
-      top: number
-      right: number
-      bottom: number
-      left: number
+      top?: number
+      right?: number
+      bottom?: number
+      left?: number
     }
     margin?: {
       top?: number
@@ -44,46 +68,18 @@ interface UINode {
       bottom?: number
       left?: number
     }
-  }
-  style?: {
-    fills?: Array<{
-      type: string
-      color?: string
-      opacity?: number
-      visible?: boolean
-      blendMode?: string
-    }>
-    strokes?: Array<{
-      type: string
-      color: string
-      width: number
-      position?: string
-    }>
-    effects?: Array<{
-      type: string
-      color?: string
-      offset?: { x: number; y: number }
-      radius?: number
-      visible?: boolean
-    }>
-    cornerRadius?:
-    | number
-    | {
-      topLeft: number
-      topRight: number
-      bottomRight: number
-      bottomLeft: number
-    }
+    // --- Sizing and Flex properties are now primarily handled via customStyle ---
+    // flex?: FlexProperties; // Removed
   }
   text?: {
     content: string
     fontSize: number
-    fontFamily: string
-    fontWeight: number
-    letterSpacing: number
-    lineHeight: number | { value: number; unit: string }
-    textAlignHorizontal: string
-    textAlignVertical: string
+    fontFamily?: string
+    fontWeight?: number
+    letterSpacing?: number
+    lineHeight?: number | { value: number; unit: string }
+    textAlignHorizontal?: string
+    textAlignVertical?: string
     textCase?: string
     textDecoration?: string
   }
@@ -117,13 +113,6 @@ interface UINode {
     }
     // 分割线布局
     layout: {
-      // // 边距信息，用于生成margin
-      // margin: {
-      //   top?: number    // 上边距，用于margin-top
-      //   right?: number  // 右边距，用于margin-right
-      //   bottom?: number // 下边距，用于margin-bottom
-      //   left?: number   // 左边距，用于margin-left
-      // }
       // 是否全宽，true表示width:100%
       fullWidth?: boolean
       // 是否全高，true表示height:100%
@@ -284,7 +273,7 @@ const shouldAddWidthHeight = (node: any) => {
     node.constraints?.vertical === 'SCALE' ||
     node.constraints?.horizontal === 'STRETCH' ||
     node.constraints?.vertical === 'STRETCH'
-    
+
   // 返回判断结果
   return isIconNode(node) || (!isContainer && !hasAutoLayout && !hasFlexibleConstraints)
 }
@@ -320,12 +309,16 @@ function shouldCalculateMargin(node: any, parent: any): boolean {
   if (parent.itemSpacing === undefined) return false
 
   // 4. 父节点必须有多个子元素
-  const visibleSiblings = (parent.children || []).filter((child: any) => 
+  const visibleSiblings = (parent.children || []).filter((child: any) =>
     child.visible !== false
   )
   if (visibleSiblings.length <= 1) return false
 
   return true
+}
+
+function isTextNode(node: any): boolean {
+  return node.type === 'TEXT' || node.children?.every((child: any) => isTextNode(child))
 }
 
 // 获取排序后的兄弟节点
@@ -359,17 +352,34 @@ function calculateActualSpacing(currentNode: any, nextNode: any): number {
   )
 }
 
+function calculatePadding(node: any) {
+  const padding: { top?: number; right?: number; bottom?: number; left?: number } = {};
+  if ('paddingTop' in node && node.paddingTop !== 0) {
+    padding.top = node.paddingTop
+  }
+  if ('paddingRight' in node && node.paddingRight !== 0) {
+    padding.right = node.paddingRight
+  }
+  if (
+    'paddingBottom' in node && node.paddingBottom !== 0) {
+    padding.bottom = node.paddingBottom
+  }
+  if ('paddingLeft' in node && node.paddingLeft !== 0) {
+    padding.left = node.paddingLeft
+  }
+  return Object.keys(padding).length > 0 ? padding : undefined
+}
 // 计算margin
 function calculateMargin(node: any, siblings: any[], parent: any) {
   if (!shouldCalculateMargin(node, parent)) return null
 
   // 过滤掉隐藏的兄弟节点
   const visibleSiblings = siblings.filter(sibling => sibling.visible !== false)
-  
+
   // 获取节点在可见兄弟中的位置
   const sortedSiblings = getSortedSiblings(visibleSiblings, parent.layoutMode as LayoutMode)
   const nodeIndex = sortedSiblings.findIndex(s => s.id === node.id)
-  
+
   // 最后一个元素不需要margin
   if (nodeIndex === sortedSiblings.length - 1) return null
 
@@ -380,15 +390,82 @@ function calculateMargin(node: any, siblings: any[], parent: any) {
 
   // 根据布局方向设置对应的margin
   return {
-    ...(parent.layoutMode === 'HORIZONTAL' 
+    ...(parent.layoutMode === 'HORIZONTAL'
       ? { right: marginValue }
       : { bottom: marginValue }
     )
   }
 }
 
+// Returns a style object with CSS properties derived from Figma's layout settings.
+function extractDerivedFlexStyles(node: any, parent?: any): Record<string, string> {
+  const layoutMode = getLayoutMode(node); // Get node's own layout mode
+  const parentLayoutMode = parent ? getLayoutMode(parent) : 'NONE'; // Get parent's layout mode
+  const isFlexContainer = layoutMode === 'HORIZONTAL' || layoutMode === 'VERTICAL';
+  const isParentFlexContainer = parentLayoutMode === 'HORIZONTAL' || parentLayoutMode === 'VERTICAL';
+
+  const derivedStyles: Record<string, string> = {};
+
+  // --- Container Properties (Applied to the node itself if it's a flex container) ---
+  if (isFlexContainer) {
+    derivedStyles['display'] = 'flex';
+
+    // Direction
+    if (layoutMode === 'VERTICAL') {
+      derivedStyles['flex-direction'] = 'column';
+    }
+    // Default is 'row', so we don't explicitly set it.
+
+    // Justify Content (main axis alignment) - Default: flex-start
+    switch (node.primaryAxisAlignItems) {
+      // case 'MIN': // Default flex-start - OMIT
+      //   break;
+      case 'MAX': derivedStyles['justify-content'] = 'flex-end'; break;
+      case 'CENTER': derivedStyles['justify-content'] = 'center'; break;
+      case 'SPACE_BETWEEN': derivedStyles['justify-content'] = 'space-between'; break;
+    }
+
+    // Align Items (cross axis alignment) - Default: stretch (CSS default), but Figma MIN often maps to flex-start conceptually.
+    // We'll only set non-default values based on Figma's counterAxisAlignItems.
+    switch (node.counterAxisAlignItems) {
+      case 'MIN': derivedStyles['align-items'] = 'flex-start'; break; // Explicitly set flex-start if Figma MIN
+      case 'MAX': derivedStyles['align-items'] = 'flex-end'; break;
+      case 'CENTER': derivedStyles['align-items'] = 'center'; break;
+      case 'BASELINE': derivedStyles['align-items'] = 'baseline'; break;
+      // case 'STRETCH': // Default - OMIT (or handle if needed)
+      //   break;
+    }
+  }
+
+  // --- Item Properties (Applied to the node based on its relationship to a flex parent) ---
+  if (isParentFlexContainer) {
+    // Flex Grow - Default: 0
+    if (node.layoutGrow === 1) {
+      derivedStyles['flex-grow'] = String(1);
+    }
+    // We ignore layoutShrink and layoutBasis for simplicity, relying on CSS defaults.
+
+    // Align Self (overrides parent's align-items for this specific item) - Default: auto
+    let alignSelfValue: FlexProperties['alignSelf'] = 'auto'; // Start with default
+    switch (node.layoutAlign) { // layoutAlign applies to the item within its parent container
+      case 'STRETCH': alignSelfValue = 'stretch'; break;
+      case 'MIN': alignSelfValue = 'flex-start'; break; // Map Figma MIN to flex-start
+      case 'MAX': alignSelfValue = 'flex-end'; break;   // Map Figma MAX to flex-end
+      case 'CENTER': alignSelfValue = 'center'; break;
+      // case 'INHERIT': // Less common in Figma direct properties, treat as auto
+      // case 'AUTO': // Default - OMIT
+      //   break;
+    }
+    // Only include align-self if it's not the default ('auto')
+    if (alignSelfValue !== 'auto') {
+      derivedStyles['align-self'] = alignSelfValue;
+    }
+  }
+  return derivedStyles;
+}
+
 // 提取布局信息
-function extractLayout(node: any, parent?: any, siblings?: any[], rootNode?: any) {
+function extractLayout(node: any, parent?: any, siblings?: any[], rootNode?: any): UINode['layout'] {
   let relativeX, relativeY
 
   // 获取当前节点和根节点的位置
@@ -404,38 +481,38 @@ function extractLayout(node: any, parent?: any, siblings?: any[], rootNode?: any
     relativeX = nodePos.x
     relativeY = nodePos.y
   }
-
+  // --- Initialize layout object ---
   const layout: UINode['layout'] = {
     x: toDecimalPlace(relativeX),
     y: toDecimalPlace(relativeY),
     layoutMode: getLayoutMode(node)
   }
+
+  const horizontalSizing = node.layoutSizingHorizontal || 'NONE';
+  const verticalSizing = node.layoutSizingVertical || 'NONE';
+
+  // We will always add it for now, AI can decide if FIXED means use customStyle width/height
+  const sizingMode = {
+    horizontal: horizontalSizing as SizingMode,
+    vertical: verticalSizing as SizingMode
+  };
   // 根据判断结果添加宽高
-  if (shouldAddWidthHeight(node)) {
+  if (shouldAddWidthHeight(node) || sizingMode.horizontal === 'FIXED' && sizingMode.vertical === 'FIXED') {
     layout.width = toDecimalPlace(nodePos.width)
     layout.height = toDecimalPlace(nodePos.height)
-  } else if(!['TEXT'].includes(node.type)) {
+  } else if (!isTextNode(node)) {
+    // && (sizingMode.horizontal !== 'HUG')
     layout.width = '100%'
   }
-
 
   if ('layoutAlign' in node) {
     layout.layoutAlign = node.layoutAlign
   }
+  const padding = calculatePadding(node)
 
   // 对于容器节点，保留 padding 信息以便于布局
-  if (
-    'paddingTop' in node ||
-    'paddingRight' in node ||
-    'paddingBottom' in node ||
-    'paddingLeft' in node
-  ) {
-    layout.padding = {
-      top: node.paddingTop || 0,
-      right: node.paddingRight || 0,
-      bottom: node.paddingBottom || 0,
-      left: node.paddingLeft || 0
-    }
+  if (padding) {
+    layout.padding = padding
   }
 
   // 计算margin
@@ -635,7 +712,7 @@ const processVectorData = async (node: any, resources: Map<string, any>) => {
 };
 
 // 主函数：提取UI节点信息
-export async function extractUINode(
+async function extractUINode(
   node: any,
   maxDepth = Infinity,
   parent?: any,
@@ -666,12 +743,6 @@ export async function extractUINode(
     name: node.name,
     type: node.type,
     layout: extractLayout(node, parent, siblings, rootNode),
-    style: {
-      fills: extractFills(node),
-      strokes: extractStrokes(node),
-      effects: extractEffects(node),
-      cornerRadius: extractCornerRadius(node)
-    }
   };
 
   // 提取自定义组件信息
@@ -709,26 +780,47 @@ export async function extractUINode(
     // 只保存 css 代码块的 code 字段
     const cssBlock = codeBlocks.find((block) => block.name === 'css')
     if (cssBlock) {
-      let styles = cssBlock.code.split('\n')
+      const stylesArray = cssBlock.code.split('\n')
+      const initialCustomStyle = convertStyleArrayToObject(stylesArray)
+
+      // --- NEW: Extract derived flex styles ---
+      const derivedFlexStyles = extractDerivedFlexStyles(node, parent);
+      // --- NEW: Merge styles ---
+      // Start with derived styles, then override with styles from getCSSAsync
+      // This ensures getCSSAsync styles (initialCustomStyle) take precedence.
+      const finalCustomStyle = { ...derivedFlexStyles, ...initialCustomStyle };
+
+
       // 如果节点不需要固定宽高，则过滤掉 width 和 height 样式
+      // Apply this filtering *after* merging
       if (!shouldAddWidthHeight(node)) {
         // 对于容器节点，过滤掉 width 和 height 样式
-        styles = styles.filter((line) => {
-          return !line.trim().startsWith('width:') && !line.trim().startsWith('height:')
-        })
+        delete finalCustomStyle.width
+        delete finalCustomStyle.height
       }
 
-      uiNode.customStyle = convertStyleArrayToObject(styles)
+      // Assign the final merged style
+      uiNode.customStyle = finalCustomStyle;
+
     }
   } catch (error) {
     console.error(`Failed to get CSS for node ${node.id}:`, error)
   }
+
+
   // 过滤掉绝对定位的节点 这个需要额外处理
   if (uiNode.customStyle) {
     const isAbsolute = uiNode.customStyle['position'] === 'absolute'
     if (isAbsolute) {
       return null;
     }
+  }
+
+  // 合并customStyle和layout.margin (Using the final customStyle)
+  if (uiNode.customStyle && uiNode.layout.margin) {
+    const { mergedStyle } = mergeStyles(uiNode) // mergeStyles needs uiNode which now has the final customStyle
+    uiNode.customStyle = mergedStyle
+    delete uiNode.layout.margin // Margin is now baked into customStyle
   }
 
   // 提取矢量/图标数据
@@ -758,11 +850,9 @@ export async function extractUINode(
       style: dividerData.style,
       layout: dividerData.layout
     };
-    delete uiNode.layout.height;
+    // Clean up layout/style fields for dividers
+    delete uiNode.layout.height; // Still useful to remove calculated height/width for border approach
     delete uiNode.layout.width;
-    // delete uiNode.layout.x;
-    // delete uiNode.layout.y;
-    delete uiNode.style;
     // 删除customStyle属性
     delete uiNode.customStyle
   }
@@ -805,3 +895,4 @@ export async function extractSelectedNodes(selection: readonly any[]) {
   // 返回包含节点和资源的对象
   return { nodes, resources }
 }
+
