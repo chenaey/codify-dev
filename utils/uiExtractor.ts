@@ -500,7 +500,7 @@ function extractLayout(node: any, parent?: any, siblings?: any[], rootNode?: any
   if (shouldAddWidthHeight(node) || sizingMode.horizontal === 'FIXED' && sizingMode.vertical === 'FIXED') {
     layout.width = toDecimalPlace(nodePos.width)
     layout.height = toDecimalPlace(nodePos.height)
-  } else if (!isTextNode(node)) {
+  } else if (!isTextNode(node) || (sizingMode.horizontal === 'FIXED')) {
     // && (sizingMode.horizontal !== 'HUG')
     layout.width = '100%'
   }
