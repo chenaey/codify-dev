@@ -7,13 +7,23 @@ export default defineConfig({
     plugins: [cssInjectedByJsPlugin()],
     optimizeDeps: {
       include: []
+    },
+    build: {
+      minify: false,
+      sourcemap: true,
+      rollupOptions: {
+        output: {
+          format: 'iife',
+          compact: false,
+        }
+      }
     }
   }),
   runner: {
     disabled: true
   },
   manifest: {
-    name: 'CBG Dev',
+    name: 'CBG DEV',
     web_accessible_resources: [
       {
         resources: ['/ui.js'],

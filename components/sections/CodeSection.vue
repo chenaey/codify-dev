@@ -19,7 +19,7 @@ import { ref, computed, shallowRef, watch, onUnmounted, nextTick, unref } from '
 
 import Button from '../Button.vue'
 import Modal from '../Modal.vue'
-import PreviewSection from './PreviewSection.vue'
+// import PreviewSection from './PreviewSection.vue'
 
 // 导入AI代码生成相关hook
 const {
@@ -172,7 +172,7 @@ const closePreview = () => {
           AI
         </IconButton>
         <div class="tp-code-actions tp-row tp-gap-s">
-          <button
+          <!-- <button
             v-if="aiCodeStatus === 'completed'"
             :style="{
               'margin-right': '8px'
@@ -181,7 +181,7 @@ const closePreview = () => {
             @click="openPreview"
           >
             Preview
-          </button>
+          </button> -->
           <!-- 添加图标下载按钮 -->
           <Button
             v-if="unref(currentResources)?.size && selectedNode"
@@ -251,9 +251,9 @@ const closePreview = () => {
     />
 
     <!-- 添加弹窗组件 -->
-    <Modal :show="showPreview" @close="closePreview">
+    <!-- <Modal :show="showPreview" @close="closePreview">
       <PreviewSection :code="componentAiCode" :resources="unref(currentResources)" />
-    </Modal>
+    </Modal> -->
   </Section>
 </template>
 
