@@ -65,6 +65,9 @@ importers:
       p-wait-for:
         specifier: ^5.0.2
         version: 5.0.2
+      playwright-chromium:
+        specifier: ^1.52.0
+        version: 1.52.0
       prettier:
         specifier: ^3.3.3
         version: 3.3.3
@@ -2341,6 +2344,16 @@ packages:
 
   pkg-types@1.2.1:
     resolution: {integrity: sha512-sQoqa8alT3nHjGuTjuKgOnvjo4cljkufdtLMnO2LBP/wRwuDlo1tkaEdMxCRhyGRPacv/ztlZgDPm2b7FAmEvw==}
+
+  playwright-chromium@1.52.0:
+    resolution: {integrity: sha512-ZTpzBzRFFRglyqRnAqdK5mFaw1P41qe8V2zSR+fA0eKPgGEEaH7r91ejXKijs3WhReatRcatHQe3ndMBMN1PLA==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  playwright-core@1.52.0:
+    resolution: {integrity: sha512-l2osTgLXSMeuLZOML9qYODUQoPPnUsKsb5/P6LJ2e6uPKXUdPK5WYhN4z03G+YNbWmGDY4YENauNu4ZKczreHg==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   postcss-selector-parser@6.1.2:
     resolution: {integrity: sha512-Q8qQfPiZ+THO/3ZrOrO0cJJKfpYCagtMUkXbnEfmgUjwXg6z/WBeOyS9APBBPCTSiDV+s4SwQGu8yFsiMRIudg==}
@@ -5177,6 +5190,12 @@ snapshots:
       confbox: 0.1.8
       mlly: 1.7.2
       pathe: 1.1.2
+
+  playwright-chromium@1.52.0:
+    dependencies:
+      playwright-core: 1.52.0
+
+  playwright-core@1.52.0: {}
 
   postcss-selector-parser@6.1.2:
     dependencies:
