@@ -58,6 +58,14 @@ export const PROJECTS = [
         }
     },
     {
+        id: 'modern-js',
+        config: {
+            ...DEFAULT_CONFIG,
+            type: 'web',
+            scale: 1
+        }
+    },
+    {
         id: 'cbg',
         config: {
             ...DEFAULT_CONFIG,

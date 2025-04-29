@@ -31,6 +31,10 @@ const projects = ref([
     label: 'Vue3'
   },
   {
+    value: 'modern-js',
+    label: 'modern-js'
+  },
+  {
     value: 'cbg',
     label: 'CBG'
   },
@@ -79,34 +83,34 @@ useSelectAll(scaleInput)
         </option>
       </select>
     </div>
-    <!-- <div class="tp-row tp-row-justify tp-pref-field">
-      <label for="css-unit">CSS unit</label>
-      <select id="css-unit" class="tp-pref-input" v-model="options.cssUnit">
-        <option value="px">px</option>
-        <option value="rem">rem</option>
-      </select>
-    </div>
     <div class="tp-row tp-row-justify tp-pref-field">
-      <label for="root-font-size">Root font size</label>
-      <input
-        id="root-font-size"
-        class="tp-pref-input"
-        ref="fontSizeInput"
-        type="number"
-        v-model.number="options.rootFontSize"
-      />
-    </div>
-    <div class="tp-row tp-row-justify tp-pref-field">
-      <label for="scale">Scale</label>
-      <input
-        id="scale"
-        class="tp-pref-input"
-        ref="scaleInput"
-        type="number"
-        step="1"
-        v-model.number="options.scale"
-      />
-    </div> -->
+        <label for="css-unit">CSS unit</label>
+        <select id="css-unit" class="tp-pref-input" v-model="options.cssUnit">
+          <option value="px">px</option>
+          <option value="rem">rem</option>
+        </select>
+      </div>
+      <div class="tp-row tp-row-justify tp-pref-field">
+        <label for="root-font-size">Root font size</label>
+        <input
+          id="root-font-size"
+          class="tp-pref-input"
+          ref="fontSizeInput"
+          type="number"
+          v-model.number="options.rootFontSize"
+        />
+      </div>
+      <div class="tp-row tp-row-justify tp-pref-field tb-pref-plugin">
+        <label for="scale">Scale</label>
+        <input
+          id="scale"
+          class="tp-pref-input"
+          ref="scaleInput"
+          type="number"
+          step="1"
+          v-model.number="options.scale"
+        />
+      </div>
     <!-- <PluginsSection class="tp-pref-plugins" /> -->
   </Section>
 </template>

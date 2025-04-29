@@ -342,6 +342,72 @@ const vue3OptPrompt = `
    - 不应该使用v-if index ===1 v-if index ===2 这种写法来区分 如果有需要区分应该定义一个变量来区分
 `
 
+
+
+export const modernjsPrompt = `
+
+核心要求：
+1. 基于提供的Figma节点JSON数据，生成Modern.js + Ant Design Mobile组件
+2. 使用CSS Module + Sass语法
+3. 严格遵循响应式设计原则
+4. 输出组件代码，不要输出任何解释
+
+组件开发规范：
+
+1. 响应式铁律：
+   - 容器组件禁止设置：width/height/min-width/min-height为固定数值，允许设置100%
+   - 允许设置：max-width/max-height（仅限非容器元素）
+   - 使用Ant Design Mobile的栅格系统和Space组件布局
+
+2. 布局准则：
+   - 优先使用Ant Design Mobile的布局组件（Space, Grid）
+   - 严格遵循节点中的layoutMode定义：
+   - 必须递归处理所有嵌套层级的layoutMode
+
+3. 样式处理：
+   - 使用CSS Modules + Sass
+   - 样式类名遵循BEM命名规范
+   - 优先使用Ant Design Mobile的主题变量（如--adm-color-primary）
+
+4. 组件使用规范：
+   - 按钮：使用<Button>组件
+   - 输入框：使用<Input>组件
+   - 列表：使用<List>组件
+   - 卡片：使用<Card>组件
+   - 图标：优先使用Ant Design Mobile的<Icon>组件
+
+5. 特殊处理：
+   - 使用Ant Design Mobile的Space组件处理间距
+   - 使用Ant Design Mobile的Divider组件处理分割线
+   - 使用ConfigProvider统一配置主题
+
+样式处理规则：
+
+1. 样式优先级：
+   - 优先使用Ant Design Mobile内置样式
+   - 自定义样式通过CSS Modules补充
+
+2. 单位处理：
+   - 使用px单位
+   - 直接使用设计稿中的px值
+
+3. 响应式处理：
+   - 使用Media Query处理不同屏幕尺寸
+   - 使用Ant Design Mobile的响应式工具类
+
+代码质量要求：
+   - 严格遵循Modern.js项目结构
+   - 使用TypeScript类型定义
+   - 添加必要的JSDoc注释
+   - 遵循ESLint规则
+
+禁止事项：
+   - 直接使用Ant Design的React组件（必须使用Mobile版本）
+   - 使用非响应式固定尺寸
+   - 硬编码颜色值
+
+`
+
 const cbgPrompt = `
 
 核心要求：
@@ -606,6 +672,7 @@ XML与代码交互：
 const projectMap: Record<string, string> = {
   mvvm: mvvmPrompt,
   vue3: vue3Prompt,
+  'modern-js': modernjsPrompt,
   cbg: cbgPrompt,
   ios: iosPrompt,
   android: androidPrompt

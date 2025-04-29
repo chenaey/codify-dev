@@ -186,12 +186,11 @@ export default function useAICodeGeneration() {
   async function generateAICode(
     node: SelectionNode | null, 
     projectId: string, 
-    supportedProjects: string[] = ['mvvm', 'vue3', 'cbg', 'ios', 'android']
   ) {
-    if (!supportedProjects.includes(projectId)) {
-      show('AI code generation is not supported in this project')
-      return
-    }
+    // if (!supportedProjects.includes(projectId)) {
+    //   show('AI code generation is not supported in this project')
+    //   return
+    // }
     
     if (!node) return
     
