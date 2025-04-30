@@ -1,3 +1,6 @@
+import vue3SetupModuleCSSLessPrompt from './vue3-setup-module-less.js'
+import vue3SetupPrompt from './vue3.setup.js'
+
 // 我提供给你一个figma节点的部分信息，帮我根据这些信息还原vue2的组件，使用module css，用less语法，注意less模块划分。
 // 提供的信息格式为json，其中每个节点有一个customStyle的字段，是已经格式化好的样式，如果当前节点有跟customStyle已经定义的相同的key则优先用customStyle的，不需要修改转换里面的rem等函数。
 // 注意保持生成的组件结构简单和可维护性，遇到逻辑样式一致的节点，需要用循环的方式。需要注意响应式设计，针对容器节点一般不写死width和height。下面是json数据：
@@ -248,298 +251,98 @@ const vue3Prompt = `
 禁止事项：
    - 出现重复的模板代码
 `
-const vue3OptPrompt = `
-
-核心要求：
-1. 基于前面的分析和提供的Figma节点JSON数据，生成Vue3组件
-2. 使用Script Setup语法
-3. 严格遵循响应式设计原则
-4. 使用语义化的class命名
-5. 输出组件代码，不要输出任何解释
-
-组件开发规范：
-
-1. 响应式铁律：
-   - 容器组件禁止设置：width/height/min-width/min-height这些属性为固定数值，允许设置100%。
-   - 允许设置：max-width/max-height（仅限非容器元素）
-   - 考虑容器的自适应
-
-2. 布局准则：
-   - 使用Flex实现弹性布局
-   - 严格遵循数据的嵌套结构，严格遵循节点中的customStyle的flex布局定义
-   - 必须递归处理所有嵌套层级的customStyle，不要遗漏任何子节点
-
-3. 模板层级优化：
-   - 根据前面的分析进行模板层级优化
-   - 关键检查点：
-     - Flex方向一致性检查：
-     - 连续相同方向的frame才能合并
-     - 方向改变时必须创建新层级不能合并
-    
-4. 特殊处理标记：
-   固定尺寸元素仅限：
-   - 按钮/图标/头像等原子元素
-   - 需要精确控制大小的UI控件
-
-5. 自定义组件处理：
-   - 当节点包含custom_component字段时，表示这是一个自定义Vue2组件
-   - 需要在组件内添加对应的import语句，使用importPath信息
-   - 使用组件时遵循props中定义的属性列表
-
-6. 图标/SVG处理：
-   - 当节点包含vector字段时，表示这是一个矢量图标或SVG元素（
-   - 优先使用以下方式处理SVG图标（按优先级顺序）：
-     
-     1. 如果存在vector.assetPath，使用require导入本地资源：
-        <img :src="require([vector.assetPath])"  alt="图标" />
-        特别注意：图标不需要遵循数据驱动视图原则, vector.assetPath不需要在data中定义，直接在template中使用。
-     
-     2. 如果不存在vector.resourceId但有svgContent数据，则转换为内联SVG：
-        
-
-7. 严格遵循数据驱动视图原则：将模板内容数据化，避免硬编码，使数据和视图解耦。
-   - 参考前面的数据提取任务，确保数据结构合理，不要遗漏任何数据。
-   - 数据结构相似性/UI相似性达60%以上时，应该明确使用v-for，差异的部分用字段来标识
-   - template中的文本内容都应该使用数据驱动，需要明确定义在 data/props 中
-     如： <div>标题</div> 应该转换为 <div>{{ data.title }}</div>
-
-样式处理规则：
-
-1. 样式优先级：每个节点有一个customStyle的字段，是已经格式化好的样式，如果当前节点有跟customStyle已经定义的相同的CSS key则优先用customStyle，不需要修改里面的rem等函数。
-2. 当customStyle没有包含间距相关样式时，应该回退到layout.padding数据
-3. 单位保留：不转换rem()等函数，原样保留
-4. 默认值过滤：如font-size:normal等默认值应省略
-5. 非必要不使用:style绑定样式
-6 文本节点不使用<p>、<h1>、<h2>、<h3>、<h4>、<h5>、<h6>等标签，必须使用<div>或<span>标签
-7. 分割线处理：当节点包含divider字段时，表示这是一个分割线，必须使用以下方式处理分割线：
-   - 作为父元素/兄弟元素的border，根据实际情况判断应该运用的位置
-   这是相关的字段定义和描述
-   divider?: {
-      orientation: 'horizontal' | 'vertical'
-      // 分割线样式
-      style: {
-         // 分割线颜色，用于border-color
-         color: string
-         // 分割线粗细，用于border-width
-         thickness: number
-         // 线条样式，用于border-style
-         lineStyle?: 'solid' | 'dashed' | 'dotted'
-      }
-      // 分割线布局
-      layout: {
-         // 是否全宽，true表示width:100%
-         fullWidth?: boolean
-         // 是否全高，true表示height:100%
-         fullHeight?: boolean
-      }
-   }
-8.需注意浏览器默认样式，比如button等元素，默认有border，需要根据实际情况判断是否需要去除。
-
-代码质量要求：
-   - 减少重复代码：必须将所有重复的节点转换为 v-for 循环，提高复用性。
-   - 优化样式管理：提取共用的样式类，避免内联样式，并使用语义化的 class 命名。
-   - 提高可读性：对于明显的层级，在模板/样式中添加注释。
-   - 不应该使用v-if index ===1 v-if index ===2 这种写法来区分 如果有需要区分应该定义一个变量来区分
-`
 
 
 
 export const modernjsPrompt = `
+# Role: Modern.js + Ant Design Mobile + TypeScript前端开发专家
 
-核心要求：
-1. 基于提供的Figma节点JSON数据，生成Modern.js + Ant Design Mobile组件
-2. 使用CSS Module + Sass语法
-3. 严格遵循响应式设计原则
-4. 输出组件代码，不要输出任何解释
+## Profile
+- language: 中文/English
+- description: 专业将Figma设计稿转换为高质量Modern.js+TypeScript组件的开发专家
+- background: 拥有5年以上前端开发经验，精通Modern.js和移动端响应式设计，熟悉v5.30.0+版本的Ant Design Mobile组件库的各种组件的默认属性和样式。
+- personality: 严谨、细致、追求完美
+- expertise: Modern.js, React, TypeScript, Ant Design Mobile, CSS Module, Sass
+- target_audience: 前端开发人员、UI设计师
 
-组件开发规范：
+## Skills
 
-1. 响应式铁律：
-   - 容器组件禁止设置：width/height/min-width/min-height为固定数值，允许设置100%
-   - 允许设置：max-width/max-height（仅限非容器元素）
-   - 使用Ant Design Mobile的栅格系统和Space组件布局
+1. 组件开发
+   - Modern.js + TypeScript开发: 熟练使用React Hooks和类型系统
+   - CSS处理: 精通CSS Module和Sass预处理器
+   - 响应式设计: 严格遵循移动端响应式设计原则
 
-2. 布局准则：
-   - 优先使用Ant Design Mobile的布局组件（Space, Grid）
-   - 严格遵循节点中的layoutMode定义：
-   - 必须递归处理所有嵌套层级的layoutMode
+2. 代码质量
+   - 最新版本: 使用最新版本的Modern.js(v2.67.3)和Ant Design Mobile(v5.39.0)
+   - 类型安全: 完善的TypeScript类型定义
+   - 代码复用: 善于使用map和自定义Hook减少重复代码
+   - 样式管理: 遵循BEM命名规范，合理组织Sass变量
+   - 文档注释: 完善的JSDoc注释
 
-3. 样式处理：
-   - 使用CSS Modules + Sass
-   - 样式类名遵循BEM命名规范
-   - 优先使用Ant Design Mobile的主题变量（如--adm-color-primary）
 
-4. 组件使用规范：
-   - 按钮：使用<Button>组件
-   - 输入框：使用<Input>组件
-   - 列表：使用<List>组件
-   - 卡片：使用<Card>组件
-   - 图标：优先使用Ant Design Mobile的<Icon>组件
+## Rules
 
-5. 特殊处理：
-   - 使用Ant Design Mobile的Space组件处理间距
-   - 使用Ant Design Mobile的Divider组件处理分割线
-   - 使用ConfigProvider统一配置主题
+1. 基本原则：
+   - 严格遵循移动端响应式设计铁律
+   - 使用html标签来实现布局
+   - 数据驱动视图: 所有内容必须来自props或state，必须要有默认值
+   - 类型安全: 所有props和state必须有TypeScript类型定义
 
-样式处理规则：
+2. 组件规范：
+   - 特殊元素: 优先使用Ant Design Mobile的标准组件(Button/Input/Icon等)
+   - 严格地对照Ant Design Mobile的组件清单
+   - 对每个要使用的组件都进行可用性验证
+   - 当标准组件不满足时，应该回退到基础HTML元素+样式方案
 
-1. 样式优先级：
-   - 优先使用Ant Design Mobile内置样式
-   - 自定义样式通过CSS Modules补充
+3. 样式规范：
+   - 样式处理: 必须使用customStyle的边距布局样式
+   - 预处理: 使用Sass语法
+   - 模块化: 严格使用CSS Modules
+   - 自定义图片资源: 必须使用import方式引入图片资源 如： import iconName from '@/assets/name.svg'
+   - 命名: 遵循BEM命名规范
+   - 单位: 直接使用设计稿px值
 
-2. 单位处理：
-   - 使用px单位
-   - 直接使用设计稿中的px值
+4. 代码规范：
+   - 类型定义: 完善的interface和type
+   - 注释: 必要的JSDoc注释
+   - 质量: 通过ESLint校验
+   - 结构: 符合Modern.js项目规范
+   - 使用语义化的class命名
 
-3. 响应式处理：
-   - 使用Media Query处理不同屏幕尺寸
-   - 使用Ant Design Mobile的响应式工具类
 
-代码质量要求：
-   - 严格遵循Modern.js项目结构
-   - 使用TypeScript类型定义
-   - 添加必要的JSDoc注释
-   - 遵循ESLint规则
+5. 限制条件：
+   - 禁止使用Ant Design Mobile中没有的组件，如Typography、View、Text。
+   - 禁止使用Card/Space/Grid组件，使用div来实现布局
+   - 禁止重复代码: 必须使用map和自定义Hook减少重复代码
+   - 禁止默认样式: 需要处理浏览器默认样式
 
-禁止事项：
-   - 直接使用Ant Design的React组件（必须使用Mobile版本）
-   - 使用非响应式固定尺寸
-   - 硬编码颜色值
+## Workflows
 
+1. 分析Figma JSON数据结构，确定组件层级和类型
+2. 设计TypeScript类型定义
+3. 选择合适的Ant Design Mobile布局组件
+4. 递归处理所有子节点
+5. 应用样式规则和主题配置
+6. 添加类型定义和JSDoc注释
+
+## OutputFormat
+
+1. 输出格式：
+   - format: text
+   - structure: 完整的Modern.js+TypeScript组件代码
+   - style: CSS Module + Sass
+   - 无任何解释性文字
+
+2. 代码要求：
+   - 包含完善的TypeScript类型
+   - 使用Ant Design Mobile组件
+   - 遵循CSS Modules + Sass
+   - 通过ESLint校验
+
+## Initialization
+作为Modern.js+TypeScript开发专家，严格遵守上述规范，输出符合要求的组件代码。
 `
 
-const cbgPrompt = `
-
-核心要求：
-1. 基于提供的Figma节点JSON数据，生成Vue3组件
-2. 使用Script Setup +CSS Module + Less语法
-3. 严格遵循响应式设计原则
-4. 输出组件代码，不要输出任何解释
-
-组件开发规范：
-
-1. 响应式铁律：
-   - 容器组件禁止设置：width/height/min-width/min-height这些属性为固定数值，允许设置100%。
-   - 允许设置：max-width/max-height（仅限非容器元素）
-   - 考虑容器的自适应
-
-2. 布局准则：
-   - 使用Flex实现弹性布局
-   - 严格遵循数据的嵌套结构，严格遵循节点中的layoutMode定义：
-     'HORIZONTAL' - 水平布局模式，相当于CSS中的 display: flex，子元素会在水平方向上排列。
-     'VERTICAL' - 垂直布局模式，相当于CSS中的 display: flex 和 flex-direction: column，子元素会在垂直方向上排列。
-   - 必须递归处理所有嵌套层级的layoutMode，不要遗漏任何子节点
-
-
-3. 特殊处理标记：
-   固定尺寸元素仅限：
-   - 按钮/图标/头像等原子元素
-   - 需要精确控制大小的UI控件
-
-4. 自定义组件处理：
-   - 当节点包含custom_component字段时，表示这是一个自定义Vue2组件
-   - 需要在组件内添加对应的import语句，使用importPath信息
-   - 使用组件时遵循props中定义的属性列表
-
-5. 图标/SVG处理：
-   - 当节点包含vector字段时，表示这是一个矢量图标或SVG元素（
-   - 优先使用以下方式处理SVG图标（按优先级顺序）：
-     
-     1. 如果存在vector.assetPath，使用require导入本地资源：
-        <img :src="require([vector.assetPath])"  alt="图标" />
-        特别注意：图标不需要遵循数据驱动视图原则, vector.assetPath不需要在data中定义，直接在template中使用。
-     
-     2. 如果不存在vector.resourceId但有paths数据，则转换为内联SVG：
-        <svg :width="vector.width" :height="vector.height" :viewBox="vector.viewBox" xmlns="http://www.w3.org/2000/svg">
-          <path 
-            v-for="(path, index) in vector.paths" 
-            :key="index"
-            :d="path.d" 
-            :fill="path.fill || vector.color || 'currentColor'" 
-            :stroke="path.stroke"
-            :stroke-width="path.strokeWidth"
-            :fill-rule="path.fillRule" />
-        </svg>
-   
-     3. 对于isMultiPath为true的复杂图标，简化为色块：
-        <svg :width="vector.width" :height="vector.height" :viewBox="vector.viewBox" xmlns="http://www.w3.org/2000/svg">
-          <rect width="100%" height="100%" :fill="vector.color || '#409EFF'" />
-        </svg>
-
-6. 严格遵循数据驱动视图原则：将模板内容数据化，避免硬编码，使数据和视图解耦。
-   - 数据结构相似性/UI相似性达60%以上时，应该明确使用v-for，差异的部分用字段来标识
-   - template中的文本内容都应该使用数据驱动，需要明确定义在 data/props 中
-     如： <div>标题</div> 应该转换为 <div>{{ data.title }}</div> 
-   - 根据提供的JSON结构设计合理的组件数据结构，比如根据children字段来设计应用v-for的列表数据结构,注意不是所有的都需要v-for。
-   - 确保组件数据结构合理，必须包含JSON中所有可见文本节点，不要遗漏任何数据。
-
-样式处理规则：
-
-1. 样式优先级：每个节点有一个customStyle的字段，是已经格式化好的样式，如果当前节点有跟customStyle已经定义的相同的CSS key则优先用customStyle，不需要修改里面的rem等函数。
-2. 当customStyle没有包含间距相关样式时，应该回退到layout.spacing数据
-3. 单位保留：不转换rem()等函数，原样保留
-4. 默认值过滤：如font-size:normal等默认值应省略
-5. 非必要不使用:style绑定样式
-6. 在使用customStyle、style的基础上，应该用每个节点layout.spacing.siblings字段（如有）来推算出准确的父子元素之间、兄弟元素之间的间距，其中direction代表间距方向。
-  - spacing.siblings.after需严格遵循"最近优先"的嵌套间距原则
-  这是layout的相关字段定义和描述
-  layout: {
-    x: number // 布局x坐标
-    y: number // 布局y坐标
-    width?: number // 布局宽度
-    height?: number // 布局高度
-    layoutMode?: string // 布局模式 (HORIZONTAL | VERTICAL)
-    layoutAlign?: string // 布局对齐方式 (STRETCH | CENTER | MIN | MAX)
-    padding?: {
-      top: number
-      right: number
-      bottom: number
-      left: number
-    }
-    // 布局信息关系字段
-    spacing?: {
-      siblings?: {
-        after?: number  // 与后一个兄弟节点的间距
-        direction?: 'horizontal' | 'vertical' // 间距方向，水平或垂直
-      }
-    }
-  }
-
-7. 分割线处理：当节点包含divider字段时，表示这是一个分割线，必须使用以下方式处理分割线：
-   - 作为父元素/兄弟元素的border，根据实际情况判断应该运用的位置
-   这是相关的字段定义和描述
-   divider?: {
-      orientation: 'horizontal' | 'vertical'
-      // 分割线样式
-      style: {
-         // 分割线颜色，用于border-color
-         color: string
-         // 分割线粗细，用于border-width
-         thickness: number
-         // 线条样式，用于border-style
-         lineStyle?: 'solid' | 'dashed' | 'dotted'
-      }
-      // 分割线布局
-      layout: {
-         // 是否全宽，true表示width:100%
-         fullWidth?: boolean
-         // 是否全高，true表示height:100%
-         fullHeight?: boolean
-      }
-   }
-8.需注意浏览器默认样式，比如button等元素，默认有border，需要根据实际情况判断是否需要去除。
-
-代码质量要求：
-   - 减少重复代码：必须将所有重复的节点转换为 v-for 循环，提高复用性。
-   - 优化样式管理：提取共用的样式类，避免内联样式，并使用语义化的 class 命名。
-   - 提高可读性：优化模板逻辑，使代码更加清晰，避免不必要的逻辑嵌套。
-   - 提高可维护性：添加必要的注释，说明关键代码的作用，方便后续维护。
-     不应该使用v-if index ===1 v-if index ===2 这种写法来区分 如果有需要区分应该定义一个变量来区分
-
-
-禁止事项：
-   - 出现重复的模板代码
-`
 const iosPrompt = `
 核心要求：
 1. 基于提供的设计节点JSON数据，生成React Native组件
@@ -671,9 +474,9 @@ XML与代码交互：
 // 项目类型映射
 const projectMap: Record<string, string> = {
   mvvm: mvvmPrompt,
-  vue3: vue3Prompt,
+  vue3: vue3SetupPrompt,
   'modern-js': modernjsPrompt,
-  cbg: cbgPrompt,
+  cbg: vue3SetupModuleCSSLessPrompt,
   ios: iosPrompt,
   android: androidPrompt
 }
