@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ApiSettingsDialog from '@/components/ApiSettingsDialog.vue'
 import IconButton from '@/components/IconButton.vue'
 import Inspect from '@/components/icons/Inspect.vue'
 import Measure from '@/components/icons/Measure.vue'
@@ -53,6 +54,20 @@ useSelectAll(fontSizeInput)
 
 const scaleInput = useTemplateRef('scaleInput')
 useSelectAll(scaleInput)
+
+// 打开API设置对话框
+function openApiSettings() {
+  // 确保 apiSettings 已经初始化
+  if (!options.value.apiSettings) {
+    options.value.apiSettings = {
+      apiKey: '',
+      baseURL: '',
+      showApiSettings: false
+    }
+  }
+  
+  options.value.apiSettings.showApiSettings = true
+}
 </script>
 
 <template>
@@ -111,7 +126,19 @@ useSelectAll(scaleInput)
           v-model.number="options.scale"
         />
       </div>
+      
+      <!-- 添加API设置按钮 -->
+      <div class="tp-row tp-row-justify tp-pref-field tb-pref-plugin">
+        <label>API 设置</label>
+        <button class="api-settings-button" @click="openApiSettings">
+          配置 DeepSeek API
+        </button>
+      </div>
+      
     <!-- <PluginsSection class="tp-pref-plugins" /> -->
+    
+    <!-- 添加API设置对话框 -->
+    <ApiSettingsDialog />
   </Section>
 </template>
 
@@ -141,5 +168,21 @@ label {
 
 [data-fpl-version='ui3'] label {
   color: var(--color-text-secondary);
+}
+
+/* API设置按钮样式 */
+.api-settings-button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  background-color: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.api-settings-button:hover {
+  background-color: #e8e8e8;
 }
 </style>

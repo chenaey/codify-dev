@@ -31,6 +31,11 @@ export type Options = {
     [source: string]: PluginData
   }
   activePluginSource: string | null
+  apiSettings: {
+    apiKey: string
+    baseURL: string
+    showApiSettings: boolean
+  }
 }
 
 export type ScaleSelectionType = {
@@ -52,7 +57,7 @@ export type SelectionNode =
   | QuirksNode
   | GhostNode
 
-export const options = useStorage<Options>('cbg-dev-options-state', {
+export const options = useStorage<Options>('tempad-ai-options-state', {
   minimized: false,
   panelPosition: {
     left: window.innerWidth - ui.nativePanelWidth - ui.tempadPanelWidth,
@@ -68,7 +73,12 @@ export const options = useStorage<Options>('cbg-dev-options-state', {
   exportOpen: true,
   scale: 1,
   plugins: {},
-  activePluginSource: null
+  activePluginSource: null,
+  apiSettings: {
+    apiKey: '',
+    baseURL: 'https://api.deepseek.com/v1',
+    showApiSettings: false
+  }
 })
 
 export const isQuirksMode = shallowRef<boolean>(false)

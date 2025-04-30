@@ -1,5 +1,6 @@
-import { useStorage } from '@vueuse/core'
 import type { GenerationState } from '@/composables/useAICodeGeneration'
+
+import { useStorage } from '@vueuse/core'
 
 // 最大缓存数量
 const MAX_CACHE_SIZE = 10
@@ -12,7 +13,7 @@ interface AiStateCache {
 }
 
 // 初始化本地存储
-const cache = useStorage<AiStateCache>('cbg-dev-ai-state-cache', {
+const cache = useStorage<AiStateCache>('codify-dev-state-cache', {
   states: {},
   keys: []
 })

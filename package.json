@@ -1,6 +1,6 @@
 {
-  "name": "cbg-dev",
-  "description": "Inspect panel on Figma, and ai tools, for cbg.",
+  "name": "codify-dev",
+  "description": "Inspect panel on Figma, and ai tools.",
   "private": true,
   "version": "0.0.2",
   "type": "module",

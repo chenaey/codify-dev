@@ -1,3 +1,4 @@
+import { options } from '@/ui/state'
 import OpenAI from 'openai'
 
 import { 
@@ -17,9 +18,16 @@ let client: OpenAI | null = null
  */
 const getClient = () => {
   if (client) return client
+  
+  // 使用存储在state中的API设置，如果不存在则使用默认值
+  const apiSettings = options.value.apiSettings || {};
+  const apiKey = apiSettings.apiKey;
+  const baseURL = apiSettings.baseURL || 'https://api.deepseek.com/v1';
+  
   return new OpenAI({
+    apiKey,
     dangerouslyAllowBrowser: true,
-    baseURL: 'https://api.deepseek.com/v1'
+    baseURL
   })
 }
 

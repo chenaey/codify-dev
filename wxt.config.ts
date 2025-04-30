@@ -23,7 +23,7 @@ export default defineConfig({
     disabled: true
   },
   manifest: {
-    name: 'CBG DEV',
+    name: 'CODIFY DEV',
     web_accessible_resources: [
       {
         resources: ['/ui.js'],

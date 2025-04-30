@@ -31,7 +31,7 @@ const panelWidth = `${ui.tempadPanelWidth}px`
   <Panel class="tp-main" :class="{ 'tp-main-minimized': options.minimized }">
     <template #header>
       <div class="tp-row">
-        CBG DEV
+        CODIFY DEV
         <IconButton
           v-if="runtimeMode !== 'standard'"
           variant="secondary"
