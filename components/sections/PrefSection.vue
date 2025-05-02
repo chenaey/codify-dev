@@ -25,23 +25,23 @@ watch(
 const projects = ref([
   {
     value: 'mvvm',
-    label: 'MVVM'
+    label: 'Vue2 (CSS Module + rem)'
   },
   {
     value: 'vue3',
-    label: 'Vue3'
+    label: 'Vue3 (Setup + Scoped CSS)'
+  },
+  {
+    value: 'cbg',
+    label: 'Vue3 (Setup + CSS Module + Less)'
   },
   {
     value: 'modern-js',
     label: 'modern-js'
   },
   {
-    value: 'cbg',
-    label: 'CBG'
-  },
-  {
     value: 'ios',
-    label: 'iOS'
+    label: 'React Native'
   },
   {
     value: 'android',
