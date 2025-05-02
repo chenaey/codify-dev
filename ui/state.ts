@@ -31,10 +31,11 @@ export type Options = {
     [source: string]: PluginData
   }
   activePluginSource: string | null
-  apiSettings: {
-    apiKey: string
-    baseURL: string
-    showApiSettings: boolean
+  apiSettings?: {
+    apiKey?: string
+    baseURL?: string
+    modelName?: string
+    showApiSettings?: boolean
   }
 }
 
@@ -76,6 +77,7 @@ export const options = useStorage<Options>('tempad-ai-options-state', {
   activePluginSource: null,
   apiSettings: {
     apiKey: '',
+    modelName: 'deepseek-chat',
     baseURL: 'https://api.deepseek.com/v1',
     showApiSettings: false
   }

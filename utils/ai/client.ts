@@ -23,7 +23,7 @@ const getClient = () => {
   const apiSettings = options.value.apiSettings || {};
   const apiKey = apiSettings.apiKey;
   const baseURL = apiSettings.baseURL || 'https://api.deepseek.com/v1';
-  
+
   return new OpenAI({
     apiKey,
     dangerouslyAllowBrowser: true,
@@ -43,10 +43,12 @@ export async function* generateCode(uiInfo: any, projectId: string, nodeId?: str
   
   // 日志记录
   console.log('Sending messages:', messages)
-  
+  const apiSettings = options.value.apiSettings || {};
+  const modelName = apiSettings.modelName || 'deepseek-chat';
+
   // 创建流式请求
   const stream = await client.chat.completions.create({
-    model: 'deepseek-chat',
+    model: modelName, 
     messages,
     stream: true,
     temperature: 1.0

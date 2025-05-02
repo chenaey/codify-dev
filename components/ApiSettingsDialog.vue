@@ -2,17 +2,17 @@
 import { options } from '@/ui/state'
 import { ref, watch, computed } from 'vue'
 
-// 使用计算属性安全地获取初始值
 const apiSettings = computed(() => options.value.apiSettings || {
   apiKey: '',
   baseURL: 'https://api.deepseek.com/v1',
+  modelName: 'deepseek-chat',
   showApiSettings: false
 })
 
 // 创建本地状态，避免直接修改存储的值
 const localApiKey = ref(apiSettings.value.apiKey )
 const localBaseURL = ref(apiSettings.value.baseURL)
-
+const localModelName = ref(apiSettings.value.modelName)
 // 当对话框打开时，重置本地状态
 watch(() => apiSettings.value.showApiSettings, (newValue) => {
   if (newValue) {
@@ -34,6 +34,7 @@ function saveSettings() {
   
   options.value.apiSettings.apiKey = localApiKey.value
   options.value.apiSettings.baseURL = localBaseURL.value
+  options.value.apiSettings.modelName = localModelName.value
   closeDialog()
 }
 
@@ -48,6 +49,7 @@ function closeDialog() {
 // 重置为默认值
 function resetToDefaults() {
   localApiKey.value = ''
+  localModelName.value = 'deepseek-chat'
   localBaseURL.value = 'https://api.deepseek.com/v1'
 }
 </script>
@@ -61,28 +63,38 @@ function resetToDefaults() {
       </div>
       <div class="dialog-body">
         <div class="form-group">
-          <label for="api-key">API Key</label>
+          <label for="api-key">OPENAI_API_KEY</label>
           <input 
             id="api-key" 
             type="text" 
             v-model="localApiKey" 
             class="settings-input"
-            placeholder="输入 DeepSeek API Key"
+            placeholder="apiKey"
           />
         </div>
+        
         <div class="form-group">
-          <label for="base-url">API 地址</label>
+          <label for="base-url">OPENAI_BASE_URL</label>
           <input 
             id="base-url" 
             type="text" 
             v-model="localBaseURL" 
             class="settings-input"
-            placeholder="输入 DeepSeek API 地址"
+            placeholder="baseURL"
+          />
+        </div>
+        <div class="form-group">
+          <label for="base-name">MODEL_NAME</label>
+          <input 
+            id="model-name" 
+            type="text" 
+            v-model="localModelName" 
+            class="settings-input"
+            placeholder="MODEL_NAME"
           />
         </div>
       </div>
       <div class="dialog-footer">
-        <button class="reset-button" @click="resetToDefaults">重置</button>
         <button class="save-button" @click="saveSettings">保存</button>
       </div>
     </div>
