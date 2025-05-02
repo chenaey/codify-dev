@@ -18,6 +18,7 @@ watch(() => apiSettings.value.showApiSettings, (newValue) => {
   if (newValue) {
     localApiKey.value = apiSettings.value.apiKey
     localBaseURL.value = apiSettings.value.baseURL 
+    localModelName.value = apiSettings.value.modelName
   }
 })
 
