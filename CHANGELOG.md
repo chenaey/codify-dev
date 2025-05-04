@@ -2,6 +2,11 @@
 
 # Changelog
 
+## 0.8.3
+
+- Improved user instructions when `window.figma` is unavailable.
+- Trime string props for codegen.
+
 ## 0.8.2
 
 - Fixed script replacement after Figma update.
