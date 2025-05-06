@@ -11,7 +11,7 @@ function processStyleValue(value: number): string {
     // 应用缩放
     const scaledValue = value * (scale || 1)
     if (project === 'mvvm') {
-      return `rem(${scaledValue})`
+      return `rem(${scaledValue * 2})`
     } else if (cssUnit === 'rem') {
       return `${scaledValue / rootFontSize}rem`
     } else {
