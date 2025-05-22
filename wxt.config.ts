@@ -19,7 +19,7 @@ export default defineConfig({
       }
     }
   }),
-  runner: {
+  webExt: {
     disabled: true
   },
   manifest: {
