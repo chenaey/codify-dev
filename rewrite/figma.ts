@@ -1,6 +1,6 @@
-import { matchFile, REWRITE_PATTERN, REWRITE_REPLACER } from '@/shared/rewrite'
+import { matchFile, REWRITE_PATTERN, REWRITE_REPLACER } from './config'
 
-export default defineUnlistedScript(async () => {
+async function rewriteScript() {
   const current = document.currentScript as HTMLScriptElement
   const src = current.src
 
@@ -14,7 +14,7 @@ export default defineUnlistedScript(async () => {
   try {
     let content = await (await fetch(src)).text()
 
-    if (matchFile(content)) {
+    if (matchFile(src, content)) {
       content = content.replace(REWRITE_PATTERN, REWRITE_REPLACER)
     }
 
@@ -28,4 +28,6 @@ export default defineUnlistedScript(async () => {
   } catch {
     replaceScript(`${src}?fallback`)
   }
-})
+}
+
+rewriteScript()
