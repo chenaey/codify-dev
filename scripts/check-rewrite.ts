@@ -1,7 +1,11 @@
-import { matchFile, REWRITE_PATTERN } from '@/shared/rewrite'
+import { matchFile, REWRITE_PATTERN } from '@/rewrite/config'
 import { chromium } from 'playwright-chromium'
 
-const ASSETS_PATTERN = /\/webpack-artifacts\/assets\/\d+-[0-9a-f]+\.min\.js(\.br)?$/
+import rules from '../public/rules/figma.json'
+
+const redirectRule = rules.find((rule) => rule.action.type === 'redirect')
+
+const ASSETS_PATTERN = new RegExp(redirectRule?.condition?.regexFilter || /a^/)
 const MAX_RETRIES = 3
 
 async function runCheck() {
@@ -50,7 +54,7 @@ async function runCheck() {
     let matched: string | null = null
     let rewritable = false
     scripts.forEach(({ url, content }) => {
-      if (matchFile(content)) {
+      if (matchFile(url, content)) {
         matched = url
         console.log(`Matched script: ${url}`)
         if (REWRITE_PATTERN.test(content)) {
