@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { CodeBlock } from '@/codegen/types'
-import type { SelectionNode } from '@/ui/state'
 
 import AIChatInput from '@/components/AIChatInput.vue'
 import Badge from '@/components/Badge.vue'
@@ -9,17 +8,25 @@ import IconButton from '@/components/IconButton.vue'
 import Info from '@/components/icons/Info.vue'
 import Preview from '@/components/icons/Preview.vue'
 import Section from '@/components/Section.vue'
-
+import { useToast } from '@/composables'
 import useAICodeGeneration from '@/composables/useAICodeGeneration'
 import { selection, selectedNode, options, selectedTemPadComponent, activePlugin } from '@/ui/state'
 import { getDesignComponent } from '@/utils'
+import { prepareConversation } from '@/utils/ai/conversation'
 import { codegen } from '@/utils/codegen'
 import { downloadIconResources } from '@/utils/download'
+import { extractSelectedNodes } from '@/utils/uiExtractor'
+import { parseUIInfo } from '@/utils/uiParser'
+import { useClipboard } from '@vueuse/core'
 import { ref, computed, shallowRef, watch, onUnmounted, nextTick, unref } from 'vue'
 
 import Button from '../Button.vue'
-import Modal from '../Modal.vue'
+import Copy from '../icons/Copy.vue'
 // import PreviewSection from './PreviewSection.vue'
+
+// 导入复制功能和提示功能
+const { copy } = useClipboard()
+const { show } = useToast()
 
 // 导入AI代码生成相关hook
 const {
@@ -31,6 +38,8 @@ const {
   loadingTitle,
   currentResources,
   shouldShowCodeBlock,
+  generatingStates,
+  getStateKey,
   generateAICode: generateAI,
   sendUserMessage,
   clearChatHistory,
@@ -42,6 +51,10 @@ const componentLink = shallowRef('')
 const codeBlocks = ref<CodeBlock[]>([])
 const warning = shallowRef('')
 const isDownloading = ref(false)
+
+// 新增提示词复制状态
+const isCopyingPrompt = ref(false)
+const copyPromptSuccess = ref(false)
 
 const playButtonTitle = computed(() =>
   componentLink.value
@@ -100,6 +113,57 @@ async function handleSendMessage(message: string) {
 function handleClearChatHistory() {
   if (!selectedNode.value) return
   clearChatHistory(selectedNode.value.id, options.value.project)
+}
+
+// 实现复制提示词功能
+async function copyPrompt() {
+  if (!selectedNode.value) return
+  
+  try {
+    isCopyingPrompt.value = true
+    
+    // 获取选中节点的信息（包括资源）
+    const { nodes: uiInfo, resources: newResources } = await extractSelectedNodes([selectedNode.value])
+    
+    // 解析UI信息
+    const parsedInfo = parseUIInfo(uiInfo, options.value.project)
+    
+    // 准备对话消息（提示词）
+    const nodeId = selectedNode.value.id
+    const projectId = options.value.project
+    const messages = prepareConversation(nodeId, projectId, parsedInfo)
+    
+    // 将提示词格式化为可读的文本
+    const promptText = messages[1].content
+    
+    // 复制到剪贴板
+    await copy(promptText)
+    
+    // 更新当前资源状态（这样下载按钮就会显示）
+    if (newResources && newResources.size > 0) {
+      // 获取当前状态并更新资源
+      const stateKey = getStateKey(nodeId, projectId)
+      const currentState = generatingStates.value.get(stateKey)
+      if (currentState) {
+        currentState.resources = newResources
+      } else {
+        // 如果没有状态，创建一个新的
+        generatingStates.value.set(stateKey, {
+          code: '',
+          status: 'init',
+          controller: null,
+          resources: newResources
+        })
+      }
+    }
+    
+    // 显示复制成功提示
+    show('Successfully copied to clipboard')
+  } catch (error) {
+    console.error('复制提示词失败:', error)
+  } finally {
+    isCopyingPrompt.value = false
+  }
 }
 
 watch([selectedNode, activePlugin], async ([node]) => {
@@ -163,6 +227,16 @@ const closePreview = () => {
         <Badge v-if="activePlugin" title="Code in this section is transformed by this plugin">{{
           activePlugin.name
         }}</Badge>
+
+        <IconButton
+          variant="secondary"
+          title="Copy Prompt" 
+          style="width: auto;white-space: nowrap;padding: 0 6px;"
+          :disabled="isCopyingPrompt"
+          @click="copyPrompt"
+        >
+          Copy Prompt
+        </IconButton>
         <IconButton
           variant="secondary"
           title="AI Generate Code (beta)"

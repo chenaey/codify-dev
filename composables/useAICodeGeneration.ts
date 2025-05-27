@@ -353,6 +353,10 @@ export default function useAICodeGeneration() {
     currentResources,
     shouldShowCodeBlock,
     
+    // 内部状态和方法（用于外部直接操作）
+    generatingStates,
+    getStateKey,
+    
     // 方法
     generateAICode,
     sendUserMessage,
