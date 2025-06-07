@@ -34,11 +34,10 @@ export default defineConfig({
         matches: ['https://www.figma.com/*']
       }
     ],
-    permissions: ['declarativeNetRequest', 'declarativeNetRequestWithHostAccess', 'alarms'],
+    permissions: ['declarativeNetRequest', 'declarativeNetRequestWithHostAccess'],
     host_permissions: [
       'https://www.figma.com/file/*',
-      'https://www.figma.com/design/*',
-      'https://raw.githubusercontent.com/*'
+      'https://www.figma.com/design/*'
     ],
     declarative_net_request: {
       rule_resources: [

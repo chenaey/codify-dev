@@ -1,43 +1,31 @@
-const RULE_URL =
-  'https://raw.githubusercontent.com/ecomfe/tempad-dev/refs/heads/main/public/rules/figma.json'
+// 移除远程URL，改为使用本地打包的规则文件
+// const RULE_URL = 'https://raw.githubusercontent.com/ecomfe/tempad-dev/refs/heads/main/public/rules/figma.json'
 
-const SYNC_ALARM = 'sync-rules'
-const SYNC_INTERVAL_MINUTES = 10
+// 移除定时同步相关代码
+// const SYNC_ALARM = 'sync-rules'
+// const SYNC_INTERVAL_MINUTES = 10
 
-async function fetchRules() {
+async function initializeRules() {
   try {
-    const res = await fetch(RULE_URL, { cache: 'no-store' })
-    if (!res.ok) {
-      console.error('[tempad-dev] Failed to fetch rules:', res.statusText)
-      return
-    }
-
-    const newRules = await res.json()
-    const oldIds = (await browser.declarativeNetRequest.getDynamicRules()).map(({ id }) => id)
-
+    // 使用manifest中定义的静态规则集，无需动态加载
     await browser.declarativeNetRequest.updateEnabledRulesets({
-      disableRulesetIds: ['figma']
+      enableRulesetIds: ['figma']
     })
-
-    await browser.declarativeNetRequest.updateDynamicRules({
-      removeRuleIds: oldIds,
-      addRules: newRules
-    })
-    console.log(`[tempad-dev] Updated ${newRules.length} rule${newRules.length === 1 ? '' : 's'}.`)
+    console.log('[tempad-dev] Enabled figma rules from static resource.')
   } catch (error) {
-    console.error('[tempad-dev] Error fetching rules:', error)
+    console.error('[tempad-dev] Error initializing rules:', error)
   }
 }
 
 export default defineBackground(() => {
-  browser.runtime.onInstalled.addListener(fetchRules)
-
-  browser.runtime.onStartup.addListener(fetchRules)
-
-  browser.alarms.create(SYNC_ALARM, { periodInMinutes: SYNC_INTERVAL_MINUTES })
-  browser.alarms.onAlarm.addListener((a) => {
-    if (a.name === SYNC_ALARM) {
-      fetchRules()
-    }
-  })
+  browser.runtime.onInstalled.addListener(initializeRules)
+  browser.runtime.onStartup.addListener(initializeRules)
+  
+  // 移除定时同步功能
+  // browser.alarms.create(SYNC_ALARM, { periodInMinutes: SYNC_INTERVAL_MINUTES })
+  // browser.alarms.onAlarm.addListener((a) => {
+  //   if (a.name === SYNC_ALARM) {
+  //     fetchRules()
+  //   }
+  // })
 })
