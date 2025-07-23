@@ -11,12 +11,11 @@ export function isDefaultValue(property, defaultValues, value) {
 
 // 处理CSS变量，提取默认值
 export function extractDefaultValue(value) {
-    // 匹配 var(--xxx, #default) 格式
-    const match = value.match(/var\([^,]+,\s*([^)]+)\)/)
-    if (match) {
-        return match[1].trim()
-    }
-    return value
+    // 匹配 var(--xxx, default) 格式，包括空变量名的情况，但只替换CSS变量本身，保留其他内容
+    return value.replace(/var\(--[^,)]*(?:,\s*([^)]+))?\)/g, (match, defaultValue) => {
+        // 如果有默认值，返回默认值；否则返回空字符串
+        return defaultValue ? defaultValue.trim() : ''
+    })
 }
 
 // 将rem转换为px
@@ -159,8 +158,8 @@ function convertToAndroidKey(key) {
 
 // 处理颜色变量
 function processColorVariable(value) {
-    // 匹配 var(--xxx, #default) 格式
-    const varMatch = value.match(/var\((--[^,]+),\s*([^)]+)\)/)
+    // 匹配 var(--xxx, #default) 格式，包括空变量名的情况
+    const varMatch = value.match(/var\(--[^,)]*(?:,\s*([^)]+))?\)/)
     if (!varMatch) {
         return value
     }
