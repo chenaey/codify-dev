@@ -4,10 +4,18 @@ import IconButton from '@/components/IconButton.vue'
 import Inspect from '@/components/icons/Inspect.vue'
 import Measure from '@/components/icons/Measure.vue'
 import Export from '@/components/icons/Plus.vue'
+import Preferences from '@/components/icons/Preferences.vue'
+import ProjectManager from '@/components/ProjectManager.vue'
 import Section from '@/components/Section.vue'
 // import PluginsSection from '@/components/sections/PluginsSection.vue'
 import { useSelectAll } from '@/composables/input'
+import { useUserProjects } from '@/composables/useUserProjects'
 import { options } from '@/ui/state'
+
+// 接收 collapsed 属性
+defineProps<{
+  collapsed?: boolean
+}>()
 
 const root = ref<InstanceType<typeof Section> | null>(null)
 
@@ -22,32 +30,32 @@ watch(
     flush: 'post'
   }
 )
-const projects = ref([
-  {
-    value: 'mvvm',
-    label: 'Vue2 (CSS Module + rem)'
-  },
-  {
-    value: 'vue3',
-    label: 'Vue3 (Setup + Scoped CSS)'
-  },
-  {
-    value: 'cbg',
-    label: 'Vue3 (Setup + CSS Module + Less)'
-  },
-  {
-    value: 'modern-js',
-    label: 'modern-js'
-  },
-  {
-    value: 'ios',
-    label: 'React Native'
-  },
-  {
-    value: 'android',
-    label: 'Android'
-  }
-])
+
+// 用户项目管理
+const { userProjects } = useUserProjects()
+
+// 内置项目列表
+const builtInProjects = [
+  { id: 'mvvm', name: 'Vue2 (CSS Module + rem)', isBuiltIn: true },
+  { id: 'vue3', name: 'Vue3 (Setup + Scoped CSS)', isBuiltIn: true },
+  { id: 'cbg', name: 'Vue3 (Setup + CSS Module + Less)', isBuiltIn: true },
+  { id: 'modern-js', name: 'modern-js', isBuiltIn: true },
+  { id: 'ios', name: 'React Native', isBuiltIn: true },
+  { id: 'android', name: 'Android', isBuiltIn: true }
+]
+
+// 合并所有项目
+const allProjects = computed(() => {
+  const userProjectsWithFlag = userProjects.value.map(p => ({
+    id: p.id,
+    name: p.name,
+    isBuiltIn: false
+  }))
+  return [...builtInProjects, ...userProjectsWithFlag]
+})
+
+// 项目管理弹窗状态
+const showProjectManager = ref(false)
 
 const fontSizeInput = useTemplateRef('fontSizeInput')
 useSelectAll(fontSizeInput)
@@ -71,7 +79,7 @@ function openApiSettings() {
 </script>
 
 <template>
-  <Section ref="root" class="tp-pref">
+  <Section ref="root" class="tp-pref" :collapsed="collapsed">
     <div class="tp-row tp-row-justify tp-pref-field">
       <label>Tools</label>
       <div class="tp-row tp-gap">
@@ -90,14 +98,25 @@ function openApiSettings() {
         </IconButton>
       </div>
     </div>
+    
     <div class="tp-row tp-row-justify tp-pref-field tb-pref-plugin">
       <label for="project-select">Project</label>
-      <select id="project-select" class="tp-pref-input" v-model="options.project">
-        <option v-for="project in projects" :key="project.value" :value="project.value">
-          {{ project.label }}
-        </option>
-      </select>
+      <div class="project-selector">
+        <IconButton 
+          title="Manage projects" 
+          variant="secondary"
+          @click="showProjectManager = true"
+        >
+          <Preferences />
+        </IconButton>
+        <select id="project-select" class="tp-pref-input" v-model="options.project">
+          <option v-for="project in allProjects" :key="project.id" :value="project.id">
+            {{ project.name }}
+          </option>
+        </select>
+      </div>
     </div>
+    
     <div class="tp-row tp-row-justify tp-pref-field">
         <label for="css-unit">CSS unit</label>
         <select id="css-unit" class="tp-pref-input" v-model="options.cssUnit">
@@ -109,8 +128,8 @@ function openApiSettings() {
         <label for="root-font-size">Root font size</label>
         <input
           id="root-font-size"
-          class="tp-pref-input"
           ref="fontSizeInput"
+          class="tp-pref-input"
           type="number"
           v-model.number="options.rootFontSize"
         />
@@ -119,14 +138,13 @@ function openApiSettings() {
         <label for="scale">Scale</label>
         <input
           id="scale"
-          class="tp-pref-input"
           ref="scaleInput"
+          class="tp-pref-input"
           type="number"
           step="1"
           v-model.number="options.scale"
         />
       </div>
-      
       <!-- 添加API设置按钮 -->
       <div class="tp-row tp-row-justify tp-pref-field tb-pref-plugin">
         <label>API 设置</label>
@@ -134,12 +152,13 @@ function openApiSettings() {
           配置 DeepSeek API
         </button>
       </div>
-      
-    <!-- <PluginsSection class="tp-pref-plugins" /> -->
-    
-    <!-- 添加API设置对话框 -->
-    <ApiSettingsDialog />
   </Section>
+
+  <!-- 项目管理器 -->
+  <ProjectManager v-model:show="showProjectManager" />
+
+  <!-- API 设置弹窗 -->
+  <ApiSettingsDialog v-if="options.apiSettings?.showApiSettings" />
 </template>
 
 <style scoped>
@@ -184,5 +203,15 @@ label {
 
 .api-settings-button:hover {
   background-color: #e8e8e8;
+}
+
+.project-selector {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.project-selector select {
+  flex: 1;
 }
 </style>

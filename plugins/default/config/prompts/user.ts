@@ -1,5 +1,6 @@
-import { generatePrompt } from './index.js'
+import { useUserProjects } from '@/composables/useUserProjects'
 
+import { generatePrompt } from './index.js'
 
 
 export const modernjsPrompt = `
@@ -232,6 +233,14 @@ const projectMap: Record<string, string> = {
 }
 
 const getPrompt = (projectId: string) => {
+  // 1. 先查用户自定义项目
+  const { getUserProject } = useUserProjects()
+  const userProject = getUserProject(projectId)
+  if (userProject) {
+    return userProject.prompt
+  }
+  
+  // 2. 再查内置项目
   if (!projectMap[projectId]) {
     throw new Error(`Project ID ${projectId} not found`)
   }
