@@ -116,7 +116,6 @@ const canSave = computed(() => projectForm.value.name.trim() && projectForm.valu
 </script>
 
 <template>
-  <Teleport to="body">
     <div v-if="show" class="modal-overlay" @click="close">
       <div class="modal" @click.stop>
         <div class="modal-header">
@@ -159,7 +158,6 @@ const canSave = computed(() => projectForm.value.name.trim() && projectForm.valu
         </div>
       </div>
     </div>
-  </Teleport>
 </template>
 
 <style scoped>

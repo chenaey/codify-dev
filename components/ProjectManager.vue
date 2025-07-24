@@ -20,6 +20,7 @@ const editingProject = ref<UserProject | null>(null)
 
 // 打开项目编辑器
 function openProjectEditor(project?: UserProject) {
+  close()
   editingProject.value = project || null
   showProjectEditor.value = true
 }
