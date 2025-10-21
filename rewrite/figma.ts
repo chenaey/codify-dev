@@ -1,8 +1,12 @@
-import { matchFile, REWRITE_PATTERN, REWRITE_REPLACER } from './config'
+import { GROUPS } from './config'
+import { applyGroups } from './shared'
 
 async function rewriteScript() {
   const current = document.currentScript as HTMLScriptElement
-  const src = current.src
+  const src = current?.src
+  if (!current || !src) {
+    return
+  }
 
   const desc = Object.getOwnPropertyDescriptor(Document.prototype, 'currentScript')
 
@@ -14,15 +18,16 @@ async function rewriteScript() {
   }
 
   try {
-    let content = await (await fetch(src)).text()
+    const response = await fetch(src)
+    const original = await response.text()
 
-    if (matchFile(src, content)) {
-      content = content.replace(REWRITE_PATTERN, REWRITE_REPLACER)
-      console.log(`Rewrote script: ${src}`)
+    const { content: afterRules, changed } = applyGroups(original, GROUPS)
+
+    if (changed) {
+      console.log(`[tempad-dev] Rewrote script: ${src}`)
     }
 
-    // delete window.figma may throw Error in strict mode
-    content = content.replaceAll('delete window.figma', 'window.figma = undefined')
+    const content = afterRules.replaceAll('delete window.figma', 'window.figma = undefined')
 
     Object.defineProperty(document, 'currentScript', {
       configurable: true,
@@ -36,7 +41,11 @@ async function rewriteScript() {
     console.error(e)
     replaceScript(`${src}?fallback`)
   } finally {
-    Object.defineProperty(document, 'currentScript', desc as PropertyDescriptor)
+    if (desc) {
+      Object.defineProperty(document, 'currentScript', desc)
+    } else {
+      delete (document as any).currentScript
+    }
   }
 }
 
