@@ -1,5 +1,8 @@
 // 移除远程URL，改为使用本地打包的规则文件
 // const RULE_URL = 'https://raw.githubusercontent.com/ecomfe/tempad-dev/refs/heads/main/public/rules/figma.json'
+import { RULES_URL } from '@/rewrite/shared'
+import rules from '@/public/rules/figma.json'
+import type { Rules } from '../types/rewrite'
 
 // 移除定时同步相关代码
 // const SYNC_ALARM = 'sync-rules'
@@ -8,6 +11,24 @@
 async function initializeRules() {
   try {
     // 使用manifest中定义的静态规则集，无需动态加载
+
+    // let newRules: Rules
+
+    // if (import.meta.env.DEV) {
+    //   newRules = rules as Rules
+    //   console.log('[tempad-dev] Loaded local rules (dev).')
+    // } else {
+    //   const res = await fetch(RULES_URL, { cache: 'no-store' })
+    //   if (!res.ok) {
+    //     console.error('[tempad-dev] Failed to fetch rules:', res.statusText)
+    //     return
+    //   }
+
+    //   newRules = (await res.json()) as Rules
+    // }
+
+    // const oldIds = (await browser.declarativeNetRequest.getDynamicRules()).map(({ id }) => id)
+
     await browser.declarativeNetRequest.updateEnabledRulesets({
       enableRulesetIds: ['figma']
     })

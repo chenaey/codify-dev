@@ -1,10 +1,9 @@
-import { matchFile, REWRITE_PATTERN } from '@/rewrite/config'
+import { GROUPS } from '@/rewrite/config'
+import { applyGroups, groupMatches } from '@/rewrite/shared'
 import { chromium } from 'playwright-chromium'
-
 import rules from '../public/rules/figma.json'
 
 const redirectRule = rules.find((rule) => rule.action.type === 'redirect')
-
 const ASSETS_PATTERN = new RegExp(redirectRule?.condition?.regexFilter || /a^/)
 const MAX_RETRIES = 3
 
@@ -16,16 +15,16 @@ async function runCheck() {
 
   try {
     page.on('response', async (response) => {
-      if (response.request().resourceType() === 'script') {
-        const url = response.url()
-        if (!ASSETS_PATTERN.test(url)) {
-          return
-        }
-
-        const content = await response.text()
-        scripts.push({ url, content })
-        console.log(`Captured script: ${url}`)
+      if (response.request().resourceType() !== 'script') {
+        return
       }
+      const url = response.url()
+      if (!ASSETS_PATTERN.test(url)) {
+        return
+      }
+      const content = await response.text()
+      scripts.push({ url, content })
+      console.log(`Captured script: <${url}>.`)
     })
 
     try {
@@ -43,40 +42,57 @@ async function runCheck() {
     try {
       await page.waitForURL(/^(?!.*login).*$/, { timeout: 10000 })
       console.log('Logged in successfully.')
-    } catch (error) {
+    } catch {
       console.error('Login failed. Please check your credentials.')
       return false
     }
 
     await page.waitForLoadState('load')
-    console.log(`Page loaded at ${page.url()}.`)
+    console.log(`Page loaded at <${page.url()}>.`)
 
-    let matched: string | null = null
-    let rewritable = false
-    scripts.forEach(({ url, content }) => {
-      if (matchFile(url, content)) {
-        matched = url
-        console.log(`Matched script: ${url}`)
-        if (REWRITE_PATTERN.test(content)) {
-          rewritable = true
-          console.log(`Rewritable script: ${url}`)
-        }
+    console.log(
+      `Navigating to the design file: <https://www.figma.com/design/${process.env.FIGMA_FILE_KEY}>.`
+    )
+    await page.goto(`https://www.figma.com/design/${process.env.FIGMA_FILE_KEY}`)
+    console.log(`Page loaded at <${page.url()}>.`)
+
+    let matchedCount = 0
+    let rewrittenCount = 0
+    const notRewritten: string[] = []
+
+    for (const { url, content } of scripts) {
+      const matched = GROUPS.some((group) => groupMatches(content, group))
+      if (!matched) {
+        continue
       }
-    })
 
-    if (!matched) {
+      matchedCount++
+      console.log(`Matched script: <${url}>.`)
+
+      const { changed } = applyGroups(content, GROUPS)
+      if (changed) {
+        rewrittenCount++
+        console.log(`Rewritable (would change): <${url}>.`)
+      } else {
+        notRewritten.push(url)
+        console.log(`Not rewritable (no change produced): <${url}>.`)
+      }
+    }
+
+    if (matchedCount === 0) {
       console.log('❌ No matched script found.')
       return false
     }
 
-    console.log(`✅ Matched script: ${matched}`)
+    console.log(`✅ Matched ${matchedCount} script(s).`)
 
-    if (!rewritable) {
-      console.log(`❌ Rewrite pattern not found.`)
+    if (rewrittenCount !== matchedCount) {
+      console.log('❌ Some matched scripts would not be rewritten by rules:')
+      notRewritten.forEach((url) => console.log(` - <${url}>`))
       return false
     }
 
-    console.log(`✅ Rewrite pattern found.`)
+    console.log('✅ All matched scripts would be rewritten by rules.')
     return true
   } finally {
     await browser.close()
@@ -90,14 +106,12 @@ async function main() {
     }
 
     const success = await runCheck()
-
     if (success) {
       process.exit(0)
     }
 
     if (attempt < MAX_RETRIES) {
       console.log(`Attempt ${attempt} failed. Waiting before retry...`)
-      // Wait a bit before retrying
       await new Promise((resolve) => setTimeout(resolve, 3000))
     }
   }

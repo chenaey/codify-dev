@@ -2,6 +2,19 @@
 
 # Changelog
 
+## 0.11.1
+
+- Fixed loading error on Figma slides and site pages.
+
+## 0.11.0
+
+- Improved compatibility with Figma's lazy loading mechanism.
+- Improved rewriting rules.
+
+## 0.10.2
+
+- Fixed an issue with CSS code generation when optimizing dimension code.
+
 ## 0.10.1
 
 - Fixed the copy button for code blocks.
