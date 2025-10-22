@@ -1,14 +1,19 @@
 import { ui } from '@/ui/figma'
+import { getCurrentPlatform, Platform } from './platform';
 
 export function getCanvas() {
-  // Need to ensure the whole plugin is rendered after canvas is ready
-  // so that we can cast the result to HTMLElement here.
-  // The `waitFor` logic is in `./index.ts`.
-  return document.querySelector('#fullscreen-root .gpu-view-content canvas') as HTMLElement
+  // Figma's original selector
+  return document.querySelector('canvas') as HTMLElement
 }
 
 export function getLeftPanel() {
-  // Similar to `getCanvas()`.
+  const platform = getCurrentPlatform();
+  if (platform === Platform.MasterGo) {
+    // TODO: 请替换为 MasterGo 左侧面板的正确选择器
+    return document.querySelector('.left-bar') as HTMLElement;
+  }
+
+  // Figma's original selector
   return document.querySelector('#left-panel-container') as HTMLElement
 }
 

@@ -14,6 +14,7 @@ import { selection, selectedNode, options, selectedTemPadComponent, activePlugin
 import { getDesignComponent } from '@/utils'
 import { prepareConversation } from '@/utils/ai/conversation'
 import { codegen } from '@/utils/codegen'
+import { getCSSAsync } from '@/utils/css'
 import { downloadIconResources } from '@/utils/download'
 import { extractSelectedNodes } from '@/utils/uiExtractor'
 import { parseUIInfo } from '@/utils/uiParser'
@@ -75,8 +76,7 @@ async function updateCode() {
   componentLink.value = tempadComponent?.link || ''
 
   const component = getDesignComponent(node)
-
-  const style = await node.getCSSAsync()
+  const style = await getCSSAsync(node)
   const { cssUnit, project, rootFontSize, scale } = options.value
   const serializeOptions = {
     useRem: cssUnit === 'rem',
@@ -353,10 +353,10 @@ const closePreview = () => {
   --btn-height: 2rem;
   --btn-padding: 0 0.75rem;
   border-radius: 0.375rem;
-  font-weight: var(--text-body-medium-strong-font-weight);
+  font-weight: var(--text-body-medium-strong-font-weight, 600);
   letter-spacing: var(--text-body-medium-strong-letter-spacing);
   background: var(--color-primary);
-  color: var(--color-white);
+  color: var(--color-white, #fff);
 }
 
 .tp-icon-download-btn:hover {

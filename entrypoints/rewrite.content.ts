@@ -5,6 +5,7 @@ import type { BlobHandle, CacheEntry, Rules } from '../types/rewrite'
 
 export default defineContentScript({
   matches: [
+    'https://mastergo.netease.com/file/*',
     'https://www.figma.com/file/*',
     'https://www.figma.com/design/*',
     'https://www.figma.com/proto/*',

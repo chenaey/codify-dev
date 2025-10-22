@@ -1,3 +1,6 @@
+import { getCurrentPlatform, Platform } from '@/utils/platform'
+import { reactive } from 'vue'
+
 const NATIVE_PANEL_WIDTH = 241
 const TEMPAD_PANEL_WIDTH = 300
 
@@ -13,10 +16,18 @@ const ui = reactive({
   },
 
   get topBoundary() {
+    const platform = getCurrentPlatform();
+    if (platform === Platform.MasterGo) {
+      return 0; // MasterGo 上暂时不限制顶部边界，允许自由拖动
+    }
     return sumLength(this.isUi3 ? 12 : '--toolbar-height', '--editor-banner-height')
   },
 
   get bottomBoundary() {
+    const platform = getCurrentPlatform();
+    if (platform === Platform.MasterGo) {
+      return 0; // MasterGo 上暂时不限制底部边界，允许自由拖动
+    }
     return this.isUi3 ? 12 : 0
   }
 })

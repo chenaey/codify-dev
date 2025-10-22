@@ -88,7 +88,7 @@ function handleClick(event: MouseEvent) {
 
 <style scoped>
 .tp-code {
-  border-radius: 2px;
+  border-radius: 6px;
   background-color: var(--color-bg-secondary);
 }
 
@@ -120,6 +120,8 @@ function handleClick(event: MouseEvent) {
   letter-spacing: 0.005em;
   overflow-x: auto;
   max-height: 300px;
+  margin-block-end: 0;
+  margin-block-start: 0;
 }
 
 .tp-code-content::selection {
@@ -133,11 +135,15 @@ function handleClick(event: MouseEvent) {
 }
 
 .tp-code-content .token {
-  color: var(--color-text);
+  color: var(--ramp-black-800);
+}
+
+.tp-code-content .token.color{
+  color: var(--color-codevalue);
 }
 
 .tp-code-content .token.property {
-  color: var(--color-text);
+  color: var(--ramp-black-800);
 }
 
 .tp-code-content .token.plain {
@@ -173,7 +179,7 @@ function handleClick(event: MouseEvent) {
 }
 
 .tp-code-content .token.tag .token.punctuation {
-  color: var(--color-text);
+  color: var(--ramp-black-800);
 }
 
 .tp-code-content .token.attr-name {

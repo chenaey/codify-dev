@@ -37,3 +37,47 @@ export function convertSerializedCSSToJson(cssString: string): Record<string, st
   
   return cssJson;
 }
+// mastergo格式
+export function cssStringToObject(cssString) {
+  if (!cssString || typeof cssString !== 'string') {
+    return {}
+  }
+  const excludeCSSProperty = ['position', 'left', 'right', 'bottom', 'top']
+  const cssObject = {}
+
+  // 按分号分割样式属性
+  const styles = cssString.split(';')
+
+  styles.forEach((style) => {
+    // 去除首尾空格
+    style = style.trim()
+
+    // 跳过空字符串
+    if (!style) return
+
+    // 按第一个冒号分割属性名和值
+    const colonIndex = style.indexOf(':')
+    if (colonIndex === -1) return
+
+    const property = style.substring(0, colonIndex).trim()
+    const value = style.substring(colonIndex + 1).trim()
+
+    // 跳过空属性名或空值
+    if (!property) return
+
+    // 将 kebab-case 转换为 camelCase
+    // const camelCaseProperty = property.replace(/-([a-z])/g, (match, letter) => {
+    //   return letter.toUpperCase()
+    // })
+    // 将 camelCase 转换为 kebab-case
+    const kebabCaseProperty = property.replace(/[A-Z]/g, (match) => {
+      return '-' + match.toLowerCase()
+    })
+    if (!excludeCSSProperty.includes(kebabCaseProperty)) {
+      cssObject[kebabCaseProperty] = value
+    }
+
+  })
+
+  return cssObject
+}

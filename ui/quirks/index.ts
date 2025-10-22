@@ -219,11 +219,11 @@ export class GhostNode {
 const LOG_SEP_RE = /\n*logging node state for (\d+:\d+)\n*/
 
 export function createQuirksSelection(): (QuirksNode | GhostNode)[] {
-  if (!window.DebuggingHelpers.logSelected) {
+  if (!window.DebuggingHelpers?.logSelected) {
     return []
   }
 
-  const log = window.DebuggingHelpers.logSelected()
+  const log = window.DebuggingHelpers?.logSelected()
 
   // selected node is document or canvas, means no selection
   if (log.startsWith('logging node state for 0:')) {

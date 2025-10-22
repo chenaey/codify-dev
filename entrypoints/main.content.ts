@@ -1,5 +1,5 @@
 export default defineContentScript({
-  matches: ['https://www.figma.com/file/*', 'https://www.figma.com/design/*'],
+  matches: ['https://www.figma.com/file/*', 'https://www.figma.com/design/*', 'https://mastergo.netease.com/file/*',],
   runAt: 'document_end',
   main(ctx) {
     const ui = createIntegratedUi(ctx, {
@@ -17,6 +17,7 @@ export default defineContentScript({
         // Both of the following are required.
         root.tabIndex = -1
         root.classList.add('js-fullscreen-prevent-event-capture')
+        console.log('[][][js-fullscreen-prevent-event-capture]')
       }
     })
 

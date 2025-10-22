@@ -42,7 +42,7 @@
     },
     "condition": {
       "resourceTypes": ["xmlhttprequest"],
-      "initiatorDomains": ["www.figma.com"],
+      "initiatorDomains": ["www.figma.com", "mastergo.netease.com"],
       "requestDomains": ["ecomfe.github.io"],
       "regexFilter": "/tempad-dev/figma\\.json$"
     }

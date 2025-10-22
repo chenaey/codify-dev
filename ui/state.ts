@@ -1,6 +1,7 @@
 import { getTemPadComponent } from '@/utils'
 import { useStorage, computedAsync } from '@vueuse/core'
 import { shallowRef, computed } from 'vue'
+import { isMasterGo } from '@/utils/platform'
 
 import type { QuirksNode, GhostNode } from './quirks'
 
@@ -65,8 +66,8 @@ export const options = useStorage<Options>('tempad-ai-options-state', {
     top: ui.topBoundary
   },
   prefOpen: false,
-  deepSelectOn: true,
-  measureOn: true,
+  deepSelectOn: !isMasterGo(),
+  measureOn: !isMasterGo(),
   exportOn: false,
   project: 'mvvm',
   cssUnit: 'px',

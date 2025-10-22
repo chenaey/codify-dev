@@ -22,6 +22,7 @@ tempad .tp-row {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  color: var(--text-primary, #000);
 }
 
 tempad .tp-row-justify {

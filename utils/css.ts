@@ -2,6 +2,8 @@ import type { TransformOptions } from '@/types/plugin'
 
 import { parseNumber, toDecimalPlace } from './number'
 import { kebabToCamel } from './string'
+import { isMasterGo } from '@/utils/platform'
+import { cssStringToObject } from '@/utils/convert'
 
 function escapeSingleQuote(value: string) {
   return value.replace(/'/g, "\\'")
@@ -130,4 +132,16 @@ export function serializeCSS(
   }
 
   return code
+}
+
+export async function getCSSAsync(node: any, options: ProcessValueOptions) {
+  if (node.getCSSAsync) {
+    return node.getCSSAsync()
+  } else if (isMasterGo()) {
+    const data = await window.mg.codegen.getMCPStyleData()
+    if (data && data[0]?.cssCode) {
+      return cssStringToObject(data[0]?.cssCode)
+    }
+    return {}
+  }
 }

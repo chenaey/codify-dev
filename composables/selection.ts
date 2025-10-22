@@ -1,18 +1,44 @@
 import { createQuirksSelection } from '@/ui/quirks'
 import { selection } from '@/ui/state'
 import { getCanvas, getLeftPanel } from '@/utils'
-import { extractSelectedNodes } from '@/utils/uiExtractor'
+import { getCurrentPlatform, Platform } from '@/utils/platform'; 
 import { onMounted, onUnmounted } from 'vue'
 
+// 一个临时的、简单的函数，用于将 MasterGo 节点对象转换成与 Figma 节点类似的结构
+// 这样可以最大限度地复用现有的 UI 组件
+function normalizeMasterGoNode(mgNode: any): any {
+  // 这里的实现需要根据 MasterGo 节点对象的实际结构来定
+  // 目标是让返回的对象结构尽量与 Figma 的节点对象保持一致
+  return {
+    id: mgNode.id,
+    name: mgNode.name,
+    type: mgNode.type,
+    // ... 其他 UI 需要用到的属性
+  };
+}
+
 async function syncSelection() {
-  if (!window.figma) {
-    selection.value = createQuirksSelection()
-    return
+  const platform = getCurrentPlatform();
+  console.log('[syncSelection]', platform);
+
+
+  if (platform === Platform.Figma) {
+    if (!window.figma) {
+      selection.value = createQuirksSelection()
+      return
+    }
+    selection.value = figma.currentPage.selection
+  } else if (platform === Platform.MasterGo) {
+    if (window.mg && window.mg.document) {
+      selection.value =  window.mg.document.currentPage.selection
+    }
+    console.log('[MasterGo selection]', selection.value);
   }
-  selection.value = figma.currentPage.selection
+
+
 
   // Print selection info
-  console.log('[selection]', figma.currentPage.selection)
+  console.log('[selection]', selection.value)
 
   // Print CSS info for the first selected node
   // const selectedNode = figma.currentPage.selection[0]

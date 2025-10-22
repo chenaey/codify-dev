@@ -7,6 +7,7 @@ import {
   isIconNode,
   extractVectorData,
 } from './iconExtractor'
+import { getCSSAsync } from '@/utils/css'
 import { generateUniqueIconName } from './iconNaming'
 import { toDecimalPlace } from './index'
 import { mergeStyles } from './styleMerger'
@@ -758,7 +759,7 @@ async function extractUINode(
 
   try {
     // 获取生成的CSS代码
-    const style = await node.getCSSAsync()
+    const style = await getCSSAsync(node)
     const component = getDesignComponent(node)
 
     const { cssUnit, project, rootFontSize, scale } = options.value

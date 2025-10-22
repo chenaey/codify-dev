@@ -117,7 +117,7 @@ onUnmounted(() => {
   flex-direction: column;
   max-height: v-bind(panelMaxHeight);
   background-color: var(--color-bg);
-  border-radius: 2px;
+  border-radius: 12px;
   box-shadow: var(--elevation-500-modal-window);
 }
 
