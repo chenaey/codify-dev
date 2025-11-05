@@ -106,6 +106,7 @@ function handleClick(event: MouseEvent) {
 }
 
 .tp-code-content {
+  user-select: text;
   border-top: 1px solid var(--color-border, rgba(0, 0, 0, 0.1));
   padding: 4px 12px;
   -webkit-font-smoothing: antialiased;
