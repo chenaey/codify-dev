@@ -11,6 +11,7 @@ import { getCSSAsync } from '@/utils/css'
 import { generateUniqueIconName } from './iconNaming'
 import { toDecimalPlace } from './index'
 import { mergeStyles } from './styleMerger'
+import { optimizeJSON } from './jsonOptimizer'
 // 添加布局模式类型
 type LayoutMode = 'NONE' | 'HORIZONTAL' | 'VERTICAL'
 // 添加尺寸调整模式类型
@@ -902,7 +903,10 @@ export async function extractSelectedNodes(selection: readonly any[]) {
   // 过滤掉null节点
   const nodes = uiNodes.filter((node): node is UINode => node !== null)
 
-  // 返回包含节点和资源的对象
-  return { nodes, resources }
+  // 优化 JSON 结构：层级合并、坐标清理、样式去重、字段移除
+  const optimizedNodes = optimizeJSON(nodes)
+
+  // 返回包含优化后节点和资源的对象
+  return { nodes: optimizedNodes, resources }
 }
 
