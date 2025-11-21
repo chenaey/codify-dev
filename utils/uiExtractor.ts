@@ -266,7 +266,8 @@ const shouldAddWidthHeight = (node: any) => {
   const isContainer = ['FRAME', 'GROUP', 'INSTANCE', 'COMPONENT', 'TEXT'].includes(node.type)
 
   // 2. 检查是否有自动布局
-  const hasAutoLayout = node.layoutMode === 'HORIZONTAL' || node.layoutMode === 'VERTICAL'
+  const layoutMode = getLayoutMode(node)
+  const hasAutoLayout = layoutMode === 'HORIZONTAL' || layoutMode === 'VERTICAL'
 
   // 3. 检查约束条件
   const hasFlexibleConstraints =
@@ -290,11 +291,19 @@ function getNodePosition(node: any) {
 }
 
 // 获取节点的布局模式
+// 获取节点的布局模式
 function getLayoutMode(node: any): LayoutMode {
-  // 1. 如果节点显式设置了layoutMode，使用设置的值
+  // 1. 如果节点显式设置了layoutMode，使用设置的值 (Figma)
   if ('layoutMode' in node && node.layoutMode) {
     return node.layoutMode as LayoutMode
   }
+  
+  // 2. 兼容MasterGo的flexMode
+  if ('flexMode' in node && node.flexMode) {
+    // MasterGo: 'HORIZONTAL' | 'VERTICAL' | 'NONE'
+    return node.flexMode as LayoutMode
+  }
+  
   return 'NONE'
 }
 
@@ -340,7 +349,7 @@ function calculateActualSpacing(currentNode: any, nextNode: any): number {
   const currentPadding = currentNode.padding || {}
   const nextPadding = nextNode.padding || {}
 
-  if (currentNode.parent?.layoutMode === 'HORIZONTAL') {
+  if (getLayoutMode(currentNode.parent) === 'HORIZONTAL') {
     return toDecimalPlace(
       nextPos.x - (currentPos.x + currentPos.width) -
       (currentPadding.right || 0) - (nextPadding.left || 0)
@@ -378,7 +387,7 @@ function calculateMargin(node: any, siblings: any[], parent: any) {
   const visibleSiblings = siblings.filter(sibling => sibling.visible !== false)
 
   // 获取节点在可见兄弟中的位置
-  const sortedSiblings = getSortedSiblings(visibleSiblings, parent.layoutMode as LayoutMode)
+  const sortedSiblings = getSortedSiblings(visibleSiblings, getLayoutMode(parent))
   const nodeIndex = sortedSiblings.findIndex(s => s.id === node.id)
 
   // 最后一个元素不需要margin
@@ -391,7 +400,7 @@ function calculateMargin(node: any, siblings: any[], parent: any) {
 
   // 根据布局方向设置对应的margin
   return {
-    ...(parent.layoutMode === 'HORIZONTAL'
+    ...(getLayoutMode(parent) === 'HORIZONTAL'
       ? { right: marginValue }
       : { bottom: marginValue }
     )

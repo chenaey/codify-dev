@@ -13,13 +13,19 @@ export const generatePrompt = (language: string) => {
      - 容器组件禁止设置：width/height/min-width/min-height这些属性为固定数值，允许设置100%。
      - 允许设置：max-width/max-height（仅限非容器元素）
      - 考虑容器的自适应
-  
-  2. 布局准则：
-     - 使用Flex实现弹性布局
-     - 严格遵循数据的嵌套结构，严格遵循节点中的layoutMode定义：
-       'HORIZONTAL' - 水平布局模式，相当于CSS中的 display: flex，子元素会在水平方向上排列。
-       'VERTICAL' - 垂直布局模式，相当于CSS中的 display: flex 和 flex-direction: column，子元素会在垂直方向上排列。
-     - 必须递归处理所有嵌套层级的layoutMode，不要遗漏任何子节点
+
+  2. 结构优先与组件化（重要）：
+     - **强制组件化**：如果某个节点层级过深（>4层）或子节点过多，**必须**将其提取为独立的子组件（如 HeaderSection.vue, CardItem.vue）。
+     - 识别并提取语义化的组件，避免单文件代码过长。
+
+  3. 布局准则：
+     - **核心逻辑**：根据 layoutMode 严格区分布局策略：
+       
+       A. 当 layoutMode 为 'HORIZONTAL' 或 'VERTICAL' (自动布局)：
+          - 使用 Flexbox 实现。
+          - 禁止使用 absolute 定位，完全依赖 Flex 流式布局。
+       
+     - 严格遵循数据的嵌套结构，不要擅自改变 DOM 顺序，因为 NONE 模式下 DOM 顺序决定了 Z-index (层级)。
   
   3. 层级优化：
      - 相同布局方向的连续Frame可以合并

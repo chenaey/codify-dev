@@ -174,16 +174,23 @@ export async function extractVectorData(node: any): Promise<BaseVectorData | Ful
   };
 
 
-
   // 如果节点支持导出SVG，使用Figma API导出
   try {
     if (isSimple) {
       // 直接导出SVG
-      const svgBytes = await node.exportAsync({
+      const result = await node.exportAsync({
         format: 'SVG'
-      });      // 转换为字符串
-      const decoder = new TextDecoder();
-      const svgString = decoder.decode(svgBytes);
+      });
+      
+      let svgString: string;
+      if (typeof result === 'string') {
+        svgString = result;
+      } else {
+        // 转换为字符串
+        const decoder = new TextDecoder();
+        svgString = decoder.decode(result);
+      }
+
       // 导出之后再判断更准确
       const path = svgString.match(/<path d="([^"]+)"/)?.[1]
       if (svgString.length <= 100) {

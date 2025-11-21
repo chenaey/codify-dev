@@ -480,7 +480,6 @@ function resolveCSSVariables(
       const actualValue = varNameToValueMap.get(varName)
       if (actualValue) {
         finalValue = actualValue
-        console.log(`[resolveCSSVariables] Resolved ${key}: ${varName} -> ${finalValue}`)
       } else {
         console.warn(`[resolveCSSVariables] Cannot resolve variable for ${key}: ${varName}`)
       }
