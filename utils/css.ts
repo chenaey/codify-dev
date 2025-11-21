@@ -1,9 +1,9 @@
 import type { TransformOptions } from '@/types/plugin'
 
+import { isMasterGo } from '@/utils/platform'
+
 import { parseNumber, toDecimalPlace } from './number'
 import { kebabToCamel } from './string'
-import { isMasterGo } from '@/utils/platform'
-import { cssStringToObject } from '@/utils/convert'
 
 function escapeSingleQuote(value: string) {
   return value.replace(/'/g, "\\'")
@@ -134,14 +134,395 @@ export function serializeCSS(
   return code
 }
 
-export async function getCSSAsync(node: any, options: ProcessValueOptions) {
+/**
+ * CSS 属性排序优先级配置
+ * 按照前端最佳实践，CSS 属性应该按以下顺序排列：
+ * 1. 定位属性
+ * 2. 盒模型（display、flex/grid 布局）
+ * 3. 尺寸
+ * 4. 边距和内边距
+ * 5. 边框和圆角
+ * 6. 文字排版
+ * 7. 背景
+ * 8. 其他视觉效果
+ */
+const CSS_PROPERTY_ORDER: Record<string, number> = {
+  // 1. 定位相关 (0-99)
+  'position': 0,
+  'top': 1,
+  'right': 2,
+  'bottom': 3,
+  'left': 4,
+  'z-index': 5,
+  
+  // 2. 盒模型与布局 (100-199)
+  'display': 100,
+  'visibility': 101,
+  'overflow': 102,
+  'overflow-x': 103,
+  'overflow-y': 104,
+  
+  // Flex 布局
+  'flex': 110,
+  'flex-grow': 111,
+  'flex-shrink': 112,
+  'flex-basis': 113,
+  'flex-direction': 114,
+  'flex-wrap': 115,
+  'justify-content': 116,
+  'align-items': 117,
+  'align-content': 118,
+  'align-self': 119,
+  'order': 120,
+  'gap': 121,
+  'row-gap': 122,
+  'column-gap': 123,
+  
+  // Grid 布局
+  'grid': 130,
+  'grid-template': 131,
+  'grid-template-columns': 132,
+  'grid-template-rows': 133,
+  'grid-gap': 134,
+  
+  // 3. 尺寸 (200-299)
+  'width': 200,
+  'min-width': 201,
+  'max-width': 202,
+  'height': 203,
+  'min-height': 204,
+  'max-height': 205,
+  'box-sizing': 206,
+  
+  // 4. 边距和内边距 (300-399)
+  'margin': 300,
+  'margin-top': 301,
+  'margin-right': 302,
+  'margin-bottom': 303,
+  'margin-left': 304,
+  'padding': 310,
+  'padding-top': 311,
+  'padding-right': 312,
+  'padding-bottom': 313,
+  'padding-left': 314,
+  
+  // 5. 边框和圆角 (400-499)
+  'border': 400,
+  'border-width': 401,
+  'border-style': 402,
+  'border-color': 403,
+  'border-top': 404,
+  'border-right': 405,
+  'border-bottom': 406,
+  'border-left': 407,
+  'border-radius': 410,
+  'border-top-left-radius': 411,
+  'border-top-right-radius': 412,
+  'border-bottom-right-radius': 413,
+  'border-bottom-left-radius': 414,
+  
+  // 6. 文字排版 (500-599)
+  'font': 500,
+  'font-family': 501,
+  'font-size': 502,
+  'font-weight': 503,
+  'font-style': 504,
+  'line-height': 505,
+  'letter-spacing': 506,
+  'word-spacing': 507,
+  'text-align': 508,
+  'text-decoration': 509,
+  'text-transform': 510,
+  'text-indent': 511,
+  'text-overflow': 512,
+  'white-space': 513,
+  'word-break': 514,
+  'word-wrap': 515,
+  'color': 520,
+  
+  // 7. 背景 (600-699)
+  'background': 600,
+  'background-color': 601,
+  'background-image': 602,
+  'background-repeat': 603,
+  'background-position': 604,
+  'background-size': 605,
+  'background-clip': 606,
+  
+  // 8. 其他视觉效果 (700-799)
+  'opacity': 700,
+  'box-shadow': 701,
+  'text-shadow': 702,
+  'transform': 703,
+  'transition': 704,
+  'animation': 705,
+  'cursor': 706,
+  'pointer-events': 707,
+}
+
+/**
+ * CSS 属性的默认值映射
+ * 如果样式值等于默认值，则可以删除以简化代码
+ */
+const CSS_DEFAULT_VALUES: Record<string, string | string[]> = {
+  'display': 'block',
+  'position': 'static',
+  'float': 'none',
+  'clear': 'none',
+  'visibility': 'visible',
+  'opacity': '1',
+  'z-index': 'auto',
+  'flex-direction': 'row',
+  'flex-wrap': 'nowrap',
+  'justify-content': 'flex-start',
+  'align-items': 'stretch',
+  'align-content': 'stretch',
+  'align-self': 'auto',
+  'order': '0',
+  'flex-grow': '0',
+  'flex-shrink': '1',
+  'flex-basis': 'auto',
+  'gap': '0',
+  'row-gap': '0',
+  'column-gap': '0',
+  'text-align': 'start',
+  'text-decoration': 'none',
+  'text-transform': 'none',
+  'white-space': 'normal',
+  'word-break': 'normal',
+  'word-wrap': 'normal',
+  'font-style': 'normal',
+  'font-weight': '400',
+  'line-height': 'normal',
+  'letter-spacing': 'normal',
+  'text-indent': '0',
+  'cursor': 'auto',
+  'pointer-events': 'auto',
+  'box-sizing': 'content-box',
+  'overflow': 'visible',
+  'overflow-x': 'visible',
+  'overflow-y': 'visible',
+}
+
+/**
+ * 清理无用的 CSS 属性
+ * 
+ * 1. 删除空值、无效值
+ * 2. 删除默认值（如 display: block、flex-direction: row 等）
+ * 3. 删除冗余的单独属性（如果有简写属性）
+ * 
+ * @param styleObject - 待清理的样式对象
+ * @returns 清理后的样式对象
+ */
+function cleanRedundantCSS(styleObject: Record<string, string>): Record<string, string> {
+  const cleaned: Record<string, string> = {}
+  
+  // 先收集所有键，用于检查冗余属性
+  const hasPadding = 'padding' in styleObject && styleObject.padding
+  const hasMargin = 'margin' in styleObject && styleObject.margin
+  const hasBorder = 'border' in styleObject && styleObject.border
+  const hasGap = 'gap' in styleObject && styleObject.gap
+  const hasFlex = 'flex' in styleObject && styleObject.flex
+  
+  for (const [key, value] of Object.entries(styleObject)) {
+    // 1. 跳过空值、无效值
+    if (!value || value.trim() === '' || value === 'undefined' || value === 'null') {
+      continue
+    }
+    
+    // 2. 跳过默认值
+    const defaultValue = CSS_DEFAULT_VALUES[key]
+    if (defaultValue) {
+      const defaultValues = Array.isArray(defaultValue) ? defaultValue : [defaultValue]
+      // 检查值是否等于默认值（支持直接比较和变量形式）
+      const normalizedValue = value.trim()
+      if (defaultValues.some(def => {
+        const normalizedDef = def.trim()
+        return normalizedValue === normalizedDef || 
+               normalizedValue === `var(${normalizedDef})` ||
+               normalizedValue === `var(--${normalizedDef})`
+      })) {
+        continue
+      }
+    }
+    
+    // 3. 处理冗余的单独属性
+    // 如果有 padding 简写，删除 padding-top/right/bottom/left
+    if (hasPadding && (key === 'padding-top' || key === 'padding-right' || 
+        key === 'padding-bottom' || key === 'padding-left')) {
+      continue
+    }
+    
+    // 如果有 margin 简写，删除 margin-top/right/bottom/left
+    if (hasMargin && (key === 'margin-top' || key === 'margin-right' || 
+        key === 'margin-bottom' || key === 'margin-left')) {
+      continue
+    }
+    
+    // 如果有 border 简写，删除 border-width/style/color
+    if (hasBorder && (key === 'border-width' || key === 'border-style' || 
+        key === 'border-color')) {
+      continue
+    }
+    
+    // 如果有 gap 简写，删除 row-gap 和 column-gap（如果值相同）
+    if (hasGap && (key === 'row-gap' || key === 'column-gap')) {
+      const gapValue = styleObject.gap.trim()
+      if (value.trim() === gapValue) {
+        continue
+      }
+    }
+    
+    // 如果有 flex 简写，删除 flex-grow/shrink/basis
+    if (hasFlex && (key === 'flex-grow' || key === 'flex-shrink' || 
+        key === 'flex-basis')) {
+      continue
+    }
+    const excludeCSSProperty = ['row-gap', 'column-gap', 'gap']
+    if (excludeCSSProperty.includes(key)) {
+      continue
+    }
+    
+    cleaned[key] = value
+  }
+  
+  return cleaned
+}
+
+/**
+ * 对 CSS 属性进行排序
+ * @param styleObject - 待排序的样式对象
+ * @returns 排序后的样式对象
+ */
+function sortCSSProperties(styleObject: Record<string, string>): Record<string, string> {
+  const entries = Object.entries(styleObject)
+  
+  // 按照预定义的顺序排序
+  entries.sort(([keyA], [keyB]) => {
+    const orderA = CSS_PROPERTY_ORDER[keyA] ?? 9999 // 未定义的属性放到最后
+    const orderB = CSS_PROPERTY_ORDER[keyB] ?? 9999
+    
+    if (orderA !== orderB) {
+      return orderA - orderB
+    }
+    
+    // 如果优先级相同，按字母顺序排序
+    return keyA.localeCompare(keyB)
+  })
+  
+  // 转换回对象
+  return Object.fromEntries(entries)
+}
+
+/**
+ * 解析 CSS 变量并替换成实际值
+ * 
+ * MasterGo 的 getDSL API 返回的样式中，部分属性值可能是 CSS 变量（如 var(--token-color-12)）
+ * 需要通过 localStyleMap 将变量替换成实际值
+ * 
+ * @param styleValue - 样式对象，可能包含 CSS 变量
+ * @param localStyleMap - 本地样式映射表，存储 token 的实际值
+ * @returns 替换变量后的样式对象
+ * 
+ * @example
+ * // 输入
+ * styleValue: { 
+ *   background: "var(--token-color-12)",
+ *   color: "var(--token-color-24)"
+ * }
+ * localStyleMap: { 
+ *   "2:392": { name: "--token-color-12", value: "rgba(255, 58, 54, 1)" },
+ *   "2:384": { name: "--token-color-24", value: "rgba(85, 85, 85, 1)" }
+ * }
+ * 
+ * // 输出
+ * { 
+ *   background: "rgba(255, 58, 54, 1)",
+ *   color: "rgba(85, 85, 85, 1)"
+ * }
+ */
+function resolveCSSVariables(
+  styleValue: Record<string, any>,
+  localStyleMap: Record<string, any> | undefined
+): Record<string, string> {
+  const styleObject: Record<string, string> = {}
+  
+  // CSS 变量正则：匹配 var(--token-xxx)
+  const cssVarRegex = /^var\((--[\w-]+)\)$/
+  
+  // 如果没有 localStyleMap，直接返回原值
+  if (!localStyleMap) {
+    for (const [key, value] of Object.entries(styleValue)) {
+      styleObject[key] = typeof value === 'string' ? value : String(value)
+    }
+    return styleObject
+  }
+  
+  // 创建变量名到实际值的映射表，用于快速查找
+  // key: --token-color-12, value: rgba(255, 58, 54, 1)
+  const varNameToValueMap = new Map<string, string>()
+  for (const tokenData of Object.values(localStyleMap)) {
+    if (tokenData.name && tokenData.value) {
+      varNameToValueMap.set(tokenData.name, tokenData.value)
+    }
+  }
+  
+  // 遍历所有样式属性，替换 CSS 变量
+  for (const [key, value] of Object.entries(styleValue)) {
+    let finalValue = typeof value === 'string' ? value : String(value)
+    
+    // 检查是否是 CSS 变量
+    const match = finalValue.match(cssVarRegex)
+    if (match) {
+      const varName = match[1] // 提取变量名，如 --token-color-12
+      
+      // 从映射表中查找实际值
+      const actualValue = varNameToValueMap.get(varName)
+      if (actualValue) {
+        finalValue = actualValue
+        console.log(`[resolveCSSVariables] Resolved ${key}: ${varName} -> ${finalValue}`)
+      } else {
+        console.warn(`[resolveCSSVariables] Cannot resolve variable for ${key}: ${varName}`)
+      }
+    }
+    
+    styleObject[key] = finalValue
+  }
+  
+  return styleObject
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function getCSSAsync(node: any, _options?: ProcessValueOptions) {
   if (node.getCSSAsync) {
     return node.getCSSAsync()
   } else if (isMasterGo()) {
-    const data = await window.mg.codegen.getMCPStyleData()
-    if (data && data[0]?.cssCode) {
-      return cssStringToObject(data[0]?.cssCode)
+    try {
+      // 使用 getDSL API 获取更结构化的样式数据
+      // getDSL 返回的 style.value 只包含纯样式，不含布局信息（position、left、top等）
+      const dsl = await window.mg.codegen.getDSL(node.id)
+      
+      if (dsl?.root?.style?.value) {
+        const { value: styleValue } = dsl.root.style
+        const { localStyleMap } = dsl
+        
+        // 1. 解析 CSS 变量并替换成实际值
+        // 会处理所有包含 var(--token-xxx) 的属性，包括 background、color、border-color 等
+        const resolvedStyles = resolveCSSVariables(styleValue, localStyleMap)
+        
+        // 2. 清理无用的 CSS（删除默认值、空值、冗余属性）
+        const cleanedStyles = cleanRedundantCSS(resolvedStyles)
+        
+        // 3. 对 CSS 属性进行排序，按照前端最佳实践
+        const sortedStyles = sortCSSProperties(cleanedStyles)
+        
+        return sortedStyles
+      }
+      
+      return {}
+    } catch (error) {
+      console.error('[getCSSAsync] Failed to get DSL data from MasterGo:', error)
+      return {}
     }
-    return {}
   }
 }
