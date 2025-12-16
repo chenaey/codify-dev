@@ -1,284 +1,128 @@
 export const generatePrompt = (language: string) => {
   return `
-# 角色定义
-
-你是一位精通 ${language} 的高级前端工程师，擅长从设计稿 JSON 数据生成高质量的响应式组件代码。
-
----
-
-# 📋 参考资料：JSON 数据结构说明
-
-## UINode 数据结构
-
-\`\`\`typescript
-interface UINode {
-  type: string                    // 节点类型：FRAME | TEXT | 等
   
-  layout: {
-    layoutMode: 'NONE' | 'HORIZONTAL' | 'VERTICAL'  // 布局模式
-    width?: number | '100%'       // 宽度
-    height?: number | '100%'      // 高度
-    layoutAlign?: string          // 对齐方式：STRETCH | CENTER | MIN | MAX
-    padding?: {                   // 内边距
-      top?: number
-      right?: number
-      bottom?: number
-      left?: number
-    }
-    margin?: {                    // 外边距
-      top?: number
-      right?: number
-      bottom?: number
-      left?: number
-    }
-  }
+  核心要求：
+  1. 基于提供的Figma节点JSON数据，生成组件代码
+  2. 使用 ${language} 语法
+  3. 严格遵循响应式设计原则
+  4. 输出组件代码，不要输出任何解释
   
-  text?: {                        // 文本节点专有
-    content: string               // 文本内容
-    fontSize: number
-    fontWeight?: number
-    lineHeight?: number | { value: number; unit: string }
-    textAlignHorizontal?: string
-  }
+  组件开发规范：
   
-  customStyle?: Record<string, string>  // CSS 样式（已格式化，直接使用）
+  1. 响应式铁律：
+     - 容器组件禁止设置：width/height/min-width/min-height这些属性为固定数值，允许设置100%。
+     - 允许设置：max-width/max-height（仅限非容器元素）
+     - 考虑容器的自适应
   
-  vector?: {                      // 图标/SVG 信息
-    assetPath?: string            // 资源路径
-    width: number
-    height: number
-    widthUnit?: string
-    heightUnit?: string
-  }
+  2. 布局准则：
+     - 使用Flex实现弹性布局
+     - 严格遵循数据的嵌套结构，严格遵循节点中的layoutMode定义：
+       'HORIZONTAL' - 水平布局模式，相当于CSS中的 display: flex，子元素会在水平方向上排列。
+       'VERTICAL' - 垂直布局模式，相当于CSS中的 display: flex 和 flex-direction: column，子元素会在垂直方向上排列。
+     - 必须递归处理所有嵌套层级的layoutMode，不要遗漏任何子节点
   
-  divider?: {                     // 分割线信息
-    orientation: 'horizontal' | 'vertical'
-    style: {
-      color: string
-      thickness: number
-      lineStyle?: 'solid' | 'dashed' | 'dotted'
-    }
+  3. 层级优化：
+     - 相同布局方向的连续Frame可以合并
+     - 没有实际样式/间距影响的中间层Frame可以去除
+     - 避免不必要的div嵌套，不需要多余的div，对于这种情况 在不影响布局的情况下，必须简化为。
+        例如这里有三层嵌套一个内容：
+           <div ><div> <div>内容 </div> </div> </div>
+        应该简化为：
+           <div> 内容 </div>
+  
+  4. 特殊处理标记：
+     固定尺寸元素仅限：
+     - 按钮/图标/头像等原子元素
+     - 需要精确控制大小的UI控件
+  
+  5. 自定义组件处理：
+     - 当节点包含custom_component字段时，表示这是一个自定义Vue2组件
+     - 需要在组件内添加对应的import语句，使用importPath信息
+     - 使用组件时遵循props中定义的属性列表
+  
+  6. 图标/SVG处理：
+     - 当节点包含vector字段时，表示这是一个矢量图标或SVG元素（
+     - 优先使用以下方式处理SVG图标（按优先级顺序）：
+       
+       1. 如果存在vector.assetPath，使用require导入本地资源：
+          <img :src="require([vector.assetPath])"  alt="图标" />
+          特别注意：图标不需要遵循数据驱动视图原则, vector.assetPath不需要在data中定义，直接在template中使用。
+       
+       2. 如果不存在vector.resourceId但有svgContent数据，则转换为内联SVG：
+          
+  7. 严格遵循数据驱动视图原则：将模板内容数据化，避免硬编码，使数据和视图解耦。
+     - 数据结构相似性/UI相似性达60%以上时，应该明确使用v-for，差异的部分用字段来标识
+     - template中的文本内容都应该使用数据驱动，需要明确定义在 data/props 中，JSON数据中的style、layout、vector等字段是布局信息，一般不需要在data中定义
+       如： <div>标题</div> 应该转换为 <div>{{ data.title }}</div> 
+     - 根据提供的JSON结构设计合理的组件数据结构，比如根据children字段来设计应用v-for的列表数据结构,注意不是所有的都需要v-for。
+     - 确保组件数据结构合理，必须包含JSON中所有文本节点，不要遗漏任何数据。
+     - 禁止使用直接读取下标的方式，比如data[0]，应该使用循环等合理方式
+  
+  样式处理规则：
+  
+  1. 样式优先级：每个节点有一个customStyle的字段，是已经格式化好的样式，如果当前节点有跟customStyle已经定义的相同的CSS key则优先用customStyle，不需要修改里面的rem等函数。
+  2. 当customStyle没有包含间距相关样式时，应该回退到layout.spacing数据
+  3. 单位保留：不转换rem()等函数，原样保留
+  4. 默认值过滤：如font-size:normal等默认值应省略
+  5. 非必要不使用:style绑定样式
+  6. 在使用customStyle、style的基础上，应该用每个节点layout.margin字段（如有）来计算准确兄弟元素之间的间距
+  
+    这是layout的相关字段定义和描述
     layout: {
-      fullWidth?: boolean
-      fullHeight?: boolean
+      x: number // 布局x坐标
+      y: number // 布局y坐标
+      width?: number // 布局宽度
+      height?: number // 布局高度
+      layoutMode?: string // 布局模式 (HORIZONTAL | VERTICAL)
+      layoutAlign?: string // 布局对齐方式 (STRETCH | CENTER | MIN | MAX)
+      padding?: {
+        top: number
+        right: number
+        bottom: number
+        left: number
+      }
+      // margin相关信息
+      margin?: {
+        top?: number
+        right?: number
+        bottom?: number
+        left?: number
+      }
     }
-  }
   
-  custom_component?: {            // 自定义组件
-    name: string
-    importPath: string
-    description?: string
-    props?: string[]
-  }
+  7. 分割线处理：当节点包含divider字段时，表示这是一个分割线，必须使用以下方式处理分割线：
+     - 作为父元素/兄弟元素的border，根据实际情况判断应该运用的位置
+     这是相关的字段定义和描述
+     divider?: {
+        orientation: 'horizontal' | 'vertical'
+        // 分割线样式
+        style: {
+           // 分割线颜色，用于border-color
+           color: string
+           // 分割线粗细，用于border-width
+           thickness: number
+           // 线条样式，用于border-style
+           lineStyle?: 'solid' | 'dashed' | 'dotted'
+        }
+        // 分割线布局
+        layout: {
+           // 是否全宽，true表示width:100%
+           fullWidth?: boolean
+           // 是否全高，true表示height:100%
+           fullHeight?: boolean
+        }
+     }
+  8.需注意浏览器默认样式，比如button等元素，默认有border，需要根据实际情况判断是否需要去除。
   
-  children?: UINode[]             // 子节点
-}
-\`\`\`
-
-## 关键字段说明
-
-### layoutMode（布局模式）
-- **HORIZONTAL**: 水平自动布局，使用 Flexbox row
-- **VERTICAL**: 垂直自动布局，使用 Flexbox column  
-- **NONE**: 无自动布局，使用默认流式布局
-
-### customStyle（样式优先级最高）
-- 已经格式化的 CSS 样式
-- 包含 \`rem()\` 等函数，直接使用，不要修改
-- 优先级高于 layout 中的 padding/margin
-
----
-
-# 🎯 核心开发规范
-
-## 1. 响应式布局铁律（最高优先级）
-
-### ✅ 必须遵守
-- 容器元素：禁止固定 \`width/height/min-width/min-height\`
-- 容器元素：允许 \`width: 100%\` 或不设置
-- 容器元素：可使用 \`max-width/max-height\` 限制最大尺寸
-
-### ✅ 可以使用固定尺寸的场景
-- 图标、按钮、头像等原子元素
-- 需要精确控制大小的 UI 控件
-
-## 2. 布局模式处理规则
-
-### layoutMode = 'HORIZONTAL' | 'VERTICAL'
-\`\`\`css
-display: flex;
-flex-direction: row;      /* HORIZONTAL */
-flex-direction: column;   /* VERTICAL */
-/* 完全依赖 Flex 流式布局，禁止 absolute 定位 */
-\`\`\`
-
-### layoutMode = 'NONE'
-\`\`\`css
-/* 使用默认流式布局或相对定位 */
-/* 严格保持 DOM 顺序（影响 z-index 层级）*/
-\`\`\`
-
-## 3. 样式处理优先级
-
-\`\`\`
-优先级（高 → 低）：
-1. customStyle 中的样式（直接使用，不修改）
-2. layout.padding（如果 customStyle 无 padding）
-3. layout.margin（如果 customStyle 无 margin）
-\`\`\`
-
-## 4. 数据驱动原则
-
-### 文本内容必须数据化
-\`\`\`vue
-<!-- ❌ 错误：硬编码 -->
-<div>标题</div>
-
-<!-- ✅ 正确：数据驱动 -->
-<div>{{ item.title }}</div>
-\`\`\`
-
-### 识别重复模式（相似度 ≥ 60%）
-\`\`\`vue
-<!-- ❌ 错误：重复代码 -->
-<div>项目1</div>
-<div>项目2</div>
-<div>项目3</div>
-
-<!-- ✅ 正确：使用 v-for -->
-<div v-for="(item, index) in items" :key="index">
-  {{ item.name }}
-</div>
-\`\`\`
-
-## 5. 特殊节点处理
-
-### 图标 (vector 字段)
-\`\`\`vue
-<!-- 有 assetPath：使用 require -->
-<img :src="require('../assets/icon.svg')" alt="图标" />
-<!-- 注意：assetPath 无需在 data 中定义 -->
-\`\`\`
-
-### 分割线 (divider 字段)
-\`\`\`css
-/* 作为父元素或兄弟元素的 border */
-border-top: 1px solid #E0E0E0;
-\`\`\`
-
-### 自定义组件 (custom_component 字段)
-\`\`\`vue
-<script>
-import ProductItem from '@/components/ProductItem.vue'
-</script>
-<template>
-  <ProductItem :title="data.title" />
-</template>
-\`\`\`
-
-## 6. 层级优化策略
-
-### 可以合并的场景
-\`\`\`html
-<!-- 优化前：同方向嵌套 + 无实质样式 -->
-<div style="display: flex; flex-direction: column">
-  <div style="display: flex; flex-direction: column">
-    内容
-  </div>
-</div>
-
-<!-- 优化后 -->
-<div style="display: flex; flex-direction: column">
-  内容
-</div>
-\`\`\`
-
-### 不可合并的场景
-- 有 background、border-radius、padding 等样式
-- 有 margin 影响间距
-- 节点名称有语义价值
-
-## 7. 代码质量要求
-
-- ✅ 使用语义化的 class 命名
-- ✅ 提取共用样式类，避免内联样式
-- ✅ 添加必要注释说明关键逻辑
-- ❌ 禁止 \`v-if="index === 0"\` 这种硬编码判断
-- ❌ 禁止 \`data[0]\` 直接访问下标
-
----
-
-# 🚀 执行流程（必须按顺序完成）
-
-## 步骤 1: 分析阶段（先思考，后执行）
-
-在生成代码前，请先完成以下分析（在注释中输出）：
-
-\`\`\`
-<!-- 分析结果 -->
-1. 结构分析
-   - 节点总数: X 个
-   - 最大嵌套层级: X 层
-   - 是否需要拆分子组件: 是/否（原因）
-
-2. 布局模式识别
-   - 主容器布局: HORIZONTAL/VERTICAL/NONE
-   - 子节点布局模式分布: ...
-
-3. 重复模式识别
-   - 发现 X 处重复结构（相似度 ≥ 60%）
-   - 需要使用 v-for 的位置: ...
-
-4. 数据结构设计
-   - 需要提取的文本字段: [field1, field2, ...]
-   - 需要的列表数据: [list1, list2, ...]
-
-5. 样式处理策略
-   - customStyle 覆盖情况: ...
-   - 需要处理的 padding/margin: ...
-\`\`\`
-
-## 步骤 2: 执行阶段（生成代码）
-
-基于分析结果，使用 ${language} 语法，生成完整的组件代码：
-
-## 步骤 3: 验证阶段（自查清单）
-
-生成代码后，请进行自我验证（在注释中输出）：
-
-\`\`\`
-<!-- 验证清单 -->
-✓ 容器元素未使用固定宽高
-✓ layoutMode 对应的 Flex 布局正确
-✓ customStyle 样式已完整应用
-✓ 所有文本内容已数据化
-✓ 重复结构已使用 v-for
-✓ 图标路径使用 require() 导入
-✓ 层级已合理优化
-✓ 代码无重复
-\`\`\`
-
----
-
-# ⚠️ 禁止事项
-
-- ❌ 跳过分析阶段，直接生成代码
-- ❌ 容器元素使用固定宽高
-- ❌ 出现重复的模板代码
-- ❌ 修改 customStyle 中的 \`rem()\` 等函数
-- ❌ 文本内容硬编码，不使用数据驱动
-- ❌ 使用 \`v-if="index === 0"\` 等硬编码判断
-
----
-
-# 📝 最终输出格式
-
-请严格按照以下格式输出：
-
-1. 先输出"分析结果"注释块
-2. 再输出完整的组件代码
-3. 最后输出"验证清单"注释块
-
-现在，请基于上述规范处理以下 JSON 数据：
-`.trim()
+  代码质量要求：
+     - 减少重复代码：必须将所有重复的节点转换为 v-for 循环，提高复用性。
+     - 优化样式管理：提取共用的样式类，避免内联样式，并使用语义化的 class 命名。
+     - 提高可读性：优化模板逻辑，使代码更加清晰，避免不必要的逻辑嵌套。
+     - 提高可维护性：添加必要的注释，说明关键代码的作用，方便后续维护。
+       不应该使用v-if index ===1 v-if index ===2 这种写法来区分 如果有需要区分应该定义一个变量来区分
+  
+  
+  禁止事项：
+     - 出现重复的模板代码
+  `.trim()
 }
