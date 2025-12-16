@@ -1,4 +1,5 @@
 import { extractColor } from './uiExtractor'
+import { isMasterGo } from '@/utils/platform'
 
 // 基础矢量数据类型
 interface BaseVectorData {
@@ -219,4 +220,47 @@ export type {
   FullVectorData,
   VectorNodeType,
   ContainerNodeType
+}
+
+/**
+ * 异步获取节点的 SVG 代码
+ * 支持 MasterGo 和通用平台
+ */
+export async function getSVGCodeAsync(node: any): Promise<string> {
+  if (!node) return ''
+
+  let shouldExport = false
+
+  if (isMasterGo()) {
+    try {
+      // MasterGo 使用 getDSL 判断 type === 'SVG'
+      const dsl = await window.mg.codegen.getDSL(node.id)
+      if (dsl?.root?.style?.type === 'SVG') {
+        shouldExport = true
+      }
+    } catch (error) {
+      console.warn('Failed to check MasterGo DSL for SVG type:', error)
+      // 如果 DSL 获取失败，降级到通用判断
+      shouldExport = isIconNode(node)
+    }
+  } else {
+    // 其他平台通用判断
+    shouldExport = isIconNode(node)
+  }
+
+  if (shouldExport) {
+    try {
+      const result = await node.exportAsync({ format: 'SVG' })
+      if (typeof result === 'string') {
+        return result
+      } else {
+        const decoder = new TextDecoder()
+        return decoder.decode(result)
+      }
+    } catch (error) {
+      console.error('Failed to export SVG:', error)
+    }
+  }
+
+  return ''
 } 

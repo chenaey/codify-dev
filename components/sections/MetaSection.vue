@@ -5,6 +5,7 @@ import IconButton from '@/components/IconButton.vue'
 import Select from '@/components/icons/Select.vue'
 import Section from '@/components/Section.vue'
 import { selection, selectedTemPadComponent } from '@/ui/state'
+import { isMasterGo } from '@/utils/platform'
 
 const title = computed(() => {
   const nodes = selection.value
@@ -34,8 +35,12 @@ const libDisplayName = computed(() => selectedTemPadComponent.value?.libDisplayN
 const libName = computed(() => selectedTemPadComponent.value?.libName)
 
 function scrollIntoView() {
-  // if we have window.figma, selection.value is certainly SceneNode[]
-  window?.figma.viewport.scrollAndZoomIntoView((selection.value as SceneNode[]) || [])
+  if (isMasterGo()) {
+    window?.mg.viewport.scrollAndZoomIntoView((selection.value as SceneNode[]) || [])
+  } else {
+    // if we have window.figma, selection.value is certainly SceneNode[]
+    window?.figma.viewport.scrollAndZoomIntoView((selection.value as SceneNode[]) || [])
+  }
 }
 </script>
 

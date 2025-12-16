@@ -38,6 +38,30 @@ function pxToRem(value: string, rootFontSize: number) {
   return transformPxValue(value, (val) => `${toDecimalPlace(val / rootFontSize)}rem`)
 }
 
+/**
+ * RGBA 转 Hex
+ * 
+ * 转换规则：
+ * 1. 透明度为 1 (不透明) -> 转换为 6 位 Hex (如 #FFFFFF)
+ * 2. 透明度 < 1 (半透明) -> 保持原样 (rgba)，不转换
+ */
+function rgbaToHex(input: string): string {
+  const match = input.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/)
+  if (!match) return input
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_, r, g, b, a] = match
+  const alpha = a !== undefined ? parseFloat(a) : 1
+
+  // 仅当不透明 (alpha === 1) 时才转换
+  if (alpha === 1) {
+    const toHex = (n: number) => Math.max(0, Math.min(255, n)).toString(16).padStart(2, '0')
+    return `#${toHex(parseInt(r))}${toHex(parseInt(g))}${toHex(parseInt(b))}`.toUpperCase()
+  }
+
+  return input
+}
+
 type ProcessValueOptions = {
   useRem: boolean
   rootFontSize: number
@@ -61,6 +85,12 @@ export function serializeCSS(
 
     if (typeof scale === 'number' && scale !== 1) {
       current = scalePxValue(current, scale)
+    }
+
+    // 尝试转换直接定义的颜色值
+    // 仅当属性可能包含颜色且值包含 rgba/rgb 时才尝试转换
+    if ((/color|background|border/i.test(key) || current.startsWith('rgb')) && (current.includes('rgba(') || current.includes('rgb('))) {
+       current = current.replace(/rgba?\([^)]+\)/g, (match) => rgbaToHex(match))
     }
 
     if (typeof transformVariable === 'function') {
@@ -418,39 +448,24 @@ function sortCSSProperties(styleObject: Record<string, string>): Record<string, 
  * 解析 CSS 变量并替换成实际值
  * 
  * MasterGo 的 getDSL API 返回的样式中，部分属性值可能是 CSS 变量（如 var(--token-color-12)）
- * 需要通过 localStyleMap 将变量替换成实际值
+ * 需要通过 localStyleMap 将变量替换成实际值。
+ * 对于文本样式变量（如 font-size, line-height），优先通过 textStyleId 从 localStyleMap 中查找对应的 textItems。
  * 
  * @param styleValue - 样式对象，可能包含 CSS 变量
  * @param localStyleMap - 本地样式映射表，存储 token 的实际值
+ * @param textStyleId - 当前节点引用的文本样式 ID (可选)
  * @returns 替换变量后的样式对象
- * 
- * @example
- * // 输入
- * styleValue: { 
- *   background: "var(--token-color-12)",
- *   color: "var(--token-color-24)"
- * }
- * localStyleMap: { 
- *   "2:392": { name: "--token-color-12", value: "rgba(255, 58, 54, 1)" },
- *   "2:384": { name: "--token-color-24", value: "rgba(85, 85, 85, 1)" }
- * }
- * 
- * // 输出
- * { 
- *   background: "rgba(255, 58, 54, 1)",
- *   color: "rgba(85, 85, 85, 1)"
- * }
  */
 function resolveCSSVariables(
   styleValue: Record<string, any>,
-  localStyleMap: Record<string, any> | undefined
+  localStyleMap: Record<string, any> | undefined,
+  textStyleId?: string | null
 ): Record<string, string> {
   const styleObject: Record<string, string> = {}
   
   // CSS 变量正则：匹配 var(--token-xxx)
   const cssVarRegex = /^var\((--[\w-]+)\)$/
   
-  // 如果没有 localStyleMap，直接返回原值
   if (!localStyleMap) {
     for (const [key, value] of Object.entries(styleValue)) {
       styleObject[key] = typeof value === 'string' ? value : String(value)
@@ -458,28 +473,46 @@ function resolveCSSVariables(
     return styleObject
   }
   
-  // 创建变量名到实际值的映射表，用于快速查找
-  // key: --token-color-12, value: rgba(255, 58, 54, 1)
+  // 1. 构建变量映射表
   const varNameToValueMap = new Map<string, string>()
+
+  // 1.1 收集全局 Token (主要是颜色)
   for (const tokenData of Object.values(localStyleMap)) {
     if (tokenData.name && tokenData.value) {
-      varNameToValueMap.set(tokenData.name, tokenData.value)
+      varNameToValueMap.set(tokenData.name, String(tokenData.value))
+    }
+  }
+
+  // 1.2 收集文本样式 Token (通过 textStyleId 查找)
+  // 文本相关的变量（如 font-family, font-size）通常定义在 textStyle 的 textItems 中
+  if (textStyleId && localStyleMap[textStyleId]) {
+    const textStyleData = localStyleMap[textStyleId]
+    if (textStyleData.id === textStyleId && textStyleData.textItems) {
+      for (const item of Object.values(textStyleData.textItems) as any[]) {
+        if (item && item.name && item.value) {
+          varNameToValueMap.set(item.name, String(item.value))
+        }
+      }
     }
   }
   
-  // 遍历所有样式属性，替换 CSS 变量
+  // 2. 遍历所有样式属性，替换 CSS 变量
   for (const [key, value] of Object.entries(styleValue)) {
     let finalValue = typeof value === 'string' ? value : String(value)
     
     // 检查是否是 CSS 变量
     const match = finalValue.match(cssVarRegex)
     if (match) {
-      const varName = match[1] // 提取变量名，如 --token-color-12
+      const varName = match[1] // 提取变量名
       
       // 从映射表中查找实际值
       const actualValue = varNameToValueMap.get(varName)
       if (actualValue) {
         finalValue = actualValue
+        // 如果解析出的是 rgba 颜色，尝试转换（仅当透明度为1时转Hex）
+        if (finalValue.includes('rgba(') || finalValue.includes('rgb(')) {
+           finalValue = rgbaToHex(finalValue)
+        }
       } else {
         console.warn(`[resolveCSSVariables] Cannot resolve variable for ${key}: ${varName}`)
       }
@@ -502,12 +535,15 @@ export async function getCSSAsync(node: any, _options?: ProcessValueOptions) {
       const dsl = await window.mg.codegen.getDSL(node.id)
       
       if (dsl?.root?.style?.value) {
-        const { value: styleValue } = dsl.root.style
+        const { value: styleValue, textStyles } = dsl.root.style
         const { localStyleMap } = dsl
         
+        // 尝试获取当前节点引用的文本样式 ID
+        // textStyles 是一个数组，通常取第一个作为主样式
+        const textStyleId = textStyles?.[0]?.textStyleId
+
         // 1. 解析 CSS 变量并替换成实际值
-        // 会处理所有包含 var(--token-xxx) 的属性，包括 background、color、border-color 等
-        const resolvedStyles = resolveCSSVariables(styleValue, localStyleMap)
+        const resolvedStyles = resolveCSSVariables(styleValue, localStyleMap, textStyleId)
         
         // 2. 清理无用的 CSS（删除默认值、空值、冗余属性）
         const cleanedStyles = cleanRedundantCSS(resolvedStyles)

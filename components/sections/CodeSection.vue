@@ -17,6 +17,7 @@ import { codegen } from '@/utils/codegen'
 import { getCSSAsync } from '@/utils/css'
 import { downloadIconResources } from '@/utils/download'
 import { extractSelectedNodes } from '@/utils/uiExtractor'
+import { getSVGCodeAsync } from '@/utils/iconExtractor'
 import { parseUIInfo } from '@/utils/uiParser'
 import { useClipboard } from '@vueuse/core'
 import { ref, computed, shallowRef, watch, onUnmounted, nextTick, unref } from 'vue'
@@ -50,12 +51,21 @@ const {
 const componentCode = shallowRef('')
 const componentLink = shallowRef('')
 const codeBlocks = ref<CodeBlock[]>([])
+const svgCode = shallowRef('')
 const warning = shallowRef('')
 const isDownloading = ref(false)
 
 // 新增提示词复制状态
 const isCopyingPrompt = ref(false)
 const copyPromptSuccess = ref(false)
+
+const textContent = computed(() => {
+  const node = selectedNode.value
+  if (node && node.type === 'TEXT' && 'characters' in node) {
+    return (node as unknown as { characters: string }).characters
+  }
+  return ''
+})
 
 const playButtonTitle = computed(() =>
   componentLink.value
@@ -65,9 +75,9 @@ const playButtonTitle = computed(() =>
 
 async function updateCode() {
   const node = selectedNode.value
-
   if (node == null || selection.value.length > 1) {
     codeBlocks.value = []
+    svgCode.value = ''
     return
   }
 
@@ -76,6 +86,10 @@ async function updateCode() {
   componentLink.value = tempadComponent?.link || ''
 
   const component = getDesignComponent(node)
+  
+  // 处理 SVG 代码生成
+  svgCode.value = await getSVGCodeAsync(node)
+
   const style = await getCSSAsync(node)
   const { cssUnit, project, rootFontSize, scale } = options.value
   const serializeOptions = {
@@ -98,14 +112,13 @@ async function updateCode() {
 // 生成AI代码的方法
 async function generateAICode() {
   if (!selectedNode.value) return
-  
+
   await generateAI(selectedNode.value, options.value.project)
 }
 
 // 发送用户消息
 async function handleSendMessage(message: string) {
   if (!selectedNode.value) return
-  
   await sendUserMessage(message, selectedNode.value, options.value.project)
 }
 
@@ -118,27 +131,27 @@ function handleClearChatHistory() {
 // 实现复制提示词功能
 async function copyPrompt() {
   if (!selectedNode.value) return
-  
+
   try {
     isCopyingPrompt.value = true
     
     // 获取选中节点的信息（包括资源）
     const { nodes: uiInfo, resources: newResources } = await extractSelectedNodes([selectedNode.value])
-    
+
     // 解析UI信息
     const parsedInfo = parseUIInfo(uiInfo, options.value.project)
-    
+
     // 准备对话消息（提示词）
     const nodeId = selectedNode.value.id
     const projectId = options.value.project
     const messages = prepareConversation(nodeId, projectId, parsedInfo)
-    
+
     // 将提示词格式化为可读的文本
     const promptText = messages[1].content
-    
+
     // 复制到剪贴板
     await copy(promptText)
-    
+
     // 更新当前资源状态（这样下载按钮就会显示）
     if (newResources && newResources.size > 0) {
       // 获取当前状态并更新资源
@@ -220,7 +233,7 @@ const closePreview = () => {
 </script>
 
 <template>
-  <Section :collapsed="!selectedNode || !(componentCode || shouldShowCodeBlock || codeBlocks.length)">
+  <Section :collapsed="!selectedNode || !(componentCode || shouldShowCodeBlock || codeBlocks.length || svgCode || textContent)">
     <template #header>
       <div class="tp-code-header tp-row tp-shrink tp-gap-l code-section-header">
         Code
@@ -323,6 +336,23 @@ const closePreview = () => {
       :lang="lang"
       :code="code"
     />
+    <!-- 显示 SVG 代码 -->
+    <Code
+      v-if="svgCode"
+      class="tp-code-code tp-code-svg"
+      title="SVG Code"
+      lang="svg"
+      :code="svgCode"
+    />
+
+    <!-- 显示文本内容 -->
+    <Code 
+      v-if="textContent" 
+      class="tp-code-code tp-code-text" 
+      title="Content" 
+      lang="text" 
+      :code="textContent" 
+    />
 
     <!-- 添加弹窗组件 -->
     <!-- <Modal :show="showPreview" @close="closePreview">
@@ -373,5 +403,16 @@ const closePreview = () => {
 .playground-header,
 .close-btn {
   display: none;
+}
+
+.tp-code-text :deep(.tp-code-content) {
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--ramp-black-800);
+}
+
+.tp-code-svg :deep(.tp-code-content) {
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 </style>
