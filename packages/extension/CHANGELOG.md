@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.15.2
+
+- Added an Agent skill copy shortcut in MCP preferences.
+
+## 0.15.1
+
+- Improved communication between loader and UI entry.
+- Make the panel scrollable again.
+
+## 0.15.0
+
+- Adjusted startup logic for better compatibility.
+
 ## 0.14.8
 
 - Improved MCP troubleshooting and error messaging.
