@@ -1,0 +1,36 @@
+{
+  "name": "@tempad-dev/skill-server",
+  "version": "0.1.0",
+  "description": "Skill API server for Codify Dev - HTTP API bridge to browser extension.",
+  "bin": "dist/index.mjs",
+  "files": [
+    "README.md",
+    "dist/**/*"
+  ],
+  "type": "module",
+  "main": "dist/index.mjs",
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsx src/index.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint . --ext .ts,.mts,.cts,.js,.mjs,.cjs",
+    "lint:fix": "eslint . --ext .ts,.mts,.cts,.js,.mjs,.cjs --fix",
+    "format": "oxfmt --ignore-path ../../.gitignore",
+    "format:check": "oxfmt --ignore-path ../../.gitignore --check"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.14.1",
+    "hono": "^4.7.10",
+    "nanoid": "^5.1.6",
+    "pino": "^10.0.0",
+    "pino-pretty": "^13.0.0",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/ws": "^8.5.12",
+    "tsdown": "^0.19.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.3"
+  }
+}
