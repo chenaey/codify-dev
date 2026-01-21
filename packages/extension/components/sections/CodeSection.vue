@@ -86,7 +86,8 @@ async function updateCode() {
     {
       cssUnit: options.value.cssUnit,
       rootFontSize: options.value.rootFontSize,
-      scale: options.value.scale
+      scale: options.value.scale,
+      project: options.value.project
     },
     activePlugin.value?.code || undefined
   )

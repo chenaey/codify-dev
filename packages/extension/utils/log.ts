@@ -1,4 +1,4 @@
-const PREFIX = '[tempad-dev]'
+const PREFIX = '[codify-dev]'
 
 const withPrefix = (args: unknown[]): unknown[] => {
   if (!args.length) return [PREFIX]

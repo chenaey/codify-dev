@@ -14,19 +14,26 @@ import PrefSection from '@/components/sections/PrefSection.vue'
 import {
   syncSelection,
   useFigmaAvailability,
+  useMasterGoAvailability,
   useKeyLock,
   useMcp,
   useSelection
 } from '@/composables'
 import { layoutReady, options, runtimeMode, selection } from '@/ui/state'
 import { getCanvas } from '@/utils'
+import { isMasterGo } from '@/utils/platform'
 
 useSelection()
 useKeyLock()
 
 const HINT_CHECK_INTERVAL = 500
 
-useFigmaAvailability()
+// 根据平台选择使用不同的可用性检查
+if (isMasterGo()) {
+  useMasterGoAvailability()
+} else {
+  useFigmaAvailability()
+}
 
 const HINT_IDLE_MS = 10000
 
@@ -138,7 +145,7 @@ function activateMcp() {
   >
     <template #header>
       <div class="tp-row tp-gap-l">
-        <span>TemPad Dev</span>
+        <span>Codify Dev</span>
         <Badge
           v-if="options.mcpOn && runtimeMode === 'standard'"
           :class="['tp-mcp-badge', mcpBadgeStatusClass, mcpBadgeActiveClass]"

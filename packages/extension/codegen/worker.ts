@@ -1,6 +1,7 @@
 import type { RequestPayload, ResponsePayload, CodeBlock } from '@/types/codegen'
 import type { DevComponent, Plugin } from '@/types/plugin'
 
+import defaultPlugin from '@/plugins/default'
 import { serializeComponent, stringifyComponent } from '@/utils/component'
 import { serializeCSS } from '@/utils/css'
 import { logger } from '@/utils/log'
@@ -23,7 +24,8 @@ globalThis.onmessage = async ({ data }: MessageEvent<Request>) => {
   const codeBlocks: CodeBlock[] = []
 
   const { style, component, options, pluginCode } = payload
-  let plugin: Plugin | null = null
+  // 默认使用内置插件，如果有 pluginCode 则动态加载
+  let plugin: Plugin = defaultPlugin
   let devComponent: DevComponent | null = null
 
   try {

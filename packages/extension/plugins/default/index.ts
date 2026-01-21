@@ -1,4 +1,4 @@
-import { definePlugin } from '../src/index'
+import { definePlugin } from '@tempad-dev/plugins'
 import { PROJECTS } from './config'
 import parsedStyle from './utils/processedValue'
 

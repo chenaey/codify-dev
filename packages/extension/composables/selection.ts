@@ -3,8 +3,10 @@ import { computed, shallowRef, watch } from 'vue'
 
 import { layoutReady, selection, runtimeMode } from '@/ui/state'
 import { getCanvas, getLeftPanel } from '@/utils'
+import { getCurrentPlatform, Platform } from '@/utils/platform'
 
-function isSameSelection(next: readonly SceneNode[], current: readonly SceneNode[]): boolean {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function isSameSelection(next: readonly any[], current: readonly any[]): boolean {
   if (next === current) return true
   if (next.length !== current.length) return false
   for (let i = 0; i < next.length; i += 1) {
@@ -13,16 +15,37 @@ function isSameSelection(next: readonly SceneNode[], current: readonly SceneNode
   return true
 }
 
-export function syncSelection() {
-  if (!window.figma?.currentPage) {
-    if (selection.value.length) {
+export async function syncSelection() {
+  const platform = getCurrentPlatform()
+
+  if (platform === Platform.Figma) {
+    if (!window.figma?.currentPage) {
+      if (selection.value.length) {
+        selection.value = []
+      }
+      return
+    }
+    const next = figma.currentPage.selection
+    if (!isSameSelection(next, selection.value)) {
+      selection.value = next
+    }
+  } else if (platform === Platform.MasterGo) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mg = (window as any).mg
+    if (mg?.document?.currentPage) {
+      let next = mg.document.currentPage.selection
+      // MasterGo 需要等待节点数据完全同步后才能正确获取样式信息
+      // 添加一个短暂的延迟，确保节点数据加载完成
+      if (next.length > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+        next = mg.document.currentPage.selection
+      }
+      if (!isSameSelection(next, selection.value)) {
+        selection.value = next
+      }
+    } else if (selection.value.length) {
       selection.value = []
     }
-    return
-  }
-  const next = figma.currentPage.selection
-  if (!isSameSelection(next, selection.value)) {
-    selection.value = next
   }
 }
 

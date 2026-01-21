@@ -80,7 +80,7 @@ export function usePluginInstall() {
         const { pluginName } = await codegen(
           {},
           null,
-          { useRem: false, rootFontSize: 12, scale: 1 },
+          { useRem: false, rootFontSize: 12, scale: 1, project: '' },
           code
         )
         if (!pluginName) {

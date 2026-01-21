@@ -539,17 +539,20 @@ type SerializeOptions = {
   useRem: boolean
   rootFontSize: number
   scale: number
+  project?: string
 }
 
 export function serializeCSS(
   style: Record<string, string>,
-  { toJS = false, useRem, rootFontSize, scale }: SerializeOptions,
+  { toJS = false, useRem, rootFontSize, scale, project }: SerializeOptions,
   { transform, transformVariable, transformPx }: TransformOptions = {}
 ) {
-  const options = { useRem, rootFontSize, scale }
+  const options = { useRem, rootFontSize, scale, project }
 
   function processValue(key: string, value: string) {
-    let current = normalizeStyleValue(value)
+    // 先预处理 CSS 值（处理注释、SCSS 变量等），但不要 stripFallback
+    // 因为 transformVariable 可能需要 fallback 值作为默认值
+    let current = preprocessCssValue(value).trim()
 
     if (typeof scale === 'number' && scale !== 1) {
       current = scalePxValue(current, scale)

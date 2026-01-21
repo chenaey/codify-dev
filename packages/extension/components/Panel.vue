@@ -233,6 +233,7 @@ const rightHandleCursor = computed(() => getResizeCursor('right'))
   background-color: var(--color-bg);
   border-radius: var(--radius-large);
   box-shadow: var(--elevation-100);
+  color: var(--color-text);
 }
 
 .tp-panel-wrapper {
