@@ -36,8 +36,8 @@ function handleClick() {
   --icon-button-outline-offset: -0.0625rem;
   --icon-button-outline-width: 0.0625rem;
   --icon-button-outline-color: transparent;
-  --icon-button-size: 1.5rem;
-  --icon-button-icon-size: 1.5rem;
+  --icon-button-size: 24px;
+  --icon-button-icon-size: 24px;
   --icon-button-radius: var(--radius-medium);
   --icon-button-color-bg: transparent;
   --icon-button-icon: var(--color-icon);

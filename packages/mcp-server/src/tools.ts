@@ -161,7 +161,7 @@ function createToolErrorResponse(toolName: string, error: unknown): CallToolResu
     if (isConnectivityError) {
       help.push(
         'Troubleshooting:',
-        '- In Figma, open TemPad Dev panel and enable MCP (Preferences → MCP server).',
+        '- In Figma, open Codify Dev panel and enable MCP (Preferences → MCP server).',
         '- If multiple Figma tabs are open, click the MCP badge to activate this tab.',
         '- Keep the Figma tab active/foreground while running MCP tools.'
       )

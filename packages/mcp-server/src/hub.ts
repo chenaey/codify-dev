@@ -328,7 +328,7 @@ function registerProxiedTool<T extends ExtensionTool>(tool: T): void {
       if (!activeExt) {
         throw createCodedError(
           TEMPAD_MCP_ERROR_CODES.NO_ACTIVE_EXTENSION,
-          'No active TemPad Dev extension available.'
+          'No active Codify Dev extension available.'
         )
       }
 

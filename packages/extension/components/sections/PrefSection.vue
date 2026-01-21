@@ -183,6 +183,8 @@ function openApiSettings() {
 
 .tp-pref-input {
   width: 80px;
+  height: 24px;
+  font-size: 10px;
 }
 
 .tb-pref-plugin {

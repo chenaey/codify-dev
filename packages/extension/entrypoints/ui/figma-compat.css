@@ -163,12 +163,16 @@
   --color-icon-secondary: #00000080;
   --color-icon-tertiary: #0000004d;
   --color-icon-disabled: #0000004d;
+  --color-icon-hover: #000000e6;
   --color-icon-brand: #007be5;
   --color-icon-danger: #dc3412;
   --color-icon-success: #009951;
   --color-icon-warning: #b86200;
   --color-icon-selected: #007be5;
   --color-icon-onbrand: #ffffff;
+  
+  /* Transparent Background States */
+  --color-bg-transparent-hover: #0000000d;
   
   /* Code Highlighting */
   --color-code: #000000e6;
@@ -342,12 +346,16 @@ tempad code {
     --color-icon-secondary: #ffffffb3;
     --color-icon-tertiary: #ffffff66;
     --color-icon-disabled: #ffffff66;
+    --color-icon-hover: #ffffffe6;
     --color-icon-brand: #80caff;
     --color-icon-danger: #ffafa3;
     --color-icon-success: #85e0a3;
     --color-icon-warning: #ffd966;
     --color-icon-selected: #80caff;
     --color-icon-onbrand: #ffffff;
+    
+    /* Transparent Background States - Dark Mode */
+    --color-bg-transparent-hover: #ffffff1a;
     
     /* Code Highlighting - Dark Mode */
     --color-code: #ffffffe6;

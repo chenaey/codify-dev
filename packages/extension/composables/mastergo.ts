@@ -26,9 +26,9 @@ export function useMasterGoAvailability() {
     runtimeMode.value = mode
     if (!modeChanged) return
     if (mode === 'standard') {
-      logger.log('`window.mg` is now available. TemPad Dev is ready.')
+      logger.log('`window.mg` is now available. Codify Dev is ready.')
     } else {
-      logger.log('`window.mg` is not available. TemPad Dev is currently unavailable.')
+      logger.log('`window.mg` is not available. Codify Dev is currently unavailable.')
     }
   }
 

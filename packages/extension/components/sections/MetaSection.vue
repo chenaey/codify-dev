@@ -7,6 +7,7 @@ import Select from '@/components/icons/Select.vue'
 import Section from '@/components/Section.vue'
 import { useDevResourceLinks } from '@/composables'
 import { selection, selectedNode, selectedTemPadComponent } from '@/ui/state'
+import { isMasterGo } from '@/utils/platform'
 
 const title = computed(() => {
   const nodes = selection.value
@@ -28,7 +29,7 @@ const title = computed(() => {
 })
 
 const showFocusButton = computed(
-  () => window.figma && selection.value && selection.value.length > 0
+  () => selection.value && selection.value.length > 0
 )
 
 const devResourceLinks = useDevResourceLinks(selectedNode)
@@ -38,8 +39,12 @@ const libDisplayName = computed(() => selectedTemPadComponent.value?.libDisplayN
 const libName = computed(() => selectedTemPadComponent.value?.libName)
 
 function scrollIntoView() {
-  // if we have window.figma, selection.value is certainly SceneNode[]
-  window?.figma.viewport.scrollAndZoomIntoView((selection.value as SceneNode[]) || [])
+  if (isMasterGo()) {
+    window?.mg.viewport.scrollAndZoomIntoView((selection.value as SceneNode[]) || [])
+  } else {
+    // if we have window.figma, selection.value is certainly SceneNode[]
+    window?.figma.viewport.scrollAndZoomIntoView((selection.value as SceneNode[]) || [])
+  }
 }
 </script>
 

@@ -1,7 +1,7 @@
 {
   "name": "@tempad-dev/mcp-shared",
   "version": "0.1.0",
-  "description": "Shared MCP schemas/constants used by TemPad Dev extension and MCP server.",
+  "description": "Shared MCP schemas/constants used by Codify Dev extension and MCP server.",
   "files": [
     "dist"
   ],

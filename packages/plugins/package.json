@@ -1,7 +1,7 @@
 {
   "name": "@tempad-dev/plugins",
   "version": "0.6.1",
-  "description": "Plugin utils for TemPad Dev.",
+  "description": "Plugin utils for Codify Dev.",
   "files": [
     "dist",
     "README.md"

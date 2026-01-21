@@ -4,7 +4,7 @@
 export type ComponentPropertyValue = string | number | boolean | DesignComponent
 
 /**
- * Figma node types that TemPad Dev plugins can query against.
+ * Figma node types that Codify Dev plugins can query against.
  */
 export type SupportedDesignNodeType = 'GROUP' | 'FRAME' | 'VECTOR' | 'TEXT' | 'INSTANCE'
 
@@ -300,7 +300,7 @@ export function raw(content: string, injectedProps?: Record<string, string>): De
 }
 
 /**
- * Helper to define a TemPad Dev plugin with full type support.
+ * Helper to define a Codify Dev plugin with full type support.
  *
  * @param plugin Plugin configuration object supplying metadata and code blocks.
  * @returns The same plugin configuration, enabling type inference in user code.

@@ -212,15 +212,13 @@ function handleClick(event: MouseEvent) {
 }
 
 .tp-code-content .token {
-  color: var(--ramp-black-800);
+  color: var(--color-text);
 }
 
-.tp-code-content .token.color {
-  color: var(--color-codevalue);
-}
+
 
 .tp-code-content .token.property {
-  color: var(--ramp-black-800);
+  color: var(--color-text);
 }
 
 .tp-code-content .token.plain,
@@ -257,7 +255,7 @@ function handleClick(event: MouseEvent) {
 }
 
 .tp-code-content .token.tag .token.punctuation {
-  color: var(--ramp-black-800);
+  color: var(--color-text);
 }
 
 .tp-code-content .token.attr-name {

@@ -25,9 +25,9 @@ export function useFigmaAvailability() {
     runtimeMode.value = mode
     if (!modeChanged) return
     if (mode === 'standard') {
-      logger.log('`window.figma` is now available. TemPad Dev is ready.')
+      logger.log('`window.figma` is now available. Codify Dev is ready.')
     } else {
-      logger.log('`window.figma` is not available. TemPad Dev is currently unavailable.')
+      logger.log('`window.figma` is not available. Codify Dev is currently unavailable.')
     }
   }
 

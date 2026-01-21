@@ -11,6 +11,7 @@ import CodeSection from '@/components/sections/CodeSection.vue'
 import ErrorSection from '@/components/sections/ErrorSection.vue'
 import MetaSection from '@/components/sections/MetaSection.vue'
 import PrefSection from '@/components/sections/PrefSection.vue'
+import Toast from '@/components/Toast.vue'
 import {
   syncSelection,
   useFigmaAvailability,
@@ -182,6 +183,9 @@ function activateMcp() {
       <CodeSection />
     </template>
   </Panel>
+
+  <!-- MasterGo 平台使用自定义 Toast -->
+  <Toast v-if="isMasterGo()" />
 </template>
 
 <style scoped>
