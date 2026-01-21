@@ -1,9 +1,8 @@
-<!-- markdownlint-disable MD033 MD041 -->
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="assets/hero-light.svg">
-    <img alt="Shows a screenshot of the extension panel." src="assets/hero-light.svg" width="540" height="200">
+    <source media="(prefers-color-scheme: dark)" srcset="packages/extension/assets/hero-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="packages/extension/assets/hero-light.svg">
+    <img alt="Shows a screenshot of the extension panel." src="packages/extension/assets/hero-light.svg" width="540" height="200">
   </picture>
 </p>
 
@@ -12,17 +11,19 @@
 <p align="center">
   <a href="https://chrome.google.com/webstore/detail/tempad-dev/lgoeakbaikpkihoiphamaeopmliaimpc"><img src="https://img.shields.io/badge/Install%20on%20Chrome%20Web%20Store-4285F4?logo=chromewebstore&logoColor=%23fff" alt="Install on Chrome Web Store"></a>
   <a href="https://discord.gg/MXGXwtkEck"><img src="https://img.shields.io/badge/Chat%20on%20Discord-5865F2?logo=discord&logoColor=%23fff" alt="Chat on Discord"></a>
+  <a href="./README.zh-Hans.md"><img src="https://img.shields.io/badge/%E4%B8%AD%E6%96%87%E7%89%88%20%C2%BB-000" alt="前往中文版"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/ecomfe/tempad-dev/actions/workflows/check-rewrite.yml"><img src="https://github.com/ecomfe/tempad-dev/actions/workflows/check-rewrite.yml/badge.svg" alt="check-script-rewrite"></a>
+  <a href="https://github.com/ecomfe/tempad-dev/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/ecomfe/tempad-dev/build.yml?branch=main&label=build" alt="build"></a>
+  <a href="https://github.com/ecomfe/tempad-dev/actions/workflows/check-rewrite.yml"><img src="https://img.shields.io/github/actions/workflow/status/ecomfe/tempad-dev/check-rewrite.yml?branch=main&label=script-rewrite" alt="check-script-rewrite"></a>
 </p>
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/code-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="assets/code-light.png">
-    <img alt="Shows a screenshot of the extension panel." src="assets/code-light.png" width="720">
+    <source media="(prefers-color-scheme: dark)" srcset="packages/extension/assets/code-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="packages/extension/assets/code-light.png">
+    <img alt="Shows a screenshot of the extension panel." src="packages/extension/assets/code-light.png" width="720">
   </picture>
 </p>
 
@@ -33,17 +34,17 @@
 ### Inspect CSS code
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/code-dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="assets/code-light.png">
-  <img alt="Shows the CSS and JavaScript code for a selected element." src="assets/code-light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="packages/extension/assets/code-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="packages/extension/assets/code-light.png">
+  <img alt="Shows the CSS and JavaScript code for a selected element." src="packages/extension/assets/code-light.png" width="720">
 </picture>
 
 Select any element, and you can obtain the CSS code through the plugin's Code panel. In addition to standard CSS code, TemPad Dev also provides styles in the form of JavaScript objects, making it convenient for use in JSX and similar scenarios.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/unit-dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="assets/unit-light.png">
-  <img alt="Shows units and root font size settings in preferences." src="assets/unit-light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="packages/extension/assets/unit-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="packages/extension/assets/unit-light.png">
+  <img alt="Shows units and root font size settings in preferences." src="packages/extension/assets/unit-light.png" width="720">
 </picture>
 
 You can configure CSS units and root font size to convert `px` dimensions in CSS to `rem` units. You can also apply a `scale` factor to scale `px` values according to your handoff requirements.
@@ -54,9 +55,9 @@ You can configure CSS units and root font size to convert `px` dimensions in CSS
 ### Deep select mode
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/deep-dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="assets/deep-light.png">
-  <img alt="Shows the deep select mode in preferences." src="assets/deep-light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="packages/extension/assets/deep-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="packages/extension/assets/deep-light.png">
+  <img alt="Shows the deep select mode in preferences." src="packages/extension/assets/deep-light.png" width="720">
 </picture>
 
 In Figma's read-only view, selecting nodes requires double-clicking to drill down, and it often takes repeated double-clicks to select the lowest-level node. Although Figma offers a <kbd>⌘</kbd> + click shortcut, many users are unaware of this feature and need to perform extra key operations each time. Therefore, TemPad Dev provides a deep select mode in preferences.
@@ -64,9 +65,9 @@ In Figma's read-only view, selecting nodes requires double-clicking to drill dow
 ### Measure to selection mode
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/measure-dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="assets/measure-light.png">
-  <img alt="Shows the measure to selection mode in preferences." src="assets/measure-light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="packages/extension/assets/measure-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="packages/extension/assets/measure-light.png">
+  <img alt="Shows the measure to selection mode in preferences." src="packages/extension/assets/measure-light.png" width="720">
 </picture>
 
 In Figma's read-only view, you need to hold <kbd>⌥</kbd> and move the cursor to display the spacing between other nodes and the selected node. For similar reasons to the deep select mode, TemPad Dev provides a measure to selection mode in preferences.
@@ -74,9 +75,9 @@ In Figma's read-only view, you need to hold <kbd>⌥</kbd> and move the cursor t
 ### Scroll selection into view
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/scroll-dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="assets/scroll-light.png">
-  <img alt="Shows the scroll selection into view feature." src="assets/scroll-light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="packages/extension/assets/scroll-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="packages/extension/assets/scroll-light.png">
+  <img alt="Shows the scroll selection into view feature." src="packages/extension/assets/scroll-light.png" width="720">
 </picture>
 
 When you hover over a node name section in TemPad Dev's inspect panel, a corresponding button appears. Clicking it will scroll the current selection to the center of the Figma viewport. Figma has a similar <kbd>⇧2</kbd> shortcut, but it zooms in to fill the viewport, which often doesn't meet the needs. Figma actually exposes an interface in the plugin API to move and zoom to 100%, so we also provide this capability as a supplement.
@@ -86,14 +87,14 @@ When you hover over a node name section in TemPad Dev's inspect panel, a corresp
 ### Plugins
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/plugins-dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="assets/plugins-light.png">
-  <img alt="Shows the plugins section in preferences." src="assets/plugins-light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="packages/extension/assets/plugins-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="packages/extension/assets/plugins-light.png">
+  <img alt="Shows the plugins section in preferences." src="packages/extension/assets/plugins-light.png" width="720">
 </picture>
 
 Plugins allow you to customize the built-in code output or add custom code blocks.
 
-A TemPad Dev plugin is a simple JavaScript file that exports a plugin object as its `plugin` named export. To install a plugin, paste the plugin file's URL into the _Preferences > Plugins_ section. Some built-in plugins can also be enabled by using `@{name}` syntax (e.g., `@foo`), which corresponds to the plugin names in our [plugin registry](https://github.com/ecomfe/tempad-dev/blob/main/plugins/available-plugins.json).
+A TemPad Dev plugin is a simple JavaScript file that exports a plugin object as its default export or `plugin` named export. To install a plugin, paste the plugin file's URL into the _Preferences > Plugins_ section. Some built-in plugins can also be enabled by using `@{name}` syntax (e.g., `@foo`), which corresponds to the plugin names in our [plugin registry](https://github.com/ecomfe/tempad-dev/blob/main/packages/extension/plugins/available-plugins.json).
 
 > [!NOTE]
 > Plugin code is stored in the browser's local storage. Plugins are not versioned or auto-updated, so you must manually update them from the UI.
@@ -131,14 +132,14 @@ export default definePlugin({
 See [Justineo/tempad-dev-plugin-kong](https://github.com/Justineo/tempad-dev-plugin-kong/) for more comprehensive examples.
 
 > [!NOTE]
-> Plugin file must be a valid ES module and have the plugin object as the `default` export.
+> Plugin file must be a valid ES module and export the plugin object as the `default` export or `plugin` named export.
 
 Currently, we support 4 plugin hooks:
 
 - `transform`: Converts the style object or code into a string format for the code block. Useful for custom structures, such as Tailwind CSS or UnoCSS.
 - `transformVariable`: Converts CSS variables into alternate formats, e.g., converting them to Sass variables for design tokens.
 - `transformPx`: Converts pixel values into other units or scales.
-- `transformComponent`: Converts the design component object into a dev component object or a strin for the code block. Useful for generating component code for design systems.
+- `transformComponent`: Converts the design component object into a dev component object or a string for the code block. Useful for generating component code for design systems.
 
 > [!TIP]
 > To include JavaScript variables in generated CSS, wrap the variable name in `\0` characters. This will convert it into string interpolation for JavaScript.
@@ -146,7 +147,7 @@ Currently, we support 4 plugin hooks:
 
 Additionally, you can specify a custom `title` and `lang` for the code block or hide the built-in code block by setting it to `false`.
 
-For full type definitions and helper functions, see [`plugins/src/index.ts`](./plugins/src/index.ts).
+For full type definitions and helper functions, see [`packages/plugins/src/index.ts`](./packages/plugins/src/index.ts).
 
 #### Deploying a plugin
 
@@ -159,13 +160,13 @@ https://raw.githubusercontent.com/{username}/{repo}/refs/heads/{branch}/{filenam
 > [!NOTE]
 > Plugin URLs must support cross-origin requests. Raw URLs provided by GitHub or Gist are generally suitable.
 
-Plugins run in a Web Worker, so they do not impact the main thread or access the DOM, safeguarding performance and security. Only a limited set of globals is available in the plugin context. See [`codegen/safe.ts`](./codegen/safe.ts) for details.
+Plugins run in a Web Worker, so they do not impact the main thread or access the DOM, safeguarding performance and security. Only a limited set of globals is available in the plugin context. See [`packages/extension/codegen/safe.ts`](./packages/extension/codegen/safe.ts) for details.
 
 #### Sharing a plugin
 
-You can also register the plugin into our [plugin registry file](https://github.com/ecomfe/tempad-dev/blob/main/plugins/available-plugins.json) so that your plugin can be installed by name directly.
+You can also register the plugin into our [plugin registry file](https://github.com/ecomfe/tempad-dev/blob/main/packages/extension/plugins/available-plugins.json) so that your plugin can be installed by name directly.
 
-**Come and [add your own awesome plugin](https://github.com/ecomfe/tempad-dev/edit/main/plugins/available-plugins.json)!**
+**Come and [add your own awesome plugin](https://github.com/ecomfe/tempad-dev/edit/main/packages/extension/plugins/available-plugins.json)!**
 
 Current available plugins:
 
@@ -185,6 +186,91 @@ Current available plugins:
 <!-- availablePlugins:end -->
 <!-- prettier-ignore-end -->
 
+## MCP server
+
+TemPad Dev ships an [MCP](https://modelcontextprotocol.io/) server so agents/IDEs can pull code and context directly from the node you have selected in Figma. With the TemPad Dev panel open and MCP enabled, the server exposes:
+
+- `get_code`: High-fidelity JSX/Vue + TailwindCSS code output by default, plus attached assets and the codegen preset/config used.
+- `get_structure`: A structural outline (ids, types, geometry) for the current selection.
+- `get_screenshot`: A PNG capture with a `resourceUri` and direct HTTP download URL.
+- `tempad-assets` resource template (`asset://tempad/{hash}`) for any binaries returned by the tools above.
+
+### Setup guide
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="packages/extension/assets/mcp-config-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="packages/extension/assets/mcp-config-light.png">
+  <img alt="TemPad Dev MCP preferences panel." src="packages/extension/assets/mcp-config-light.png" width="240">
+</picture>
+
+1. **Requirements**: Node.js 18+ (with `npx`) and TemPad Dev running in a Figma tab. Node.js is required for both the MCP server and add-skill.
+2. In TemPad Dev, open **Preferences → MCP server**, then enable **Enable MCP server**.
+3. Install and connect using the quick actions in Preferences, or add the server manually to your MCP client as a stdio command:
+
+   ```json
+   {
+     "mcpServers": {
+       "TemPad Dev": {
+         "command": "npx",
+         "args": ["-y", "@tempad-dev/mcp@latest"]
+       }
+     }
+   }
+   ```
+
+   If your client uses a CLI installer, these are equivalent:
+   - `claude mcp add --transport stdio "TemPad Dev" -- npx -y @tempad-dev/mcp@latest`
+   - `codex mcp add "TemPad Dev" -- npx -y @tempad-dev/mcp@latest`
+
+4. Keep the TemPad Dev tab active while using MCP. If you have multiple Figma files open (and therefore multiple TemPad Dev instances), click the MCP badge in the TemPad Dev panel to activate the correct file for your agent.
+
+### Agent skill
+
+Install the TemPad Dev skill for best results when paired with MCP so coding agents can translate selections into repo-ready UI. Install via [add-skill](https://www.npmjs.com/package/add-skill); in Preferences → MCP server, click the copy icon next to Agent skill to copy the command, then run it in your terminal.
+
+```sh
+npx add-skill https://github.com/ecomfe/tempad-dev/tree/main/skill --skill implementing-figma-ui-tempad-dev
+```
+
+### MCP connection status
+
+When MCP is enabled, a badge appears in the TemPad Dev panel title bar showing the current connection status:
+
+- **Unavailable**: The local MCP server is not configured or not running.
+
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="packages/extension/assets/mcp-unavailable-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="packages/extension/assets/mcp-unavailable-light.png">
+    <img alt="MCP status badge showing Unavailable." src="packages/extension/assets/mcp-unavailable-light.png" width="360">
+  </picture>
+
+- **Inactive**: TemPad Dev is connected to a local MCP server, but this tab is not currently active because multiple Figma tabs are open. Click the badge to activate MCP for this tab (this deactivates MCP in other tabs).
+
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="packages/extension/assets/mcp-inactive-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="packages/extension/assets/mcp-inactive-light.png">
+    <img alt="MCP status badge showing Inactive." src="packages/extension/assets/mcp-inactive-light.png" width="360">
+  </picture>
+
+- **Active**: The MCP server is running, and this tab is active and ready to respond to MCP tool calls.
+
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="packages/extension/assets/mcp-active-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="packages/extension/assets/mcp-active-light.png">
+    <img alt="MCP status badge showing Active." src="packages/extension/assets/mcp-active-light.png" width="360">
+  </picture>
+
+### Configuration
+
+Optional environment variables for `@tempad-dev/mcp`:
+
+- `TEMPAD_MCP_TOOL_TIMEOUT` (default `15000`): Tool call timeout in milliseconds.
+- `TEMPAD_MCP_AUTO_ACTIVATE_GRACE` (default `1500`): Delay before auto-activating the sole connected extension.
+- `TEMPAD_MCP_MAX_ASSET_BYTES` (default `8388608`): Maximum upload size for captured assets/screenshots (bytes).
+- `TEMPAD_MCP_RUNTIME_DIR` (default `${TMPDIR}/tempad-dev/run`): Where the hub stores its socket/lock files.
+- `TEMPAD_MCP_LOG_DIR` (default `${TMPDIR}/tempad-dev/log`): Where MCP logs are written.
+- `TEMPAD_MCP_ASSET_DIR` (default `${TMPDIR}/tempad-dev/assets`): Storage for exported assets referenced by `resourceUri`.
+
 <details>
 <summary><h3>Inspect TemPad component code</h3></summary>
 
@@ -197,7 +283,7 @@ If there are components generated by the TemPad Figma plugin on the canvas, TemP
 </details>
 
 <details>
-<summary><h2>Quirks mode</h2></summary>
+<summary><h2><a id="quirks-mode"></a>Quirks mode</h2></summary>
 
 > [!CAUTION]
 > Quirks mode is no longer usable as of 2025.04.01. Figma removed the `window.DebuggingHelpers.logSelected` API, which was used to extract style data.
@@ -221,23 +307,13 @@ Except for the above-mentioned features, others are mostly consistent with the s
 <details>
 <summary><h3>Compatibility Updates</h3></summary>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/duplicate-dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="assets/duplicate-light.png">
-  <img align="right" alt="Choose “Duplicate to your drafts” to ensure standard mode instead of quirks mode." src="assets/duplicate-light.png" width="360">
-</picture>
-
 **2025.04.01**: Figma removed the `window.DebuggingHelpers.logSelected` API, which was used to extract style data. As a result, Quirks mode is no longer usable.
 
 **2024.11.04**: TemPad Dev now managed to bring back the `window.figma` API under view-only mode. But we still cannot guarantee the long-term validity of this feature. If Figma removes the related interface again, this mode will also become unavailable.
 
 **2024.04.08**: TemPad Dev successfully retrieved most style information using currently unblocked debug interfaces, providing a new [Quirks Mode](#quirks-mode). This mode does not rely on `window.figma` but instead parses debug logs to generate style code, with slight differences from the standard mode.
 
-**2024.04.03**: The Figma team adjusted the expected time from "in the coming weeks" to "in the coming months", effectively shelving the issue.
-
 **2024.03.20**: After we posted complaints on the Figma Community Forum, the Figma team stated that they would reinstate the `window.figma` interface in view-only mode in the coming weeks. You can track the progress of this issue on this [thread](https://forum.figma.com/t/figma-removed-window-figma-on-view-only-pages-today/67292).
-
-**2024.03.19**: Figma removed the `window.figma` interface in view-only mode. As a result, we can no longer seamlessly view information and code for Figma elements in view-only mode.
 
 </details>
 

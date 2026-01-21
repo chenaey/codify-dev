@@ -1,0 +1,32 @@
+{
+  "name": "@tempad-dev/plugins",
+  "version": "0.6.1",
+  "description": "Plugin utils for TemPad Dev.",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "prepare": "pnpm run build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint . --ext .ts,.mts,.cts,.js,.mjs,.cjs",
+    "lint:fix": "eslint . --ext .ts,.mts,.cts,.js,.mjs,.cjs --fix",
+    "format": "oxfmt --ignore-path ../../.gitignore",
+    "format:check": "oxfmt --ignore-path ../../.gitignore --check",
+    "prepublishOnly": "pnpm run build"
+  },
+  "devDependencies": {
+    "tsdown": "^0.19.0",
+    "typescript": "^5.9.3"
+  }
+}
