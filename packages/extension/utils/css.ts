@@ -1,8 +1,32 @@
 import type { TransformOptions } from '@/types/plugin'
 import type { CodegenConfig } from '@/utils/codegen'
 
+import { getMasterGoCSSAsync } from './mastergo-css'
 import { parseNumber, toDecimalPlace } from './number'
+import { isMasterGo } from './platform'
 import { kebabToCamel } from './string'
+
+/**
+ * 统一的 CSS 获取入口
+ *
+ * 根据平台自动选择正确的实现：
+ * - Figma: 使用节点原生的 getCSSAsync
+ * - MasterGo: 使用我们的 getMasterGoCSSAsync
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function getCSSAsync(node: any): Promise<Record<string, string>> {
+  // Figma 原生支持
+  if (node.getCSSAsync) {
+    return node.getCSSAsync()
+  }
+
+  // MasterGo 平台支持
+  if (isMasterGo()) {
+    return getMasterGoCSSAsync(node)
+  }
+
+  return {}
+}
 
 function escapeSingleQuote(value: string) {
   return value.replace(/'/g, "\\'")
