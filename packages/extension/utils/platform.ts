@@ -11,7 +11,7 @@ export function getCurrentPlatform(): Platform {
     return Platform.Figma
   }
 
-  if (hostname.includes('mastergo.netease.com')) {
+  if (hostname.includes('mastergo')) {
     return Platform.MasterGo
   }
 
