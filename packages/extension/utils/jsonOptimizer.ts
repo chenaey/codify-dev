@@ -43,14 +43,22 @@ function hasMarginInStyle(customStyle: Record<string, string>): boolean {
  * 单次遍历优化节点（合并所有操作）
  */
 function optimizeNode(node: UINode): void {
-  // 1. 清理坐标信息（自动布局中 x/y 无意义）
-  if (node.layout.layoutMode !== 'NONE') {
+  const isIconNode = node.type === 'ICON'
+
+  // 1. 清理坐标信息
+  // - 自动布局中 x/y 无意义
+  // - ICON 节点的 x/y 也无意义（只需要尺寸）
+  if (node.layout.layoutMode !== 'NONE' || isIconNode) {
     delete node.layout.x
     delete node.layout.y
   }
 
-  // 2. 移除冗余字段（id 和 name）
-  delete (node as any).id
+  // 2. 移除冗余字段
+  // - ICON 节点保留 id（用于与 assets 数组匹配）
+  // - 其他节点移除 id 和 name
+  if (!isIconNode) {
+    delete (node as any).id
+  }
   delete (node as any).name
 
   // 3. 优化样式

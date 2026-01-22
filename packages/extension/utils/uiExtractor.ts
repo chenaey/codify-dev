@@ -657,7 +657,11 @@ async function extractUINode(
   }
 
   // 合并customStyle和layout.margin (Using the final customStyle)
-  if (uiNode.customStyle && uiNode.layout.margin) {
+  // 如果有 layout.margin 但没有 customStyle，先创建空的 customStyle
+  if (uiNode.layout.margin) {
+    if (!uiNode.customStyle) {
+      uiNode.customStyle = {}
+    }
     const { mergedStyle } = mergeStyles(uiNode) // mergeStyles needs uiNode which now has the final customStyle
     uiNode.customStyle = mergedStyle
     delete uiNode.layout.margin // Margin is now baked into customStyle
