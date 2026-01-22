@@ -1,74 +1,44 @@
-# TemPad Skill - 插件层问题追踪
+# TemPad Skill - 问题追踪
 
-本文档记录在 D2C 过程中发现的插件层问题，用于指导后续优化。
+本文档追踪 D2C 过程中发现的问题，关联 [CONTRIBUTING.md](./CONTRIBUTING.md) 的迭代流程。
 
 ---
 
 ## 待处理问题
 
-### 1. Vector 节点信息冗余 ⭐ 中优先级
-
-**问题文件**: `packages/extension/utils/uiExtractor.ts` + `iconExtractor.ts`
-
-**当前结构** (冗余字段):
-```json
-{
-  "type": "INSTANCE",
-  "layout": { "width": 14, "height": 14 },
-  "vector": {
-    "id": "0:6520",
-    "type": "INSTANCE",
-    "name": "图标动画/展开按钮",
-    "width": 14,           // 与 layout 重复
-    "height": 14,          // 与 layout 重复
-    "resourceId": "0:6520", // 与 id 重复
-    "fileName": "icon-xxx.svg",
-    "svgContent": "..."    // 用于内联
-  }
-}
-```
-
-**建议精简结构**:
-```json
-{
-  "type": "ICON",
-  "layout": { "width": 14, "height": 14 },
-  "icon": {
-    "fileName": "icon-展开按钮.svg",
-    "svgContent": "..."  // 简单图标内联，否则省略
-  }
-}
-```
-
-**状态**: � 待处理
-
----
-
-### 2. 绝对定位节点被丢弃 ⭐ 高优先级
+### 1. 绝对定位节点被丢弃 ⭐⭐⭐ 高优先级
 
 **问题文件**: `packages/extension/utils/uiExtractor.ts`
 
+**问题描述**: 
+绝对定位元素被完全丢弃，导致设计还原不完整（如头像徽章、浮动按钮等）
+
+**当前行为**:
 ```typescript
-// 过滤掉绝对定位的节点 这个需要额外处理
-if (uiNode.customStyle) {
-  const isAbsolute = uiNode.customStyle['position'] === 'absolute'
-  if (isAbsolute) {
-    return null  // ❌ 直接丢弃
+if (uiNode.customStyle?.['position'] === 'absolute') {
+  return null  // ❌ 直接丢弃
+}
+```
+
+**期望行为**:
+```json
+{
+  "type": "FRAME",
+  "layout": {
+    "positioning": "absolute",
+    "x": 10,
+    "y": 20,
+    "width": 32,
+    "height": 32
   }
 }
 ```
 
-**问题**: 绝对定位的元素被完全丢弃，导致设计还原不完整（如头像、徽章、浮动按钮等）
+**参考方案**:
+- Figma MCP 保留所有节点的位置信息（x, y, width, height）
+- 让代码生成层决定如何处理绝对定位
 
-**Figma MCP 参考行为**: 
-Figma MCP 不会丢弃任何节点，而是保留所有节点的位置信息（x, y, width, height），让代码生成层决定如何处理。
-
-**建议方案**:
-- 保留绝对定位节点
-- 在 `layout` 中标记 `positioning: 'absolute'`
-- 保留完整的 x, y 坐标信息
-
-**状态**: � 待处理
+**状态**: 🔴 待处理
 
 ---
 
@@ -89,42 +59,73 @@ Figma MCP 不会丢弃任何节点，而是保留所有节点的位置信息（x
 
 ## 已解决问题
 
-### ✅ Divider 边距信息缺失 (已移除设计)
+### ✅ Vector 节点信息冗余 (v1.6)
 
-**原问题**: 使用 90% 阈值判断 `fullWidth` 过于粗糙，没有返回具体边距值
+**Issue ID**: #vector-redundancy
 
-**解决方案**: 
-- 移除专门的 `Divider` 类型设计
-- 分割线作为标准 `RECTANGLE`/`LINE` 节点返回
-- 提供精确的几何信息（width, height, x, y）
-- AI 通过极端宽高比（如 313 x 0.5）推断分隔线语义
+**原问题**: 图标节点使用嵌套 `vector` 对象，数据冗余
 
-**参考依据**: Figma MCP 的设计 - 不使用语义类型，提供几何事实
+**解决方案**:
+1. 类型切换语义 - 图标 `type` 设为 `'ICON'`
+2. 移除嵌套对象 - 尺寸统一放 `layout`
+3. API 层聚合 - `assets` 自动包含所有 ICON
 
----
+**涉及文件**:
+- `packages/extension/utils/uiExtractor.ts`
+- `packages/extension/utils/iconExtractor.ts`
+- `packages/skill-server/src/utils.ts`
 
-### ✅ 跨平台 Divider 实现差异 (随上一问题解决)
-
-**原问题**: 插件返回的 `divider` 结构过于面向 Web
-
-**解决方案**: 返回原始几何信息，让代码生成层根据目标平台决定实现方式
+**文档更新**: `design-schema.md`, `api.md`, `SKILL.md`
 
 ---
 
 ### ✅ 根节点 ID 缺失 (v1.4)
 
-**问题**: `get_design` API 没有返回根节点 ID，导致截图下载困难
+**Issue ID**: #rootNodeId
 
-**解决方案**: 在 API 响应中添加 `rootNodeId` 字段
+**原问题**: `get_design` API 没有返回根节点 ID，截图下载困难
+
+**解决方案**: 在响应中添加 `rootNodeId` 字段
+
+**文档更新**: `api.md`
 
 ---
 
-## 问题分类标准
+### ✅ Divider 边距信息缺失 (v1.5)
 
-| 维度 | 说明 | 示例 |
-|------|------|------|
-| **结构解析** | 节点树的层级关系、嵌套深度、冗余节点 | 层级过深、无意义包裹节点 |
-| **样式提取** | customStyle 的完整性和准确性 | 缺少边框、颜色值不准、渐变丢失 |
-| **布局算法** | layoutMode、间距、对齐方式的转换 | Flex 方向错误、间距计算不准 |
-| **资源导出** | 图标、图片的识别和导出 | 图标未识别、导出格式/尺寸问题 |
-| **语义描述** | 节点命名、类型标注的准确性 | 类型标注错误、命名无语义 |
+**原问题**: 使用 90% 阈值判断 `fullWidth` 过于粗糙
+
+**解决方案**: 
+- 移除专门的 `Divider` 类型
+- 分割线作为标准几何节点返回
+- AI 通过宽高比推断语义
+
+**参考依据**: Figma MCP - 几何事实优先
+
+**文档更新**: `design-schema.md`
+
+---
+
+### ✅ 跨平台 Divider 实现差异 (v1.5)
+
+**原问题**: `divider` 结构过于面向 Web
+
+**解决方案**: 返回原始几何信息，代码生成层按平台实现
+
+---
+
+## 问题分类
+
+| 维度 | 说明 | 相关文件 |
+|------|------|---------|
+| **结构解析** | 节点树层级、嵌套 | `uiExtractor.ts` |
+| **样式提取** | customStyle 完整性 | `styleExtractor.ts` |
+| **布局算法** | layoutMode、间距 | `layoutExtractor.ts` |
+| **资源导出** | 图标、图片识别 | `iconExtractor.ts` |
+| **语义描述** | 类型标注、命名 | `uiExtractor.ts` |
+
+---
+
+## 提交新问题
+
+参考 [CONTRIBUTING.md](./CONTRIBUTING.md#issue-模板) 的 Issue 模板。

@@ -1,24 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { isMasterGo } from '@/utils/platform'
 
-// 基础矢量数据类型
-interface BaseVectorData {
-  id: string
-  type: string
-  name: string
-  width: number
-  height: number
-  fileName?: string
-  resourceId?: string
-}
-
-// 完整矢量数据类型
-interface FullVectorData extends BaseVectorData {
-  svgContent?: string // SVG原始内容，用于直接内联使用
-  resourceId?: string // 资源ID，用于文件引用方式
-  fileName?: string // 文件名，与resourceId搭配使用
-}
-
 // 矢量节点类型
 // 包含 Figma 和 MasterGo 的矢量类型:
 // - Figma: VECTOR, BOOLEAN_OPERATION, STAR, LINE, ELLIPSE, POLYGON
@@ -127,110 +109,8 @@ export function isIconNode(node: any): boolean {
   return false
 }
 
-// 判断是否为简单单色SVG
-function isSimpleSvg(node: any): boolean {
-  // 检查节点的复杂度
-  // 检查当前节点的 vectorPaths
-  if (node.vectorPaths) {
-    const pathData = node.vectorPaths.map((path: any) => path.data || '').join('')
-    if (pathData.length >= 100) return false
-  }
-
-  // 检查子节点的 vectorPaths
-  if (node.children && node.children.length > 0) {
-    for (const child of node.children) {
-      if (child.vectorPaths) {
-        const childPathData = child.vectorPaths.map((path: any) => path.data || '').join('')
-        if (childPathData.length >= 100) return false
-      }
-    }
-  }
-  // 检查是否只有一种填充颜色
-  const fills = node.fills || []
-  const visibleFills = fills.filter((fill: any) => fill.visible !== false)
-  // 检查填充类型 - 只接受纯色填充
-  const hasNonSolidFill = visibleFills.some(
-    (fill: any) =>
-      fill.type !== 'SOLID' || (typeof fill.opacity !== 'undefined' && fill.opacity < 1)
-  )
-  if (hasNonSolidFill) return false
-
-  // 检查是否有复杂效果
-  const hasEffects = node.effects && node.effects.some((effect: any) => effect.visible !== false)
-  if (hasEffects) return false
-
-  // 检查是否有描边
-  const hasStrokes = node.strokes && node.strokes.some((stroke: any) => stroke.visible !== false)
-  if (hasStrokes) return false
-  // 尺寸检查 - 简单图标通常较小
-  const isSmallIcon = node.width <= 16 && node.height <= 16
-  return isSmallIcon
-}
-
-// 提取图标数据
-export async function extractVectorData(
-  node: any
-): Promise<BaseVectorData | FullVectorData | undefined> {
-  // 首先判断是否为图标节点
-  if (!node || !isIconNode(node)) return undefined
-
-  // 创建基础矢量数据
-  const baseVectorData: BaseVectorData = {
-    id: node.id,
-    type: node.type,
-    name: node.name,
-    width: Math.round(node.width),
-    height: Math.round(node.height)
-  }
-
-  // 判断是否为简单图标
-  const isSimple = isSimpleSvg(node)
-
-  // 创建完整矢量数据
-  const vectorData: FullVectorData = {
-    ...baseVectorData
-  }
-
-  // 如果节点支持导出SVG，使用Figma API导出
-  try {
-    if (isSimple) {
-      // 直接导出SVG
-      const result = await node.exportAsync({
-        format: 'SVG'
-      })
-
-      let svgString: string
-      if (typeof result === 'string') {
-        svgString = result
-      } else {
-        // 转换为字符串
-        const decoder = new TextDecoder()
-        svgString = decoder.decode(result)
-      }
-
-      // 导出之后再判断更准确
-      if (svgString.length <= 100) {
-        // 简单单色SVG：保留SVG内容，用于内联
-        vectorData.svgContent = svgString
-      } else {
-        // 复杂SVG：设置resourceId，用于文件引用
-        vectorData.resourceId = node.id
-      }
-    } else {
-      // 复杂SVG：设置resourceId，用于文件引用
-      vectorData.resourceId = node.id
-    }
-    return vectorData
-  } catch (error) {
-    console.error('Error exporting SVG:', error)
-  }
-
-  // 如果不支持导出SVG或导出失败，返回基础数据
-  return baseVectorData
-}
-
 // 导出类型定义
-export type { BaseVectorData, FullVectorData, VectorNodeType, ContainerNodeType }
+export type { VectorNodeType, ContainerNodeType }
 
 /**
  * 异步获取节点的 SVG 代码

@@ -34,15 +34,18 @@ Server: `http://127.0.0.1:13580`
   "design": [
     { /* UINode 树 */ }
   ],
-  "assets": [{ "nodeId": "123:456", "name": "icon", "type": "VECTOR" }]
+  "assets": [
+    { "nodeId": "123:456", "name": "icon-arrow", "type": "ICON", "width": 14, "height": 14 },
+    { "nodeId": "789:012", "name": "image", "type": "IMAGE" }
+  ]
 }
 ```
 
 | 字段 | 说明 |
 |------|------|
 | `rootNodeId` | 根节点 ID，用于下载截图 |
-| `design` | 节点树数组（通常只有一个根节点） |
-| `assets` | 可导出资源列表 |
+| `design` | 节点树数组 |
+| `assets` | 可导出资源列表（含所有 ICON 节点） |
 
 ## POST /get_assets
 

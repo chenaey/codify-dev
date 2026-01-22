@@ -12,7 +12,7 @@ import type {
   SkillError,
   StatusResponse
 } from './types'
-
+import { extractIconAssets } from './utils'
 import { callExtension, getActiveExtension, getExtensions } from './websocket'
 
 export const app = new Hono()
@@ -61,6 +61,12 @@ app.get('/', (c) => {
 app.post('/get_design', async (c) => {
   const params = await c.req.json<GetDesignRequest>().catch(() => ({}))
   const result = await call<GetDesignResponse>('get_design', params)
+
+  // Post-process: extract ICON nodes to assets
+  if (result && !('error' in result) && result.design) {
+    result.assets = extractIconAssets(result.design, result.assets || [])
+  }
+
   return c.json(result)
 })
 

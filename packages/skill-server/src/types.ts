@@ -87,7 +87,9 @@ export interface GetDesignResponse {
 export interface AssetInfo {
   nodeId: string
   name: string
-  type: 'IMAGE' | 'VECTOR'
+  type: 'IMAGE' | 'VECTOR' | 'ICON'
+  width?: number
+  height?: number
 }
 
 export interface GetScreenshotRequest {

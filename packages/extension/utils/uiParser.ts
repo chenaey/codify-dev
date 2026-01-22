@@ -43,9 +43,10 @@ export function parseUIInfo(uiInfo: any, projectType?: string): any {
       shouldCheckComplexity = false
     }
 
-    // 处理图标信息
-    if (node.vector) {
-      processVectorInfo(node.vector, projectType)
+    // 处理图标信息：使用 type: 'ICON' 来识别图标节点
+    // 图标节点的尺寸信息在 layout.width 和 layout.height 中
+    if (node.type === 'ICON') {
+      processIconNode(node, projectType)
     }
 
     // 处理layout和spacing
@@ -103,71 +104,24 @@ export function parseUIInfo(uiInfo: any, projectType?: string): any {
 }
 
 /**
- * 处理矢量/图标信息，根据项目类型转换图标尺寸单位
- * @param vector - 矢量/图标数据
+ * 处理图标节点，根据项目类型调整尺寸单位
+ * 图标节点通过 type: 'ICON' 标识，尺寸信息在 layout.width/height 中
+ * 资源下载通过 node.id 关联（由 tempad-skill 的 download-assets.cjs 处理）
+ *
+ * @param node - 图标节点
  * @param projectType - 项目类型
  */
-function processVectorInfo(vector: any, projectType?: string): void {
-  if (!vector) return
+function processIconNode(node: any, projectType?: string): void {
+  if (!node || !node.layout) return
 
-  // 添加资源路径信息，使用预先生成的fileName
-  if (vector.resourceId && !vector.assetPath && vector.fileName) {
-    // 根据不同项目类型设置资源路径格式
-    switch (projectType) {
-      case 'mvvm':
-        // Vue2 项目使用 @/assets 路径
-        vector.assetPath = `../assets/${vector.fileName}`
-        break
-      case 'cbg':
-        // Vue3 项目使用相对路径
-        vector.assetPath = `../assets/${vector.fileName}`
-        break
-      case 'ios':
-        // iOS 项目使用资源名称
-        vector.assetPath = vector.fileName
-        break
-      case 'android':
-        // Android 项目使用资源ID
-        vector.assetPath = `@drawable/${vector.fileName}`
-        break
-      default:
-        vector.assetPath = `@assets/${vector.fileName}`
+  // 根据项目类型处理宽高
+  if (projectType === 'mvvm') {
+    // MVVM项目宽高乘以2
+    if (typeof node.layout.width === 'number') {
+      node.layout.width *= 2
     }
-  }
-
-  // 根据项目类型处理宽高单位
-  if (projectType) {
-    // 调整宽高值
-    if (typeof vector.width === 'number' && typeof vector.height === 'number') {
-      switch (projectType) {
-        case 'mvvm':
-          // MVVM项目宽高乘以2
-          vector.width *= 2
-          vector.height *= 2
-
-          // 添加单位信息
-          vector.widthUnit = 'rem'
-          vector.heightUnit = 'rem'
-          break
-        case 'cbg':
-          // CBG项目保持原始值，但添加单位
-          vector.widthUnit = 'px'
-          vector.heightUnit = 'px'
-          break
-        case 'ios':
-          // iOS项目使用点单位
-          vector.widthUnit = 'pt'
-          vector.heightUnit = 'pt'
-          break
-        case 'android':
-          // Android项目使用dp单位
-          vector.widthUnit = 'dp'
-          vector.heightUnit = 'dp'
-          break
-        default:
-          vector.widthUnit = 'px'
-          vector.heightUnit = 'px'
-      }
+    if (typeof node.layout.height === 'number') {
+      node.layout.height *= 2
     }
   }
 }

@@ -4,7 +4,7 @@ import { getCSSAsync } from '@/utils/css'
 import { codegen } from './codegen'
 import { getDesignComponent } from './component'
 import { getComponentMapping } from './componentMap'
-import { isIconNode, extractVectorData } from './iconExtractor'
+import { isIconNode } from './iconExtractor'
 import { generateUniqueIconName } from './iconNaming'
 import { toDecimalPlace } from './index'
 import { optimizeJSON } from './jsonOptimizer'
@@ -81,17 +81,6 @@ export interface UINode {
     textAlignVertical?: string
     textCase?: string
     textDecoration?: string
-  }
-  // 矢量/图标信息
-  vector?: {
-    id: string
-    resourceId?: string
-    name?: string // 添加name属性
-    type: string
-    width: number
-    height: number
-    fileName?: string
-    svgContent?: string // SVG原始内容，用于直接导出
   }
   children?: UINode[]
   // 添加自定义样式字段
@@ -554,35 +543,6 @@ function extractCustomComponent(node: any) {
   }
 }
 
-// 提取矢量/图标数据并返回处理结果
-const processVectorData = async (node: any, resources: Map<string, any>) => {
-  // 获取矢量数据
-  const vectorData = await extractVectorData(node)
-  if (!vectorData) return null
-
-  // 创建vector对象
-  const vector: UINode['vector'] = {
-    ...vectorData
-  }
-
-  // 处理资源引用方式的图标 - 只有当有resourceId但没有fileName时才需要处理
-  if (vector.resourceId && !vector.fileName) {
-    // 生成唯一文件名
-    const fileName = generateUniqueIconName(resources, node)
-
-    // 添加文件名
-    vector.fileName = fileName
-
-    // 保存到资源集合中
-    resources.set(node.id, {
-      node,
-      fileName
-    })
-  }
-
-  return vector
-}
-
 // 主函数：提取UI节点信息
 async function extractUINode(
   node: any,
@@ -607,11 +567,25 @@ async function extractUINode(
     rootNode = node
   }
 
+  // 判断当前节点是否为图标，决定 type 值
+  // 参考 Figma-Context-MCP: 将图标节点的 type 设置为 'ICON'
+  const nodeIsIcon = isIconNode(node)
+  const nodeType = nodeIsIcon ? 'ICON' : node.type
+
   const uiNode: UINode = {
     id: node.id,
     name: node.name,
-    type: node.type,
+    type: nodeType,
     layout: extractLayout(node, parent, siblings, rootNode)
+  }
+
+  // 如果是图标节点，注册到资源集合中用于后续导出
+  if (nodeIsIcon) {
+    const fileName = generateUniqueIconName(resources, node)
+    resources.set(node.id, {
+      node,
+      fileName
+    })
   }
 
   // 提取自定义组件信息
@@ -689,11 +663,8 @@ async function extractUINode(
     delete uiNode.layout.margin // Margin is now baked into customStyle
   }
 
-  // 提取矢量/图标数据
-  const vector = await processVectorData(node, resources)
-  if (vector) {
-    uiNode.vector = vector
-    // 清理可能影响图标渲染的填充
+  // 如果是图标节点，清理不必要的样式
+  if (nodeIsIcon) {
     if (uiNode.customStyle) {
       delete uiNode.customStyle['padding']
       delete uiNode.customStyle['padding-top']
@@ -701,7 +672,6 @@ async function extractUINode(
       delete uiNode.customStyle['padding-bottom']
       delete uiNode.customStyle['padding-left']
     }
-    // 删除布局内的填充
     if (uiNode.layout?.padding) {
       delete uiNode.layout.padding
     }
@@ -709,7 +679,7 @@ async function extractUINode(
 
   // 如果当前节点不是图标且不是自定义组件，才处理子节点
   if (
-    !isIconNode(node) &&
+    !nodeIsIcon &&
     !customComponent &&
     maxDepth > 0 &&
     'children' in node &&

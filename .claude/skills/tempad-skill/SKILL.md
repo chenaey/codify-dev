@@ -76,18 +76,13 @@ node .claude/skills/tempad-skill/scripts/download-assets.cjs --nodes '[
 
 ### 4. 下载资源（按需）
 
-根据 JSON 树中 `vector` 节点判断需要哪些图标：
+`assets` 数组包含所有 `type: "ICON"` 节点的元数据，按需下载：
 
 ```bash
 node .claude/skills/tempad-skill/scripts/download-assets.cjs --nodes '[
-  {"nodeId":"0:123","outputPath":"/project/src/icons/arrow.svg","format":"svg"}
+  {"nodeId":"123:456","outputPath":"/project/src/icons/arrow.svg","format":"svg"}
 ]'
 ```
-
-**注意**：
-- `assets` 列表仅列出可导出资源，不表示使用位置
-- 根据 `vector` 节点在树中的**位置**判断图标用途
-- `nodeId` 来源：`vector.id` 或 `assets[].nodeId`
 
 ### 5. 生成组件代码
 
