@@ -130,6 +130,10 @@ props: {
 - 有 `id`：可下载后使用
 - 纯色块/简单形状：用 CSS 实现，不下载
 
+### 状态切换尺寸稳定性
+
+状态间有 `border` 差异时，基础状态用 `border: Xpx solid transparent` 预留空间。
+
 ### 其他
 
 - `divider` → border

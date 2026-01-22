@@ -6,37 +6,42 @@
 
 ## 待处理问题
 
-### 1. 绝对定位节点被丢弃 ⭐⭐⭐ 高优先级
+### 1. 绝对定位节点信息缺失 ⭐⭐⭐ 高优先级
 
 **问题文件**: `packages/extension/utils/uiExtractor.ts`
 
 **问题描述**: 
-绝对定位元素被完全丢弃，导致设计还原不完整（如头像徽章、浮动按钮等）
+`layoutPositioning: "ABSOLUTE"` 的节点信息在提取过程中被丢弃。
 
-**当前行为**:
-```typescript
-if (uiNode.customStyle?.['position'] === 'absolute') {
-  return null  // ❌ 直接丢弃
+**原始数据**（已确认存在）:
+```json
+{
+  "id": "0:5756",
+  "layoutPositioning": "ABSOLUTE",
+  "constraints": { "horizontal": "END", "vertical": "START" },
+  "x": 339, "y": 3,
+  "width": 16, "height": 16
 }
 ```
 
-**期望行为**:
+**输出 JSON**: 该节点作为普通 flex 子元素，无定位信息。
+
+**期望输出**:
 ```json
 {
-  "type": "FRAME",
+  "type": "ICON",
   "layout": {
     "positioning": "absolute",
-    "x": 10,
-    "y": 20,
-    "width": 32,
-    "height": 32
+    "constraints": { "horizontal": "END", "vertical": "START" },
+    "x": 339, "y": 3,
+    "width": 16, "height": 16
   }
 }
 ```
 
-**参考方案**:
-- Figma MCP 保留所有节点的位置信息（x, y, width, height）
-- 让代码生成层决定如何处理绝对定位
+**排查方向**:
+1. `uiExtractor.ts` 是否过滤了 `layoutPositioning === "ABSOLUTE"` 的节点？
+2. `layoutExtractor.ts` 是否忽略了 `layoutPositioning` 字段？
 
 **状态**: 🔴 待处理
 
@@ -58,6 +63,20 @@ if (uiNode.customStyle?.['position'] === 'absolute') {
 ---
 
 ## 已解决问题
+
+### ✅ 状态切换尺寸稳定性 (v1.8)
+
+**Issue ID**: #border-size-jump
+
+**原问题**: 当元素有多个状态，状态间存在影响盒模型的属性差异（如 border），会导致尺寸跳动
+
+**解决方案**: 在 codegen-rules.md 新增通用规则「状态切换尺寸稳定性」
+- 状态间有 border 差异 → 基础状态添加 `border: Xpx solid transparent`
+- 状态间有 outline/box-shadow 差异 → 无需处理（不影响盒模型）
+
+**文档更新**: `codegen-rules.md`
+
+---
 
 ### ✅ Vector 节点信息冗余 (v1.6)
 
@@ -128,4 +147,4 @@ if (uiNode.customStyle?.['position'] === 'absolute') {
 
 ## 提交新问题
 
-参考 [CONTRIBUTING.md](./CONTRIBUTING.md#issue-模板) 的 Issue 模板。
+参考 [CONTRIBUTING.md](./CONTRIBUTING.md#issue-模板) 的 Issue 模板。jiachu
