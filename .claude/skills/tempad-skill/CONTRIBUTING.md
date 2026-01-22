@@ -240,6 +240,7 @@
 | v1.9 | 完善响应式规则：宽度继承链、box-sizing、max-width 约束 | ✅ #responsive-rules |
 | v2.0 | 新增「交互状态规则」：区分行为推断（允许）和样式推断（谨慎） | ✅ #interaction-style |
 | v2.1 | 强化「图标资源」规则：禁止自行实现，必须从 assets 导出 | ✅ #icon-assets |
+| v2.2 | 新增「组件规划」原则：复合页面先规划再实现，原子组件直接实现 | ✅ #component-planning |
 
 ---
 

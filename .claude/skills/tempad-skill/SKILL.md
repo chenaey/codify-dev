@@ -24,7 +24,7 @@ curl -s -X POST http://127.0.0.1:13580/get_design -H "Content-Type: application/
 {
   "rootNodeId": "0:1234",  // 根节点 ID，用于下载截图
   "design": [...],         // 节点树
-  "assets": [...]          // 可导出资源列表
+  "assets": [...]          // 可导出资源列表（图标等）
 }
 ```
 
@@ -62,27 +62,26 @@ node .claude/skills/tempad-skill/scripts/download-assets.cjs --nodes '[
 
 ### 3. 分析设计（截图 + JSON 结合）
 
-| 信息来源 | 用途 | 示例 |
-|---------|------|------|
-| **截图** | 整体布局结构、组件层级、视觉效果 | 按钮是圆角还是直角、元素排列方向 |
-| **JSON `customStyle`** | 精确的 CSS 属性值 | `background: #F2F2F2`、`border-radius: 4px` |
-| **JSON `text.content`** | 文本默认值 | `"来提建议吧！"` |
-| **JSON `layout`** | 布局模式和尺寸 | `layoutMode: "VERTICAL"`、`width: 100%` |
+| 信息来源 | 用途 |
+|---------|------|
+| **截图** | 整体布局结构、组件层级、视觉效果 |
+| **JSON** | 精确样式值、文本内容、布局参数 |
 
 **关键规则**：
 - ✅ 样式值**必须从 `customStyle` 精确复制**，不能猜测
-- ✅ 如果 `customStyle` 中没有某属性，就**不要添加**
 - ❌ 不要根据截图"看起来像"就自行添加样式
 
-### 4. 下载资源（按需）
+### 4. 组件规划（按需）
 
-`assets` 数组包含所有 `type: "ICON"` 节点的元数据，按需下载：
+| 设计复杂度 | 处理方式 |
+|-----------|---------|
+| 原子组件（按钮、卡片等） | 直接实现 |
+| 复合页面（多个独立区域） | 先规划再实现 |
 
-```bash
-node .claude/skills/tempad-skill/scripts/download-assets.cjs --nodes '[
-  {"nodeId":"123:456","outputPath":"/project/src/icons/arrow.svg","format":"svg"}
-]'
-```
+**复合页面规划要点**：
+1. 识别可拆分的独立区域 → 组件清单
+2. 设计数据流向和 Props 接口
+3. 确定实现顺序（从底层到顶层）
 
 ### 5. 生成组件代码
 
@@ -91,14 +90,26 @@ node .claude/skills/tempad-skill/scripts/download-assets.cjs --nodes '[
 3. **逐节点提取 `customStyle`**，直接作为 CSS 使用
 4. **文本默认值从 `text.content` 提取**
 
+### 6. 图标资源
+
+**原则**：`type: "ICON"` 节点必须使用实际资源文件。
+
+```bash
+# 从 assets 数组获取 nodeId，下载到项目目录
+node .claude/skills/tempad-skill/scripts/download-assets.cjs --nodes '[
+  {"nodeId":"123:456","outputPath":"/project/src/icons/xxx.svg","format":"svg"}
+]'
+```
+
+**禁止**：空占位符、CSS 模拟、第三方图标库替代。
+
 ## 常见错误 ❌
 
 | 错误做法 | 正确做法 |
 |---------|---------|
-| 看截图"像是有边框"就加 `border` | 检查 `customStyle` 是否有 `border` 属性 |
-| 猜测颜色值 `#eee` | 复制 JSON 中的 `#F2F2F2` |
-| 自行决定 `padding: 10px` | 使用 `customStyle` 中的 `padding: 10px 12px` |
-| 忽略 JSON 中的渐变值 | 完整复制 `linear-gradient(...)` |
+| 猜测样式值 | 从 `customStyle` 精确复制 |
+| 图标用空占位符 | 下载 assets 中的实际资源 |
+| 复杂页面一次性实现 | 先规划组件结构 |
 
 ## 参考文档
 
