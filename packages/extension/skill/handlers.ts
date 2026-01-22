@@ -121,15 +121,112 @@ function bytesToBase64(bytes: Uint8Array): string {
   return btoa(binary)
 }
 
+// Vector node types that should be exported as SVG
+// Includes both Figma and MasterGo specific types:
+// - Figma: VECTOR, BOOLEAN_OPERATION, STAR, LINE, ELLIPSE, POLYGON
+// - MasterGo: REGULAR_POLYGON (instead of POLYGON), PEN (pen tool paths)
+const VECTOR_LIKE_TYPES = new Set<string>([
+  'VECTOR',
+  'BOOLEAN_OPERATION',
+  'STAR',
+  'LINE',
+  'ELLIPSE',
+  'POLYGON',
+  'REGULAR_POLYGON',
+  'PEN' // MasterGo pen tool paths
+])
+
+// Container types that may contain vector children
+const CONTAINER_TYPES = new Set<string>(['FRAME', 'GROUP', 'COMPONENT', 'INSTANCE'])
+
+// Check if a node has visible image fills
+function hasImageFill(node: SceneNode): boolean {
+  if (!('fills' in node) || !Array.isArray(node.fills)) {
+    return false
+  }
+  return node.fills.some(
+    (fill) => fill.type === 'IMAGE' && fill.visible !== false
+  )
+}
+
+// Check if all children of a container are vector-like (SVG collapsible)
+// Based on Figma-Context-MCP's collapseSvgContainers logic
+function hasOnlyVectorChildren(node: SceneNode): boolean {
+  if (!('children' in node) || !Array.isArray(node.children)) {
+    return false
+  }
+  const children = node.children as SceneNode[]
+  if (children.length === 0) {
+    return false
+  }
+  return children.every((child) => {
+    // Direct vector types
+    if (VECTOR_LIKE_TYPES.has(child.type)) {
+      return true
+    }
+    // Nested containers with only vector children
+    if (CONTAINER_TYPES.has(child.type)) {
+      return hasOnlyVectorChildren(child)
+    }
+    return false
+  })
+}
+
+// Classify asset type based on node characteristics
+// Strategy:
+// 1. fileName hint: if fileName ends with .svg, it's VECTOR
+// 2. Direct vector types → VECTOR
+// 3. Containers with only vector children → VECTOR (icon containers)
+// 4. Nodes with IMAGE fills → IMAGE
+// 5. Default: undefined (caller decides)
+function classifyAsset(
+  node: SceneNode,
+  fileName?: string
+): 'VECTOR' | 'IMAGE' | undefined {
+  // 1. fileName hint takes precedence (from iconExtractor's generateUniqueIconName)
+  // If the file was named with .svg extension, it was identified as an icon
+  if (fileName?.toLowerCase().endsWith('.svg')) {
+    return 'VECTOR'
+  }
+
+  // 2. Direct vector types
+  if (VECTOR_LIKE_TYPES.has(node.type)) {
+    return 'VECTOR'
+  }
+
+  // 3. Check for IMAGE fills first (takes priority over container check)
+  if (hasImageFill(node)) {
+    return 'IMAGE'
+  }
+
+  // 4. Containers (FRAME, GROUP, COMPONENT, INSTANCE) with only vector children
+  // These are typically icon wrappers and should be exported as SVG
+  if (CONTAINER_TYPES.has(node.type) && hasOnlyVectorChildren(node)) {
+    return 'VECTOR'
+  }
+
+  return undefined
+}
+
 // Extract assets info from resources map
+// The resources map is populated by extractSelectedNodes/processVectorData
+// It contains nodes identified as icons by isIconNode()
 function extractAssetsInfo(resources: Map<string, unknown>): AssetInfo[] {
   const assets: AssetInfo[] = []
   for (const [resourceId, resource] of resources.entries()) {
-    const res = resource as { name?: string; type?: string }
+    const res = resource as { node?: SceneNode; fileName?: string }
+    const node = res.node
+    const fileName = res.fileName
+
+    // Classify based on fileName hint, node type, and fills
+    const assetType = node ? classifyAsset(node, fileName) : undefined
+
     assets.push({
       nodeId: resourceId,
-      name: res.name || resourceId.slice(0, 8),
-      type: res.type === 'svg' ? 'VECTOR' : 'IMAGE'
+      name: fileName || node?.name || resourceId.slice(0, 8),
+      // Default to VECTOR for icon resources (they're in resources map because isIconNode returned true)
+      // Only use IMAGE if explicitly classified as such (has IMAGE fills)
+      type: assetType || 'VECTOR'
     })
   }
   return assets
@@ -151,8 +248,7 @@ async function handleGetDesign(params: GetDesignParams): Promise<GetDesignResult
 
   return {
     design,
-    assets,
-    tokens: {} // Tokens not extracted in this flow
+    assets
   }
 }
 

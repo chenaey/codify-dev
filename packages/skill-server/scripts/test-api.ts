@@ -115,7 +115,6 @@ async function runTests() {
     const { data, error } = await request<{
       design?: unknown[]
       assets?: Array<{ nodeId: string; name: string; type: string }>
-      tokens?: Record<string, unknown>
       error?: { code: string; message: string }
     }>('POST', '/get_design', {})
 

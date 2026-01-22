@@ -61,7 +61,6 @@ export interface AssetInfo {
 export interface GetDesignResult {
   design: unknown
   assets: AssetInfo[]
-  tokens: Record<string, string>
 }
 
 export interface GetScreenshotParams {

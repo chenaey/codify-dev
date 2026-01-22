@@ -81,7 +81,6 @@ export interface GetDesignRequest {
 export interface GetDesignResponse {
   design: unknown
   assets: AssetInfo[]
-  tokens: Record<string, string>
 }
 
 export interface AssetInfo {

@@ -20,14 +20,19 @@ interface FullVectorData extends BaseVectorData {
 }
 
 // 矢量节点类型
+// 包含 Figma 和 MasterGo 的矢量类型:
+// - Figma: VECTOR, BOOLEAN_OPERATION, STAR, LINE, ELLIPSE, POLYGON
+// - MasterGo: REGULAR_POLYGON (代替 POLYGON), PEN (钢笔工具路径)
+// 注意：RECTANGLE 不包含在内，因为它通常是背景/容器，不是图标
 const VECTOR_TYPES = [
   'VECTOR',
   'BOOLEAN_OPERATION',
   'STAR',
   'LINE',
   'ELLIPSE',
+  'POLYGON',
   'REGULAR_POLYGON',
-  'RECTANGLE'
+  'PEN' // MasterGo 钢笔工具路径
 ] as const
 
 // 容器节点类型
@@ -46,49 +51,65 @@ export function isContainerNode(node: any): boolean {
   return CONTAINER_TYPES.includes(node.type)
 }
 
-export function isIconName(node: any): boolean {
-  return node.name.toLowerCase().includes('icon') || node.name.toLowerCase().includes('图标')
-}
-
 // 检查节点是否为图标节点
+// 仅基于尺寸和结构判断，不依赖名称
 export function isIconNode(node: any): boolean {
   // 空节点检查
   if (!node) return false
 
   // 不可见节点不是图标
   if ('visible' in node && node.visible === false) return false
-  // 优先使用Figma官方API的判断方法 - 如果Figma认为这是一个图标资源
-  if ('isAsset' in node && node.isAsset === true) {
-    return true
-  }
 
-  // 名称检查 - 作为补充判断方法
-  const nameBasedIcon =
-    isIconName(node) ||
-    node.description?.toLowerCase()?.includes('icon') ||
-    node.description?.toLowerCase()?.includes('图标')
-
-  // 尺寸检查 - 更宽松的条件，只要是小尺寸基本就是图标
+  // 尺寸检查 - 小尺寸基本就是图标
   const sizeBasedIcon = node.width <= 64 && node.height <= 64
 
   // 比例检查 - 图标通常是正方形或接近正方形的
   const isSquarish = Math.abs(node.width - node.height) <= 2
 
+  // 小尺寸矢量检查 - 非常小的矢量图形通常是图标（如箭头、下拉指示器等）
+  // 这些图标可能不是正方形，但尺寸很小（如 11x6 的箭头）
+  const isSmallVector = node.width <= 24 && node.height <= 24 && node.width > 0 && node.height > 0
+
+  // 宽高比检查 - 避免把宽矩形（如按钮背景）识别为图标
+  // 比例超过 3:1 或 1:3 的通常不是图标
+  const aspectRatio = Math.max(node.width, node.height) / Math.min(node.width, node.height)
+  const hasReasonableAspectRatio = aspectRatio <= 3
+
+  // 使用Figma官方API的判断方法 - 如果Figma认为这是一个图标资源
+  // 但仍然需要满足尺寸和宽高比约束，防止大型背景元素被误判
+  if ('isAsset' in node && node.isAsset === true) {
+    // 即使 isAsset 为 true，也需要尺寸合理
+    if (sizeBasedIcon && hasReasonableAspectRatio) {
+      return true
+    }
+    // 非常小的矢量即使比例不对也可能是图标
+    if (isSmallVector) {
+      return true
+    }
+    // 大尺寸或极端比例的 isAsset，不认为是图标
+  }
+
   // 结合检查 - 针对不同类型节点的判断逻辑
   if (node.type === 'COMPONENT' || node.type === 'INSTANCE') {
-    // 组件和实例优先看名称和描述
-    return nameBasedIcon || (sizeBasedIcon && isSquarish)
+    // 组件和实例：小尺寸且接近正方形
+    return sizeBasedIcon && isSquarish
   }
 
   if (isVectorNode(node)) {
-    // 矢量元素需要满足名称或尺寸条件
-    return nameBasedIcon || (sizeBasedIcon && isSquarish && node.width > 0)
+    // 矢量元素：
+    // 1. 小尺寸且接近正方形
+    // 2. 非常小的矢量（<=24px）即使不是正方形也可能是图标
+    // 3. 必须有合理的宽高比（避免按钮背景等长条形元素）
+    if (isSmallVector) {
+      return true
+    }
+    return sizeBasedIcon && isSquarish && hasReasonableAspectRatio
   }
 
   // 容器类型（FRAME, GROUP）需要进一步检查
   if (isContainerNode(node)) {
-    // 如果名称包含关键词，或尺寸合适且为正方形
-    if (nameBasedIcon || (sizeBasedIcon && isSquarish)) {
+    // 尺寸合适且为正方形
+    if (sizeBasedIcon && isSquarish) {
       return true
     }
 
