@@ -237,6 +237,9 @@
 | v1.6 | Icon 类型重构：类型切换 + assets 聚合 | ✅ #vector-redundancy |
 | v1.7 | 重构文档体系，完善迭代闭环 | - |
 | v1.8 | 新增「状态切换尺寸稳定性」规则；补充绝对定位问题案例 | ✅ #border-size-jump |
+| v1.9 | 完善响应式规则：宽度继承链、box-sizing、max-width 约束 | ✅ #responsive-rules |
+| v2.0 | 新增「交互状态规则」：区分行为推断（允许）和样式推断（谨慎） | ✅ #interaction-style |
+| v2.1 | 强化「图标资源」规则：禁止自行实现，必须从 assets 导出 | ✅ #icon-assets |
 
 ---
 

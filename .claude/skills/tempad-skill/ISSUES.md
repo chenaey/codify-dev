@@ -64,6 +64,21 @@
 
 ## 已解决问题
 
+### ✅ 响应式规则完善 (v1.9)
+
+**Issue ID**: #responsive-rules
+
+**原问题**: 响应式规则过于简单，仅一句话「容器禁止固定宽高」，导致生成的组件在手机/PC端显示异常
+
+**解决方案**: 在 codegen-rules.md 完善响应式规则（遵循抽象原则，不硬编码具体值）：
+- 容器：`width: 100%`，按需添加 `max-width`
+- 有 padding 的容器：添加 `box-sizing: border-box`
+- 宽度继承：确保父→子不断链
+
+**文档更新**: `codegen-rules.md`
+
+---
+
 ### ✅ 状态切换尺寸稳定性 (v1.8)
 
 **Issue ID**: #border-size-jump
