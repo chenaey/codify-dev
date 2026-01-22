@@ -127,6 +127,10 @@ async function handleClientClick(client: McpClientDisplay) {
       <label>Enable MCP server</label>
       <SegmentedControl :options="mcpOptions" v-model="options.mcpOn" />
     </div>
+    <div class="tp-row tp-row-justify tp-mcp-field">
+      <label>Enable Skill server</label>
+      <SegmentedControl :options="mcpOptions" v-model="options.skillOn" />
+    </div>
     <template v-if="options.mcpOn">
       <button
         type="button"
@@ -273,4 +277,5 @@ label {
   color: var(--color-text-brand);
   cursor: pointer;
 }
+
 </style>

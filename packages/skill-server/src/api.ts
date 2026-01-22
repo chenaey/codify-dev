@@ -13,7 +13,7 @@ import type {
   StatusResponse
 } from './types'
 
-import { callExtension, getActiveExtension } from './websocket'
+import { callExtension, getActiveExtension, getExtensions } from './websocket'
 
 export const app = new Hono()
 
@@ -45,9 +45,15 @@ async function call<T>(action: SkillAction, params: unknown = {}): Promise<T | {
 // GET / — Status
 app.get('/', (c) => {
   const ext = getActiveExtension()
+  const extensions = getExtensions()
   const response: StatusResponse = ext
-    ? { ready: true, platform: ext.info?.platform }
-    : { ready: false }
+    ? {
+        ready: true,
+        platform: ext.info?.platform,
+        activeId: ext.id,
+        count: extensions.length
+      }
+    : { ready: false, count: extensions.length }
   return c.json(response)
 })
 

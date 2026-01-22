@@ -29,6 +29,7 @@ export type Options = {
   scale: number
   exportOpen: boolean
   mcpOn: boolean
+  skillOn: boolean
   plugins: {
     [source: string]: PluginData
   }
@@ -74,6 +75,7 @@ export const options = useStorage<Options>('tempad-dev', {
   exportOpen: true,
   scale: 1,
   mcpOn: false,
+  skillOn: false,
   plugins: {},
   activePluginSource: null,
   apiSettings: {

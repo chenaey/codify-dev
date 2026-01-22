@@ -18,7 +18,8 @@ import {
   useMasterGoAvailability,
   useKeyLock,
   useMcp,
-  useSelection
+  useSelection,
+  useSkill
 } from '@/composables'
 import { layoutReady, options, runtimeMode, selection } from '@/ui/state'
 import { getCanvas } from '@/utils'
@@ -43,8 +44,15 @@ function toggleMinimized() {
 }
 
 const { status, selfActive, count, activate } = useMcp()
+const {
+  status: skillStatus,
+  selfActive: skillSelfActive,
+  count: skillCount,
+  activate: activateSkillFn
+} = useSkill()
 
 const isMcpConnected = computed(() => status.value === 'connected')
+const isSkillConnected = computed(() => skillStatus.value === 'connected')
 
 const mcpBadgeTone = computed(() => {
   if (!isMcpConnected.value) return 'neutral'
@@ -77,6 +85,49 @@ const mcpBadgeStatusClass = computed(() => `tp-mcp-badge-${status.value}`)
 const mcpBadgeActiveClass = computed(() =>
   isMcpConnected.value ? (selfActive.value ? 'tp-mcp-badge-active' : 'tp-mcp-badge-inactive') : null
 )
+
+// Skill Badge computed properties
+const skillBadgeTone = computed(() => {
+  if (!isSkillConnected.value) return 'neutral'
+  if (!skillSelfActive.value) return 'neutral'
+  return 'success'
+})
+
+const skillBadgeVariant = computed(() => {
+  if (!isSkillConnected.value) return 'dashed'
+  if (!skillSelfActive.value) return 'dashed'
+  return 'solid'
+})
+
+const skillBadgeTooltip = computed(() => {
+  if (!isSkillConnected.value) {
+    return 'Skill server unavailable'
+  }
+
+  const fileCount = skillCount.value || 0
+  const fileLabel = fileCount > 1 ? ` • ${fileCount} files` : ''
+
+  if (skillSelfActive.value) {
+    return `Active${fileLabel}`
+  }
+
+  return `Inactive${fileLabel}\nClick to activate`
+})
+
+const skillBadgeStatusClass = computed(() => `tp-skill-badge-${skillStatus.value}`)
+const skillBadgeActiveClass = computed(() =>
+  isSkillConnected.value
+    ? skillSelfActive.value
+      ? 'tp-skill-badge-active'
+      : 'tp-skill-badge-inactive'
+    : null
+)
+
+function activateSkill() {
+  if (isSkillConnected.value) {
+    activateSkillFn()
+  }
+}
 
 const lowVisibility = ref(false)
 const initialLock = ref(true)
@@ -159,6 +210,18 @@ function activateMcp() {
           <span class="tp-mcp-dot" />
           MCP
         </Badge>
+        <Badge
+          v-if="options.skillOn && runtimeMode === 'standard'"
+          :class="['tp-skill-badge', skillBadgeStatusClass, skillBadgeActiveClass]"
+          :tone="skillBadgeTone"
+          :variant="skillBadgeVariant"
+          :title="skillBadgeTooltip"
+          @click="activateSkill"
+          @dblclick.stop
+        >
+          <span class="tp-skill-dot" />
+          API
+        </Badge>
       </div>
       <div class="tp-row tp-gap">
         <IconButton
@@ -232,6 +295,42 @@ function activateMcp() {
 
 .tp-mcp-badge-active .tp-mcp-dot {
   background-color: var(--color-icon-success, #1bc47d);
+}
+
+/* Skill Badge styles */
+.tp-skill-badge {
+  gap: 4px;
+}
+
+.tp-skill-badge-inactive .tp-skill-dot {
+  animation: tp-skill-dot-pulse 1.2s ease-in-out infinite;
+  background-color: var(--color-icon-brand, #0d99ff);
+}
+
+.tp-skill-badge-connected:hover {
+  border-style: solid;
+}
+
+.tp-skill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--color-icon-disabled, #9ba1a6);
+  box-sizing: border-box;
+}
+
+.tp-skill-badge-active .tp-skill-dot {
+  background-color: var(--color-icon-success, #1bc47d);
+}
+
+@keyframes tp-skill-dot-pulse {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @keyframes tp-mcp-dot-pulse {

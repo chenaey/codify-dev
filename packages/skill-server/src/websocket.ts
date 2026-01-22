@@ -83,8 +83,9 @@ function handleSkillResult(msg: SkillResultMessage): void {
   clearTimeout(pending.timer)
   pendingRequests.delete(msg.id)
 
+  // Preserve original error structure instead of throwing
   if (msg.error) {
-    pending.reject(new Error(msg.error.message))
+    pending.resolve({ error: msg.error })
   } else {
     pending.resolve(msg.payload)
   }

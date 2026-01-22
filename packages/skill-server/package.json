@@ -12,6 +12,7 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsx src/index.ts",
+    "test": "tsx scripts/test-api.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint . --ext .ts,.mts,.cts,.js,.mjs,.cjs",
     "lint:fix": "eslint . --ext .ts,.mts,.cts,.js,.mjs,.cjs --fix",

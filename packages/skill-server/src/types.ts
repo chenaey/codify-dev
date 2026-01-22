@@ -127,4 +127,6 @@ export interface GetAssetsResponse {
 export interface StatusResponse {
   ready: boolean
   platform?: string
+  activeId?: string
+  count: number
 }
