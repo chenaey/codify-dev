@@ -30,12 +30,19 @@ Server: `http://127.0.0.1:13580`
 
 ```json
 {
-  "design": {
-    /* UINode 树 */
-  },
+  "rootNodeId": "0:1234",
+  "design": [
+    { /* UINode 树 */ }
+  ],
   "assets": [{ "nodeId": "123:456", "name": "icon", "type": "VECTOR" }]
 }
 ```
+
+| 字段 | 说明 |
+|------|------|
+| `rootNodeId` | 根节点 ID，用于下载截图 |
+| `design` | 节点树数组（通常只有一个根节点） |
+| `assets` | 可导出资源列表 |
 
 ## POST /get_assets
 

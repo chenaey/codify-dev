@@ -79,6 +79,7 @@ export interface GetDesignRequest {
 }
 
 export interface GetDesignResponse {
+  rootNodeId: string
   design: unknown
   assets: AssetInfo[]
 }

@@ -242,6 +242,7 @@ async function handleGetDesign(params: GetDesignParams): Promise<GetDesignResult
   const assets = extractAssetsInfo(resources)
 
   return {
+    rootNodeId: node.id,
     design,
     assets
   }

@@ -6,16 +6,67 @@
 
 ## 核心原则
 
+### 截图 vs JSON 的职责分工
+
+| 信息来源 | 职责 | 示例 |
+|---------|------|------|
+| **截图** | 理解整体结构、布局方向、组件层级 | 这是一个弹窗、列表是纵向排列 |
+| **JSON** | 提取精确的样式值、文本内容、尺寸 | `background: #F2F2F2`、`padding: 10px 12px` |
+
+> ⚠️ **绝对禁止**：根据截图"看起来像"就自行添加样式属性
+
 ### 样式必须从 JSON 精确提取
 
 ```javascript
-// ❌ 错误：猜测颜色
-background: rgba(255, 153, 0, 0.08)  // 自己编的
+// ❌ 错误：看截图觉得有边框就加
+.option-tag {
+  border: 1px solid #e5e5e5;  // JSON 中没有这个属性！
+}
 
-// ✅ 正确：直接复制 customStyle
-customStyle: {
-  "background": "rgba(255, 58, 54, 0.05)",  // ← 用这个
-  "border": "0.50px solid #F7C9C9"          // ← 不要遗漏
+// ✅ 正确：JSON 中 customStyle 没有 border，就不加
+// JSON 数据：
+{
+  "customStyle": {
+    "background": "#F2F2F2",
+    "border-radius": "4px",
+    "padding": "10px 12px"
+  }
+  // 注意：没有 border 属性
+}
+
+// 生成的 CSS：
+.option-tag {
+  background: #F2F2F2;
+  border-radius: 4px;
+  padding: 10px 12px;
+  // 不加 border，因为 JSON 中没有
+}
+```
+
+### 不同状态的样式区分
+
+设计稿中可能有多个状态（默认、选中、悬停等），需要从 JSON 中找到对应的节点：
+
+```javascript
+// 默认状态节点的 customStyle
+{
+  "background": "#F2F2F2"
+  // 无 border
+}
+
+// 选中状态节点的 customStyle
+{
+  "border": "1px solid rgba(255, 58, 54, 0.2)",
+  "background": "rgba(255, 58, 54, 0.05)"
+}
+
+// ✅ 正确生成：
+.option-tag {
+  background: #F2F2F2;
+}
+.option-tag.active {
+  border: 1px solid rgba(255, 58, 54, 0.2);
+  background: rgba(255, 58, 54, 0.05);
 }
 ```
 
@@ -57,11 +108,14 @@ props: {
 - `HORIZONTAL` → `display: flex`
 - `VERTICAL` → `display: flex; flex-direction: column`
 
-### 样式提取
+### 样式提取检查清单
 
-1. **直接复制 `customStyle`**：不要修改、不要猜测
-2. 保留 `rem()`、`px()` 等函数
-3. 用 `layout.margin` 计算间距
+生成每个元素的样式时，按此清单检查：
+
+1. ✅ 该属性是否存在于 `customStyle` 中？
+2. ✅ 属性值是否完全复制（包括单位、函数）？
+3. ✅ 是否遗漏了 `customStyle` 中的属性？
+4. ❌ 是否添加了 `customStyle` 中不存在的属性？
 
 ### 数据驱动
 

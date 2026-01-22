@@ -59,6 +59,7 @@ export interface AssetInfo {
 }
 
 export interface GetDesignResult {
+  rootNodeId: string
   design: unknown
   assets: AssetInfo[]
 }

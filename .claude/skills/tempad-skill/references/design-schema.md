@@ -15,6 +15,8 @@
 
 ```typescript
 interface UINode {
+  id?: string     // 节点 ID（根节点必有，用于下载截图；子节点无此字段）
+  name?: string   // 节点名称（已移除以减少 JSON 体积）
   type: string
 
   layout: {
@@ -37,6 +39,7 @@ interface UINode {
 
   // 矢量图标
   vector?: {
+    id: string        // 节点 ID，用于下载资源
     assetPath: string // 资源路径
     svgContent?: string // 内联 SVG
     width: number
