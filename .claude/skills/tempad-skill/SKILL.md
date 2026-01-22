@@ -2,7 +2,6 @@
 name: tempad-skill
 description: |
   将 Figma/MasterGo 设计转换为前端组件代码。通过 HTTP API 与 TemPad Dev Skill Server 集成。
-  使用场景：(1) 查看设计截图理解 UI，(2) 获取设计节点 JSON 数据，(3) 下载图标/图片资源，(4) 基于数据生成符合项目规范的组件代码。
   前提条件：TemPad Dev 浏览器扩展已连接，Skill Server 运行在 http://127.0.0.1:13580
 ---
 
@@ -13,48 +12,43 @@ description: |
 ### 1. 获取截图理解设计
 
 ```bash
-curl -X POST http://127.0.0.1:13580/get_screenshot -H "Content-Type: application/json" -d '{}'
+curl -s -X POST http://127.0.0.1:13580/get_screenshot -H "Content-Type: application/json" -d '{}'
 ```
 
-返回 Base64 PNG，用于理解整体视觉效果。
+返回 JSON: `{"image": "data:image/png;base64,..."}`
+
+**查看方式**：直接读取 base64 数据，让模型解析图像内容。
 
 ### 2. 获取设计数据
 
 ```bash
-curl -X POST http://127.0.0.1:13580/get_design -H "Content-Type: application/json" -d '{}'
+curl -s -X POST http://127.0.0.1:13580/get_design -H "Content-Type: application/json" -d '{}'
 ```
 
 返回 `design`（UI 节点树）和 `assets`（可导出资源列表）。
 
-### 3. 下载资源
+**重要**：
+- `assets` 仅列出可导出资源，不表示使用位置
+- 根据 `design` 树中 `vector` 节点的**位置**判断图标用途
+
+### 3. 下载资源（按需）
+
+根据 JSON 树结构判断需要哪些图标，通过 `vector.id` 下载：
 
 ```bash
 node scripts/download-assets.cjs --nodes '[
-  {"nodeId":"0:123","outputPath":"/project/src/icons/arrow.svg","format":"svg"},
-  {"nodeId":"0:456","outputPath":"/project/src/images/bg.png","format":"png","scale":2}
+  {"nodeId":"0:123","outputPath":"/project/src/icons/arrow.svg","format":"svg"}
 ]'
 ```
 
-输出示例：
-
-```
-Downloaded 2 assets:
-  - /project/src/icons/arrow.svg (24x24)
-  - /project/src/images/bg.png (48x48)
-```
-
-**节点参数说明：**
-
-- `nodeId`：节点 ID（必需）
-- `outputPath`：输出文件完整路径（必需）
-- `format`：`svg` | `png` | `jpg` | `webp`（可选，默认 `png`）
-- `scale`：缩放比例（可选，默认 1）
+`nodeId` 来源：`assets[].nodeId` 或节点中的 `vector.id`。
 
 ### 4. 生成组件代码
 
-1. **查阅项目规范**：检查项目的技术栈和代码风格
-2. **应用通用规范**：见 [references/codegen-rules.md](references/codegen-rules.md)
-3. **基于 JSON 数据生成代码**
+1. 查阅项目规范（技术栈、代码风格）
+2. 应用通用规范：[references/codegen-rules.md](references/codegen-rules.md)
+3. **样式直接复制 `customStyle`，不要猜测**
+4. **文本默认值从 `text.content` 提取**
 
 ## 参考文档
 
