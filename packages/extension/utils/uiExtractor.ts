@@ -96,28 +96,6 @@ export interface UINode {
   children?: UINode[]
   // 添加自定义样式字段
   customStyle?: Record<string, string>
-
-  // 分割线数据，用于生成水平或垂直分隔线
-  divider?: {
-    // 分割线方向：horizontal生成<hr>，vertical生成带role="separator"的<div>
-    orientation: 'horizontal' | 'vertical'
-    // 分割线样式
-    style: {
-      // 分割线颜色，用于border-color
-      color: string
-      // 分割线粗细，用于border-width
-      thickness: number
-      // 线条样式，用于border-style
-      lineStyle?: 'solid' | 'dashed' | 'dotted'
-    }
-    // 分割线布局
-    layout: {
-      // 是否全宽，true表示width:100%
-      fullWidth?: boolean
-      // 是否全高，true表示height:100%
-      fullHeight?: boolean
-    }
-  }
 }
 
 // 提取颜色信息
@@ -576,148 +554,6 @@ function extractCustomComponent(node: any) {
   }
 }
 
-// 检测节点是否为分割线
-function isDivider(node: any): boolean {
-  // 条件1: 明确的LINE类型元素
-  if (node.type === 'LINE') {
-    return true
-  }
-
-  // 条件2: 矢量或矩形元素 + 极小高度 + 有描边/填充 (水平分割线)
-  const isHorizontalDivider =
-    (node.type === 'VECTOR' || node.type === 'RECTANGLE') &&
-    node.height <= 2 &&
-    node.width >= 8 &&
-    (node.strokes?.length > 0 || (node.fills?.length > 0 && node.fills[0].visible !== false))
-
-  // 条件3: 矢量或矩形元素 + 极小宽度 + 有描边/填充 (垂直分割线)
-  const isVerticalDivider =
-    (node.type === 'VECTOR' || node.type === 'RECTANGLE') &&
-    node.width <= 2 &&
-    node.height >= 8 &&
-    (node.strokes?.length > 0 || (node.fills?.length > 0 && node.fills[0].visible !== false))
-
-  // 条件4: 名称中包含关键词
-  const nameContainsDividerKeyword =
-    node.name.toLowerCase().includes('divider') ||
-    node.name.toLowerCase().includes('separator') ||
-    node.name.toLowerCase().includes('分割线')
-
-  // 对于关键词匹配的节点，进一步验证其视觉特征
-  if (nameContainsDividerKeyword) {
-    // 检查是否为细长的元素 (宽高比大于10或高宽比大于10)
-    const aspectRatio = node.width / node.height
-    const isExtremelyWide = aspectRatio >= 10
-    const isExtremelyTall = aspectRatio <= 0.1
-
-    if (isExtremelyWide || isExtremelyTall) {
-      return true
-    }
-  }
-
-  return isHorizontalDivider || isVerticalDivider
-}
-
-// 提取分割线数据
-function extractDividerData(node: any): {
-  orientation: 'horizontal' | 'vertical'
-  style: {
-    color: string
-    thickness: number
-    lineStyle?: 'solid' | 'dashed' | 'dotted'
-  }
-  layout: {
-    // margin: {
-    //   top?: number;
-    //   right?: number;
-    //   bottom?: number;
-    //   left?: number;
-    // };
-    fullWidth?: boolean
-    fullHeight?: boolean
-  }
-} {
-  // 确定方向
-  let isHorizontal = true
-
-  if (node.type === 'LINE') {
-    // 对于LINE元素，检查起始点和终止点的关系
-    if (node.x1 === node.x2) {
-      isHorizontal = false // 垂直线
-    } else if (node.y1 === node.y2) {
-      isHorizontal = true // 水平线
-    } else {
-      // 对于斜线，通过比较高度和宽度判断主方向
-      isHorizontal = node.width > node.height
-    }
-  } else {
-    // 对于其他类型元素，通过宽高比判断
-    isHorizontal = node.width > node.height
-  }
-
-  // 创建结果对象
-  const result: {
-    orientation: 'horizontal' | 'vertical'
-    style: {
-      color: string
-      thickness: number
-      lineStyle?: 'solid' | 'dashed' | 'dotted'
-    }
-    layout: {
-      fullWidth?: boolean
-      fullHeight?: boolean
-    }
-  } = {
-    orientation: isHorizontal ? 'horizontal' : 'vertical',
-    style: {
-      color: '#EFEFEF', // 默认浅灰色
-      thickness: 1
-    },
-    layout: {}
-  }
-
-  // 获取颜色
-  if (node.strokes?.length > 0 && node.strokes[0].visible !== false) {
-    result.style.color = extractColor(node.strokes[0].color)
-  } else if (node.fills?.length > 0 && node.fills[0].visible !== false) {
-    result.style.color = extractColor(node.fills[0].color)
-  }
-
-  // 获取线条粗细
-  if (node.strokeWeight) {
-    result.style.thickness = node.strokeWeight
-  } else {
-    // 基于方向使用实际高度或宽度
-    result.style.thickness = isHorizontal ? node.height : node.width
-    // 确保最小值为1
-    // result.style.thickness = Math.max(1, result.style.thickness);
-  }
-
-  // 检查线条样式
-  if (node.strokeDashes?.length > 0) {
-    // 根据dash模式判断是dotted还是dashed
-    result.style.lineStyle = node.strokeDashes[0] <= 2 ? 'dotted' : 'dashed'
-  }
-
-  // 通过检查与父容器的关系来估算边距
-  if (node.parent) {
-    const nodePos = getNodePosition(node)
-    const parentPos = getNodePosition(node.parent)
-    // 判断是否是父容器宽/高的100%
-    // 如果宽度接近父容器宽度的90%以上，认为是100%宽
-    if (isHorizontal && nodePos.width >= parentPos.width * 0.9) {
-      result.layout.fullWidth = true
-    }
-
-    // 如果高度接近父容器高度的90%以上，认为是100%高
-    if (!isHorizontal && nodePos.height >= parentPos.height * 0.9) {
-      result.layout.fullHeight = true
-    }
-  }
-
-  return result
-}
-
 // 提取矢量/图标数据并返回处理结果
 const processVectorData = async (node: any, resources: Map<string, any>) => {
   // 获取矢量数据
@@ -770,9 +606,6 @@ async function extractUINode(
   if (!rootNode) {
     rootNode = node
   }
-
-  // 检查是否为分割线
-  const isDividerNode = isDivider(node)
 
   const uiNode: UINode = {
     id: node.id,
@@ -872,22 +705,6 @@ async function extractUINode(
     if (uiNode.layout?.padding) {
       delete uiNode.layout.padding
     }
-  }
-
-  // 如果是分割线，添加divider属性并设置为DIVIDER类型
-  if (isDividerNode) {
-    const dividerData = extractDividerData(node)
-    // 转换成UINode.divider结构
-    uiNode.divider = {
-      orientation: dividerData.orientation as 'horizontal' | 'vertical',
-      style: dividerData.style,
-      layout: dividerData.layout
-    }
-    // Clean up layout/style fields for dividers
-    delete uiNode.layout.height // Still useful to remove calculated height/width for border approach
-    delete uiNode.layout.width
-    // 删除customStyle属性
-    delete uiNode.customStyle
   }
 
   // 如果当前节点不是图标且不是自定义组件，才处理子节点

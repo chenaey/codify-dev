@@ -3,6 +3,7 @@ import { computed, shallowRef, watch } from 'vue'
 
 import { layoutReady, selection, runtimeMode } from '@/ui/state'
 import { getCanvas, getLeftPanel } from '@/utils'
+import { printNodeTree } from '@/utils/debugNodeTree'
 import { getCurrentPlatform, Platform } from '@/utils/platform'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -47,7 +48,9 @@ export async function syncSelection() {
       selection.value = []
     }
   }
-  console.log('syncSelection', selection.value)
+  console.log(selection.value)
+  // 打印选中节点的完整树结构，便于调试
+  printNodeTree(selection.value)
 }
 
 function handleClick() {
