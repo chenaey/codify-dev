@@ -23,6 +23,9 @@ interface UINode {
   type: string    // 节点类型，图标为 'ICON'
 
   layout: {
+    positioning?: 'absolute'  // 绝对定位标记（customStyle 中已包含计算好的 position/left/right/top/bottom）
+    x?: number                // 相对坐标（仅用于调试）
+    y?: number
     layoutMode: 'HORIZONTAL' | 'VERTICAL' | 'NONE'
     width?: number | '100%'
     height?: number

@@ -13,6 +13,8 @@ import { mergeStyles } from './styleMerger'
 type LayoutMode = 'NONE' | 'HORIZONTAL' | 'VERTICAL'
 // 添加尺寸调整模式类型
 type SizingMode = 'HUG' | 'FILL' | 'FIXED' | 'NONE'
+// 添加定位模式类型
+type PositioningMode = 'absolute'
 
 // --- Helper Types for Extracted Properties ---
 // Note: FlexProperties type is no longer directly used in UINode,
@@ -53,6 +55,7 @@ export interface UINode {
     width?: number | '100%' // 布局宽度
     height?: number | '100%' // 布局高度
     layoutMode: LayoutMode // 改为必填，永远会有值
+    positioning?: PositioningMode // 绝对定位标记
     // sizingMode?: SizingModeProperties
     layoutAlign?: string // 布局对齐方式 (STRETCH | CENTER | MIN | MAX)
     padding?: {
@@ -254,7 +257,19 @@ function getNodePosition(node: any) {
   }
 }
 
-// 获取节点的布局模式
+// 判断节点是否为绝对定位
+function isAbsolutePositioned(node: any, parent: any): boolean {
+  // 场景1: AutoLayout 内的绝对定位（Figma: layoutPositioning）
+  if ('layoutPositioning' in node && node.layoutPositioning === 'ABSOLUTE') {
+    return true
+  }
+  // 场景2: MasterGo 兼容（position 属性）
+  if ('position' in node && node.position === 'ABSOLUTE') {
+    return true
+  }
+  return false
+}
+
 // 获取节点的布局模式
 function getLayoutMode(node: any): LayoutMode {
   // 1. 如果节点显式设置了layoutMode，使用设置的值 (Figma)
@@ -277,7 +292,7 @@ function shouldCalculateMargin(node: any, parent: any): boolean {
   if (getLayoutMode(parent) === 'NONE') return false
 
   // 2. 节点不能是绝对定位
-  if (node.position === 'ABSOLUTE') return false
+  if (isAbsolutePositioned(node, parent)) return false
 
   // 3. 父节点必须设置了itemSpacing
   if (parent.itemSpacing === undefined) return false
@@ -367,6 +382,140 @@ function calculateMargin(node: any, siblings: any[], parent: any) {
   return {
     ...(getLayoutMode(parent) === 'HORIZONTAL' ? { right: marginValue } : { bottom: marginValue })
   }
+}
+
+/**
+ * 提取绝对定位节点的 CSS 样式
+ * 参考 MCP collect.ts 的 applyAutoLayoutAbsolutePosition 实现
+ * 直接计算 position: absolute 和 left/right/top/bottom
+ */
+function extractAbsolutePositionStyles(node: any, parent: any): Record<string, string> {
+  if (!isAbsolutePositioned(node, parent)) {
+    return {}
+  }
+
+  const nodePos = getNodePosition(node)
+  const parentPos = getNodePosition(parent)
+  const width = toDecimalPlace(nodePos.width)
+  const height = toDecimalPlace(nodePos.height)
+  const parentWidth = toDecimalPlace(parentPos.width)
+  const parentHeight = toDecimalPlace(parentPos.height)
+
+  if (!parentWidth || !parentHeight) {
+    return { position: 'absolute' }
+  }
+
+  // 使用 relativeTransform 获取相对于父容器的坐标
+  const transform = 'relativeTransform' in node ? node.relativeTransform : undefined
+  let left: number, top: number
+
+  if (transform && transform.length >= 2 && transform[0].length >= 3 && transform[1].length >= 3) {
+    left = toDecimalPlace(transform[0][2])
+    top = toDecimalPlace(transform[1][2])
+  } else {
+    // Fallback
+    left = toDecimalPlace(nodePos.x - parentPos.x)
+    top = toDecimalPlace(nodePos.y - parentPos.y)
+  }
+
+  const right = toDecimalPlace(parentWidth - width - left)
+  const bottom = toDecimalPlace(parentHeight - height - top)
+
+  const result: Record<string, string> = { position: 'absolute' }
+  const constraints = 'constraints' in node ? node.constraints : undefined
+
+  if (constraints) {
+    // 水平方向
+    // Figma: MIN/MAX/CENTER/STRETCH/SCALE
+    // MasterGo: START/END/CENTER/STRETCH/SCALE
+    switch (constraints.horizontal) {
+      case 'MIN':
+      case 'START':
+        result.left = `${left}px`
+        break
+      case 'MAX':
+      case 'END':
+        result.right = `${right}px`
+        break
+      case 'CENTER': {
+        const offset = toDecimalPlace(left + width / 2 - parentWidth / 2)
+        if (offset === 0) {
+          result.left = '50%'
+          result.transform = 'translateX(-50%)'
+        } else {
+          result.left = `calc(50% + ${offset}px)`
+          result.transform = 'translateX(-50%)'
+        }
+        break
+      }
+      case 'STRETCH':
+        result.left = `${left}px`
+        result.right = `${right}px`
+        break
+      case 'SCALE':
+        result.left = `${toDecimalPlace((left / parentWidth) * 100)}%`
+        result.right = `${toDecimalPlace((right / parentWidth) * 100)}%`
+        break
+      default:
+        result.left = `${left}px`
+    }
+
+    // 垂直方向
+    // Figma: MIN/MAX/CENTER/STRETCH/SCALE
+    // MasterGo: START/END/CENTER/STRETCH/SCALE
+    switch (constraints.vertical) {
+      case 'MIN':
+      case 'START':
+        result.top = `${top}px`
+        break
+      case 'MAX':
+      case 'END':
+        result.bottom = `${bottom}px`
+        break
+      case 'CENTER': {
+        const offset = toDecimalPlace(top + height / 2 - parentHeight / 2)
+        if (result.transform) {
+          // 已有水平居中的 transform
+          if (offset === 0) {
+            result.top = '50%'
+            result.transform = 'translate(-50%, -50%)'
+          } else {
+            result.top = `calc(50% + ${offset}px)`
+            result.transform = 'translate(-50%, -50%)'
+          }
+        } else {
+          if (offset === 0) {
+            result.top = '50%'
+            result.transform = 'translateY(-50%)'
+          } else {
+            result.top = `calc(50% + ${offset}px)`
+            result.transform = 'translateY(-50%)'
+          }
+        }
+        break
+      }
+      case 'STRETCH':
+        result.top = `${top}px`
+        result.bottom = `${bottom}px`
+        break
+      case 'SCALE':
+        result.top = `${toDecimalPlace((top / parentHeight) * 100)}%`
+        result.bottom = `${toDecimalPlace((bottom / parentHeight) * 100)}%`
+        break
+      default:
+        result.top = `${top}px`
+    }
+  } else {
+    // 无约束时，默认使用 left/top
+    result.left = `${left}px`
+    result.top = `${top}px`
+  }
+
+  // 安全保底：确保至少有一个方向
+  if (!result.left && !result.right) result.left = `${left}px`
+  if (!result.top && !result.bottom) result.top = `${top}px`
+
+  return result
 }
 
 // Returns a style object with CSS properties derived from Figma's layout settings.
@@ -469,11 +618,28 @@ function extractLayout(
 ): UINode['layout'] {
   let relativeX, relativeY
 
-  // 获取当前节点和根节点的位置
+  // 获取当前节点的位置
   const nodePos = getNodePosition(node)
 
-  if (rootNode) {
-    // 计算相对于根节点的坐标
+  // 检查是否为绝对定位节点
+  const isAbsolute = isAbsolutePositioned(node, parent)
+
+  if (isAbsolute && parent) {
+    // 绝对定位节点：使用 relativeTransform 获取相对于父容器的真实坐标
+    // relativeTransform 是 2x3 变换矩阵：[[a, b, tx], [c, d, ty]]
+    // tx = transform[0][2], ty = transform[1][2]
+    const transform = 'relativeTransform' in node ? node.relativeTransform : undefined
+    if (transform && transform.length >= 2 && transform[0].length >= 3 && transform[1].length >= 3) {
+      relativeX = transform[0][2]
+      relativeY = transform[1][2]
+    } else {
+      // Fallback：使用坐标差值（不够精确，但总比没有好）
+      const parentPos = getNodePosition(parent)
+      relativeX = nodePos.x - parentPos.x
+      relativeY = nodePos.y - parentPos.y
+    }
+  } else if (rootNode) {
+    // 普通节点：计算相对于根节点的坐标
     const rootPos = getNodePosition(rootNode)
     relativeX = nodePos.x - rootPos.x
     relativeY = nodePos.y - rootPos.y
@@ -482,12 +648,19 @@ function extractLayout(
     relativeX = nodePos.x
     relativeY = nodePos.y
   }
+
   // --- Initialize layout object ---
   const layout: UINode['layout'] = {
     x: toDecimalPlace(relativeX),
     y: toDecimalPlace(relativeY),
     layoutMode: getLayoutMode(node)
   }
+
+  // 如果是绝对定位节点，添加 positioning 标记
+  if (isAbsolute) {
+    layout.positioning = 'absolute'
+  }
+
 
   const horizontalSizing = node.layoutSizingHorizontal || 'NONE'
   const verticalSizing = node.layoutSizingVertical || 'NONE'
@@ -599,6 +772,11 @@ async function extractUINode(
     uiNode.text = textInfo
   }
 
+  // --- Extract derived flex styles ---
+  const derivedFlexStyles = extractDerivedFlexStyles(node, parent)
+  // --- Extract absolute positioning styles (position/left/right/top/bottom) ---
+  const absoluteStyles = extractAbsolutePositionStyles(node, parent)
+
   try {
     // 获取生成的CSS代码
     const style = await getCSSAsync(node)
@@ -622,16 +800,14 @@ async function extractUINode(
 
     // 只保存 css 代码块的 code 字段
     const cssBlock = codeBlocks.find((block) => block.name === 'css')
-    if (cssBlock) {
+    if (cssBlock && cssBlock.code) {
       const stylesArray = cssBlock.code.split('\n')
       const initialCustomStyle = convertStyleArrayToObject(stylesArray)
 
-      // --- NEW: Extract derived flex styles ---
-      const derivedFlexStyles = extractDerivedFlexStyles(node, parent)
-      // --- NEW: Merge styles ---
-      // Start with derived styles, then override with styles from getCSSAsync
-      // This ensures getCSSAsync styles (initialCustomStyle) take precedence.
-      const finalCustomStyle = { ...derivedFlexStyles, ...initialCustomStyle }
+      // --- Merge styles ---
+      // Priority: absoluteStyles > derivedFlexStyles > initialCustomStyle
+      // absoluteStyles has highest priority for positioning
+      const finalCustomStyle = { ...derivedFlexStyles, ...initialCustomStyle, ...absoluteStyles }
 
       // 如果节点不需要固定宽高，则过滤掉 width 和 height 样式
       // Apply this filtering *after* merging
@@ -643,18 +819,24 @@ async function extractUINode(
 
       // Assign the final merged style
       uiNode.customStyle = finalCustomStyle
+    } else if (Object.keys(absoluteStyles).length > 0 || Object.keys(derivedFlexStyles).length > 0) {
+      // 即使没有 cssBlock，也要保留绝对定位和 flex 样式
+      const fallbackStyle = { ...derivedFlexStyles, ...absoluteStyles }
+      if (Object.keys(fallbackStyle).length > 0) {
+        uiNode.customStyle = fallbackStyle
+      }
     }
   } catch (error) {
     console.error(`Failed to get CSS for node ${node.id}:`, error)
-  }
-
-  // 过滤掉绝对定位的节点 这个需要额外处理
-  if (uiNode.customStyle) {
-    const isAbsolute = uiNode.customStyle['position'] === 'absolute'
-    if (isAbsolute) {
-      return null
+    // 即使 CSS 提取失败，也要保留绝对定位样式
+    if (Object.keys(absoluteStyles).length > 0 || Object.keys(derivedFlexStyles).length > 0) {
+      const fallbackStyle = { ...derivedFlexStyles, ...absoluteStyles }
+      if (Object.keys(fallbackStyle).length > 0) {
+        uiNode.customStyle = fallbackStyle
+      }
     }
   }
+
 
   // 合并customStyle和layout.margin (Using the final customStyle)
   // 如果有 layout.margin 但没有 customStyle，先创建空的 customStyle

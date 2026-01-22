@@ -67,11 +67,6 @@ Run these at repo root unless noted.
 
 Pick the checks that match your change.
 
-1. Always
-
-- `pnpm typecheck`
-- `pnpm lint` (or `pnpm lint:fix`)
-
 2. Extension UI / codegen
 
 - `pnpm dev`

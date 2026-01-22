@@ -46,9 +46,10 @@ function optimizeNode(node: UINode): void {
   const isIconNode = node.type === 'ICON'
 
   // 1. 清理坐标信息
-  // - 自动布局中 x/y 无意义
-  // - ICON 节点的 x/y 也无意义（只需要尺寸）
-  if (node.layout.layoutMode !== 'NONE' || isIconNode) {
+  // - 自动布局中 x/y 无意义（除非是绝对定位节点）
+  // - ICON 节点的 x/y 也无意义（只需要尺寸），除非是绝对定位
+  const isAbsolutePositioned = node.layout.positioning === 'absolute'
+  if (!isAbsolutePositioned && (node.layout.layoutMode !== 'NONE' || isIconNode)) {
     delete node.layout.x
     delete node.layout.y
   }

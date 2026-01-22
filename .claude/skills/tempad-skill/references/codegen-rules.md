@@ -134,6 +134,32 @@ props: {
 
 状态间有 `border` 差异时，基础状态用 `border: Xpx solid transparent` 预留空间。
 
+### 绝对定位节点
+
+`layout.positioning === 'absolute'` 时：
+- **父容器需要 `position: relative`**
+- `customStyle` 中已包含计算好的定位样式，直接使用：
+  - `position: absolute`
+  - `left/right/top/bottom` 等
+
+```json
+// 示例：右上角关闭按钮
+{
+  "layout": {
+    "positioning": "absolute",
+    "width": 16,
+    "height": 16
+  },
+  "customStyle": {
+    "position": "absolute",
+    "right": "3px",
+    "top": "3px"
+  }
+}
+```
+
+> 无需手动计算定位值，插件已根据 Figma/MasterGo 的 constraints 自动生成。
+
 ### 其他
 
 - `divider` → border
