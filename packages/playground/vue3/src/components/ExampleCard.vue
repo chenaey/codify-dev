@@ -4,9 +4,7 @@
       <img src="@shared/icons/icon-ip.svg" alt="IP" class="icon" />
       <span class="label">示例卡片</span>
     </div>
-    <p class="description">
-      这是一个示例组件，展示如何使用共享资源中的图标。
-    </p>
+    <p class="description">这是一个示例组件，展示如何使用共享资源中的图标。</p>
     <div class="actions">
       <button class="btn btn-primary">确认</button>
       <button class="btn btn-secondary">取消</button>

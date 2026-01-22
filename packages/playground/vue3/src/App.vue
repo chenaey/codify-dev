@@ -13,7 +13,6 @@
         </div>
       </section>
 
-   
       <!-- 在这里添加更多组件测试区域 -->
     </main>
   </div>
@@ -36,8 +35,7 @@ const handleRefresh = () => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 12px;
-    background: #f9f9f9;
-
+  background: #f9f9f9;
 }
 
 .header {
