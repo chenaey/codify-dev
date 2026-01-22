@@ -20,6 +20,8 @@
     "format:root:check": "oxfmt --ignore-path ./.gitignore --ignore-path ./.oxfmtignore --check",
     "typecheck": "pnpm -r typecheck",
     "zip": "pnpm --filter @tempad-dev/extension zip",
+    "playground:vue3": "pnpm --filter @tempad-dev/playground-vue3 dev",
+    "playground:vue2": "pnpm --filter @tempad-dev/playground-vue2 dev",
     "npm:plugins": "pnpm --filter @tempad-dev/plugins publish --access public",
     "npm:mcp": "pnpm --filter @tempad-dev/mcp publish --access public",
     "prepare": "lefthook install"
