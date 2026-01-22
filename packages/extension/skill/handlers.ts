@@ -48,7 +48,7 @@ function isSceneNode(node: BaseNode | null): node is SceneNode {
 // Get current selection directly from platform API (not cached state)
 function getCurrentSelection(): readonly SceneNode[] {
   const platform = getCurrentPlatform()
-  
+
   if (platform === Platform.MasterGo) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mg = (window as any).mg
@@ -57,7 +57,7 @@ function getCurrentSelection(): readonly SceneNode[] {
     }
     return mg.document.currentPage.selection || []
   }
-  
+
   // Figma: figma.currentPage.selection
   if (!window.figma?.currentPage) {
     return []
@@ -68,13 +68,13 @@ function getCurrentSelection(): readonly SceneNode[] {
 // Get node by ID using platform-specific API
 function getNodeById(nodeId: string): BaseNode | null {
   const platform = getCurrentPlatform()
-  
+
   if (platform === Platform.MasterGo) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mg = (window as any).mg
     return mg?.getNodeById?.(nodeId) ?? null
   }
-  
+
   return window.figma?.getNodeById?.(nodeId) ?? null
 }
 
@@ -90,17 +90,17 @@ function resolveNode(nodeId?: string): SceneNode {
 
   // Get selection directly from platform API to ensure freshness
   const currentSelection = getCurrentSelection()
-  
+
   if (currentSelection.length !== 1) {
     throw createError(ERROR_CODES.NO_SELECTION, `Expected 1 node, got ${currentSelection.length}`)
   }
-  
+
   const node = currentSelection[0]
-  
+
   if (!node) {
     throw createError(ERROR_CODES.NO_SELECTION, 'Selected node is null')
   }
-  
+
   // MasterGo: visible might be undefined (default to true)
   if (node.visible === false) {
     throw createError(ERROR_CODES.NO_SELECTION, 'Selected node is not visible')
@@ -144,9 +144,7 @@ function hasImageFill(node: SceneNode): boolean {
   if (!('fills' in node) || !Array.isArray(node.fills)) {
     return false
   }
-  return node.fills.some(
-    (fill) => fill.type === 'IMAGE' && fill.visible !== false
-  )
+  return node.fills.some((fill) => fill.type === 'IMAGE' && fill.visible !== false)
 }
 
 // Check if all children of a container are vector-like (SVG collapsible)
@@ -179,10 +177,7 @@ function hasOnlyVectorChildren(node: SceneNode): boolean {
 // 3. Containers with only vector children → VECTOR (icon containers)
 // 4. Nodes with IMAGE fills → IMAGE
 // 5. Default: undefined (caller decides)
-function classifyAsset(
-  node: SceneNode,
-  fileName?: string
-): 'VECTOR' | 'IMAGE' | undefined {
+function classifyAsset(node: SceneNode, fileName?: string): 'VECTOR' | 'IMAGE' | undefined {
   // 1. fileName hint takes precedence (from iconExtractor's generateUniqueIconName)
   // If the file was named with .svg extension, it was identified as an icon
   if (fileName?.toLowerCase().endsWith('.svg')) {
@@ -297,7 +292,17 @@ async function exportSingleAsset(req: AssetExportParams): Promise<ExportedAsset>
 
   if (format === 'svg') {
     const bytes = await node.exportAsync({ format: 'SVG' })
-    const data = new TextDecoder().decode(bytes)
+    // MasterGo may return different types, handle gracefully
+    let data: string
+    if (typeof bytes === 'string') {
+      data = bytes
+    } else if (bytes instanceof Uint8Array || bytes instanceof ArrayBuffer) {
+      const decoder = new TextDecoder('utf-8')
+      data = decoder.decode(bytes)
+    } else {
+      // Fallback for unknown types
+      data = String.fromCharCode(...new Uint8Array(bytes as ArrayBufferLike))
+    }
     return {
       nodeId: req.nodeId,
       name,

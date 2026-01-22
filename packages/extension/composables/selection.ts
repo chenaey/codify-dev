@@ -47,6 +47,7 @@ export async function syncSelection() {
       selection.value = []
     }
   }
+  console.log('syncSelection', selection.value)
 }
 
 function handleClick() {

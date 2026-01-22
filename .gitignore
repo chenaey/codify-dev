@@ -26,3 +26,4 @@ dist
 *.sln
 *.sw?
 test
+.agents
