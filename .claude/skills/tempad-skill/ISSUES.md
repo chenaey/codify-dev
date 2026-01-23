@@ -10,36 +10,43 @@
 
 **问题文件**: `packages/extension/utils/uiExtractor.ts`
 
-**问题描述**: 
+**问题描述**:
 `layoutPositioning: "ABSOLUTE"` 的节点信息在提取过程中被丢弃。
 
 **原始数据**（已确认存在）:
+
 ```json
 {
   "id": "0:5756",
   "layoutPositioning": "ABSOLUTE",
   "constraints": { "horizontal": "END", "vertical": "START" },
-  "x": 339, "y": 3,
-  "width": 16, "height": 16
+  "x": 339,
+  "y": 3,
+  "width": 16,
+  "height": 16
 }
 ```
 
 **输出 JSON**: 该节点作为普通 flex 子元素，无定位信息。
 
 **期望输出**:
+
 ```json
 {
   "type": "ICON",
   "layout": {
     "positioning": "absolute",
     "constraints": { "horizontal": "END", "vertical": "START" },
-    "x": 339, "y": 3,
-    "width": 16, "height": 16
+    "x": 339,
+    "y": 3,
+    "width": 16,
+    "height": 16
   }
 }
 ```
 
 **排查方向**:
+
 1. `uiExtractor.ts` 是否过滤了 `layoutPositioning === "ABSOLUTE"` 的节点？
 2. `layoutExtractor.ts` 是否忽略了 `layoutPositioning` 字段？
 
@@ -64,11 +71,42 @@
 
 ## 已解决问题
 
+### ✅ Skill 文档精简优化 (v2.6)
+
+**Issue ID**: #complex-workflow-enforce, #image-resources
+
+**原问题**:
+
+1. 复杂工作流规则冗长，违反"模型很聪明"原则
+2. 图片资源规则示例过多，重复啰嗦
+3. phased-workflow.md 检查点过度形式化
+
+**解决方案**: 按 skill-creator 原则精简
+
+1. **SKILL.md**: 移除流程图、冗余分支，用一行条件判断替代
+2. **phased-workflow.md**: 从 180+ 行精简至 ~60 行，保留核心流程
+3. **codegen-rules.md**: 图片资源规则从 30+ 行精简至 1 行
+4. **移除"跳转"概念**: 用清晰的条件分支替代
+
+**原则**:
+
+- 信任模型推理能力
+- 一句话能说清就不用一段话
+- 示例只在必要时提供
+
+**涉及文件**:
+
+- `.claude/skills/tempad-skill/SKILL.md`
+- `.claude/skills/tempad-skill/references/phased-workflow.md`
+- `.claude/skills/tempad-skill/references/codegen-rules.md`
+
+---
+
 ### ✅ 复杂设计分阶段处理 (v2.5)
 
 **Issue ID**: #phased-workflow
 
-**原问题**: 
+**原问题**:
 
 1. **组件规划承诺未兑现**: Agent 说"会拆分多组件"，实际只创建一个大组件
 2. **样式还原精度不足**: 大 JSON 导致注意力分散，样式值被猜测而非精确复制
@@ -93,6 +131,7 @@
 - 插件层保留 `id` 字段
 
 **涉及文件**:
+
 - `.claude/skills/tempad-skill/SKILL.md` - 简化主流程，复杂逻辑引用参考文档
 - `.claude/skills/tempad-skill/scripts/query-design.cjs` - 查询工具
 - `.claude/skills/tempad-skill/references/phased-workflow.md` - 复杂设计处理指南
@@ -107,6 +146,7 @@
 **原问题**: 点击大型/复杂元素时页面会卡顿，特别是包含大量子节点的组件
 
 **根因分析**:
+
 1. `getCSSAsync(node)` - Figma/MasterGo CSS 计算是同步阻塞操作
 2. 每次选择变化都重新计算，即使是同一节点也会重复计算
 3. 快速切换节点时，旧计算仍在进行，浪费资源
@@ -135,6 +175,7 @@
 | 快速连续点击不同节点 | 每次都阻塞 | **只计算最后一个** |
 
 **涉及文件**:
+
 - `packages/extension/components/sections/CodeSection.vue` - 防抖、缓存、取消逻辑
 
 ---
@@ -165,6 +206,7 @@
    - GROUP 是视觉容器，内部重复通常无系统性意义
 
 **涉及文件**:
+
 - `packages/extension/skill/extract/compress.ts` - `computeContentHash`, `detectRepeatingPatterns`
 - `packages/extension/utils/uiExtractor.ts` - GROUP 豁免逻辑、cssCache 集成
 
@@ -183,10 +225,12 @@
 3. **元数据标记**：样本节点附带 `repeatCount` 和 `repeatNodeIds`
 
 **性能提升**：
+
 - 10 个相同组件：CSS 提取从 10 次 → 1 次
 - JSON 大小：从 N 条记录 → 1 条记录
 
 **涉及文件**:
+
 - `packages/extension/skill/extract/compress.ts` - 签名计算、模式检测
 - `packages/extension/utils/uiExtractor.ts` - 集成压缩逻辑
 
@@ -201,6 +245,7 @@
 **原问题**: 响应式规则过于简单，仅一句话「容器禁止固定宽高」，导致生成的组件在手机/PC端显示异常
 
 **解决方案**: 在 codegen-rules.md 完善响应式规则（遵循抽象原则，不硬编码具体值）：
+
 - 容器：`width: 100%`，按需添加 `max-width`
 - 有 padding 的容器：添加 `box-sizing: border-box`
 - 宽度继承：确保父→子不断链
@@ -216,6 +261,7 @@
 **原问题**: 当元素有多个状态，状态间存在影响盒模型的属性差异（如 border），会导致尺寸跳动
 
 **解决方案**: 在 codegen-rules.md 新增通用规则「状态切换尺寸稳定性」
+
 - 状态间有 border 差异 → 基础状态添加 `border: Xpx solid transparent`
 - 状态间有 outline/box-shadow 差异 → 无需处理（不影响盒模型）
 
@@ -230,11 +276,13 @@
 **原问题**: 图标节点使用嵌套 `vector` 对象，数据冗余
 
 **解决方案**:
+
 1. 类型切换语义 - 图标 `type` 设为 `'ICON'`
 2. 移除嵌套对象 - 尺寸统一放 `layout`
 3. API 层聚合 - `assets` 自动包含所有 ICON
 
 **涉及文件**:
+
 - `packages/extension/utils/uiExtractor.ts`
 - `packages/extension/utils/iconExtractor.ts`
 - `packages/skill-server/src/utils.ts`
@@ -259,7 +307,8 @@
 
 **原问题**: 使用 90% 阈值判断 `fullWidth` 过于粗糙
 
-**解决方案**: 
+**解决方案**:
+
 - 移除专门的 `Divider` 类型
 - 分割线作为标准几何节点返回
 - AI 通过宽高比推断语义
@@ -280,13 +329,13 @@
 
 ## 问题分类
 
-| 维度 | 说明 | 相关文件 |
-|------|------|---------|
-| **结构解析** | 节点树层级、嵌套 | `uiExtractor.ts` |
-| **样式提取** | customStyle 完整性 | `styleExtractor.ts` |
-| **布局算法** | layoutMode、间距 | `layoutExtractor.ts` |
-| **资源导出** | 图标、图片识别 | `iconExtractor.ts` |
-| **语义描述** | 类型标注、命名 | `uiExtractor.ts` |
+| 维度         | 说明               | 相关文件             |
+| ------------ | ------------------ | -------------------- |
+| **结构解析** | 节点树层级、嵌套   | `uiExtractor.ts`     |
+| **样式提取** | customStyle 完整性 | `styleExtractor.ts`  |
+| **布局算法** | layoutMode、间距   | `layoutExtractor.ts` |
+| **资源导出** | 图标、图片识别     | `iconExtractor.ts`   |
+| **语义描述** | 类型标注、命名     | `uiExtractor.ts`     |
 
 ---
 
