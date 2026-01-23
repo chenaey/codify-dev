@@ -6,7 +6,52 @@
 
 ## 待处理问题
 
-### 4. 绝对定位节点信息缺失 ⭐⭐⭐ 高优先级
+暂无待处理问题。
+
+---
+
+## 已解决问题
+
+### ✅ 复杂设计未拆分组件 (v2.7)
+
+**Issue ID**: #component-split-enforcement
+
+**原问题**:
+1. 虽然创建了 `structure.md` 规划，但最终还是一次性在 App.vue 中实现所有代码
+2. 没有真正拆分组件，导致还原度不够
+3. `phased-workflow.md` 只是"指导"而非"约束"
+
+**根因分析**:
+- SKILL.md 中的"复杂设计"判断只是建议，没有强制约束
+- phased-workflow.md 缺少明确的检查点和禁止性规则
+- 没有机制阻止跳过分组件实现直接写大文件
+
+**解决方案**:
+
+1. **SKILL.md 强化**:
+   - 将"遵循"改为"必须遵循"
+   - 添加醒目警告：`⚠️ 复杂设计禁止一次性生成所有代码`
+   - 简化流程，复杂度判断前置
+
+2. **phased-workflow.md 重构**:
+   - 引入 3-Phase 强制流程：规划 → 逐个实现 → 组装
+   - 每个 Phase 添加检查点，必须确认后才能进入下一个
+   - 明确禁止性规则：直接写 App.vue 包含所有代码 = ❌
+   - 添加示例演示正确执行流程
+
+3. **检查点机制**:
+   - Phase 1 检查点：structure.md 已创建、组件已列出
+   - Phase 2 检查点：所有组件状态为 ✅、每个组件有独立文件
+   - Phase 3 检查点：页面入口文件已创建、组件已正确导入
+
+**涉及文件**:
+- `.claude/skills/tempad-skill/SKILL.md`
+- `.claude/skills/tempad-skill/references/phased-workflow.md`
+- `.claude/skills/tempad-skill/ISSUES.md`
+
+---
+
+### 4. 绝对定位节点信息缺失 ⭐⭐⭐ 高优先级（历史问题）
 
 **问题文件**: `packages/extension/utils/uiExtractor.ts`
 

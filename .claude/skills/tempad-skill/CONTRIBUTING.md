@@ -257,6 +257,7 @@
 | v2.4 | 选中节点 UI 响应优化：防抖 + 缓存 + 过时请求取消 | ✅ #selection-lag |
 | v2.5 | 强化组件规划：复合页面必须先输出规划清单；新增样式提取检查清单；代码质量基本要求 | #component-planning-enforce, #style-precision, #code-syntax |
 | v2.6 | 文档精简优化：按 skill-creator 原则精简冗余规则，移除"跳转"概念，信任模型推理能力 | #complex-workflow-enforce, #image-resources |
+| v2.7 | **强制拆分组件**：3-Phase 流程 + 检查点机制，禁止一次性生成复杂页面 | ✅ #component-split-enforcement |
 
 ---
 

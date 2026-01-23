@@ -1,65 +1,36 @@
-# 复杂设计处理流程
+# 复杂设计流程
 
-复杂设计需要外化记忆：先写分析文件，再逐组件实现。
+**禁止一次性生成所有代码。必须拆分组件逐个实现。**
+
+---
 
 ## 流程
 
-1. **写入 structure.md** — 组件清单 + 布局结构
-2. **存储 design.json** — 完整设计数据
-3. **逐组件实现** — 每次一个，完成后更新状态
-4. **组装页面** — 所有组件完成后整合
+```
+规划 → 逐个实现 → 组装
+```
 
----
+### 1. 规划
 
-## 1. 写入 structure.md
-
-将分析结果写入文件，防止遗忘：
+获取设计数据后，创建 `structure.md`：
 
 ```markdown
-# 设计分析
-
-## 组件清单
-
-| 组件名      | 职责     | 节点 ID | 状态 |
-| ----------- | -------- | ------- | ---- |
-| Header      | 顶部导航 | 待定位  | ⬜   |
-| ProductCard | 商品卡片 | 待定位  | ⬜   |
-
-## 布局结构
-
-[主要区域划分]
+| 组件 | 节点 ID | 状态 |
+|------|---------|------|
+| Header | 377:68199 | ⬜ |
+| ProductCard | 500:028698 | ⬜ |
 ```
 
-状态：⬜ 待实现 / ✅ 已完成
+状态：⬜ 待实现 → ✅ 已完成
 
----
+### 2. 逐个实现
 
-## 2. 存储 design.json
+循环直到所有组件 ✅：
+1. 选择下一个 ⬜ 组件
+2. 生成代码（遵循 [codegen-rules.md](codegen-rules.md)）
+3. 下载资源
+4. 更新状态为 ✅
 
-```bash
-curl -s -X POST http://127.0.0.1:13580/get_design \
-  -H "Content-Type: application/json" -d '{}' \
-  > design.json
-```
+### 3. 组装
 
----
-
-## 3. 逐组件实现
-
-每次只处理一个组件：
-
-```bash
-# 骨架定位
-node .claude/skills/tempad-skill/scripts/query-design.cjs design.json --skeleton
-
-# 提取子树
-node .claude/skills/tempad-skill/scripts/query-design.cjs design.json --id "123:456"
-```
-
-应用 [codegen-rules.md](codegen-rules.md) 生成代码，完成后更新 structure.md 状态。
-
----
-
-## 4. 组装页面
-
-所有组件 ✅ 后，创建页面入口整合。
+所有组件 ✅ 后，创建页面入口文件组装组件。
