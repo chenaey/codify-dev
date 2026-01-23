@@ -10,6 +10,18 @@
 
 ## 核心原则
 
+### 精确复制
+
+**样式必须从 `customStyle` 逐字复制，禁止估算或简化。**
+
+```
+❌ 看截图"大概 12px" → padding: 12px
+✅ customStyle 有 "padding": "0 rem(24)" → padding: 0 rem(24)
+
+❌ 截图"看起来有圆角" → border-radius: 8px
+✅ customStyle 有 "border-radius": "rem(16)" → border-radius: rem(16)
+```
+
 ### 数据驱动
 
 **所有内容必须从 JSON 提取，禁止猜测。**
@@ -33,11 +45,15 @@
 ---
 
 ## 数据提取
-- 文本默认值从 `text.content` 提取
-- `repeatCount` 表示设计稿中该结构重复出现的次数（实际渲染由数据或逻辑决定）
+
 ### 样式
 
 从 `customStyle` 精确复制，**禁止添加不存在的属性**。
+
+| 检查项 | 说明 |
+|-------|------|
+| 属性遗漏 | `customStyle` 中的每个属性都必须出现在代码中 |
+| 属性多余 | 禁止添加 `customStyle` 中不存在的属性 |
 
 ```
 ❌ 截图"看起来有边框" → 加 border
@@ -46,13 +62,12 @@
 
 ### 文本
 
-从 `text.content` 提取。
+- 文本默认值从 `text.content` 提取
+- `repeatCount` 表示设计稿中该结构重复出现的次数（实际渲染由数据或逻辑决定）
 
 ### 多状态
 
 设计稿有多个状态时，分别从对应节点的 `customStyle` 提取。
-
-
 
 ---
 
@@ -70,6 +85,12 @@
 
 **禁止使用占位符，必须从设计稿提取。**
 
+| 资源类型 | 识别方式 | 处理 |
+|---------|---------|------|
+| 图标 | `type: "ICON"` | 用 `id` 下载 SVG |
+| 图片 | `background: "url(<path-to-image>)..."` | 用该节点 `id` 下载 PNG |
+| 纯色/渐变 | `background: "#xxx"` 或 `linear-gradient(...)` | 直接使用 |
+
 ### 图标（必须下载）
 
 `type: "ICON"` 节点**必须下载实际资源文件**：
@@ -78,15 +99,18 @@
 2. 使用 `download-assets.cjs` 下载 SVG
 3. 在代码中引用下载的文件
 
+### 图片背景（必须下载）
+
+`url(<path-to-image>)` 表示需要下载的图片资源，用该节点的 `id` 下载 PNG。
+
+### 下载命令
+
 ```bash
 node .claude/skills/tempad-skill/scripts/download-assets.cjs --nodes '[
-  {"nodeId":"924:5696","outputPath":"src/assets/icon-close.svg","format":"svg"}
+  {"nodeId":"123:456","outputPath":"src/assets/icon.svg","format":"svg"},
+  {"nodeId":"789:012","outputPath":"src/assets/bg.png","format":"png"}
 ]'
 ```
-
-### 图片
-
-从 `customStyle.background` 提取 URL，直接使用。
 
 ### 例外（可用 CSS）
 
@@ -112,6 +136,8 @@ hover/active/focus **默认不添加**，除非设计稿有对应状态或用户
 
 | 问题 | 解决 |
 |------|------|
+| 样式与设计稿不一致 | 从 `customStyle` 精确复制，禁止估算 |
+| 图片/图标显示空白 | 用节点 ID 下载资源 |
 | 状态切换尺寸跳动 | 基础状态用 `border: Xpx solid transparent` 预留 |
 | 样式遗漏 | 检查 `customStyle` 所有属性是否复制 |
 | 样式多余 | 检查是否添加了 `customStyle` 不存在的属性 |

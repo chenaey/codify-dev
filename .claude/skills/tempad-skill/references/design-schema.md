@@ -102,16 +102,31 @@ NONE       → 无自动布局
 
 ## customStyle 说明
 
-已格式化的 CSS 属性，包含 `rem()` 函数，**直接使用不转换**：
+已格式化的 CSS 属性，**直接复制到代码中，不修改值**：
 
 ```json
 {
   "display": "flex",
-  "padding-right": "rem(34)",
-  "border-radius": "rem(198)",
+  "padding": "0 rem(24)",
+  "border-radius": "rem(16)",
   "background": "#F7F7F7"
 }
 ```
+
+## 图片背景识别
+
+`url(<path-to-image>)` 表示需要下载的图片资源：
+
+```json
+{
+  "id": "17:7017",
+  "customStyle": {
+    "background": "url(<path-to-image>) lightgray 50% / cover no-repeat"
+  }
+}
+```
+
+用该节点的 `id` 下载 PNG 资源。
 
 ## 重复节点
 

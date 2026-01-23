@@ -10,19 +10,15 @@ description: |
 
 ## 核心原则
 
-> **截图理解布局结构，JSON 提取样式。框架由项目上下文决定。**
+> **截图理解结构，JSON 提取样式。样式必须从 customStyle 精确复制，禁止估算。**
 
 ---
 
 ## 工作流程
 
 ### Step 1. 获取截图
-具备多模态读取本地图片能力时：
+用户上传了图片进入 Step 2，未上传则跳过图片分析部分。
 
-```bash
-curl -s -X POST http://127.0.0.1:13580/get_screenshot -H "Content-Type: application/json" -d '{}'
-```
-读取 `/tmp/design-screenshot.png`，或引导用户上传。
 
 ### Step 2. 判断复杂度
 
@@ -30,6 +26,7 @@ curl -s -X POST http://127.0.0.1:13580/get_screenshot -H "Content-Type: applicat
 |---------|---------|
 | ≥3 组件 / 完整页面 / ≥5 重复项 | → 阅读 [phased-workflow.md](references/phased-workflow.md) |
 | 以上都不满足 | → 继续 Step 3 |
+
 **⚠️ 复杂设计禁止一次性生成所有代码，必须拆分组件逐个实现。**
 
 ### Step 3. 获取设计数据
@@ -38,11 +35,13 @@ curl -s -X POST http://127.0.0.1:13580/get_screenshot -H "Content-Type: applicat
 curl -s -X POST http://127.0.0.1:13580/get_design -H "Content-Type: application/json" -d '{}'
 ```
 
-### Step 4. 生成代码
+### Step 4. 阅读规则并生成代码
 
-阅读 [codegen-rules.md](references/codegen-rules.md) 后生成代码。
+**必读** [codegen-rules.md](references/codegen-rules.md)，然后生成代码。
 
 ### Step 5. 下载资源
+
+所有 `type: "ICON"` 节点和 `url(<path-to-image>)` 背景必须下载：
 
 ```bash
 node .claude/skills/tempad-skill/scripts/download-assets.cjs --nodes '[
@@ -56,7 +55,7 @@ node .claude/skills/tempad-skill/scripts/download-assets.cjs --nodes '[
 
 | 文档                                                | 何时读取             |
 | --------------------------------------------------- | -------------------- |
-| [codegen-rules.md](references/codegen-rules.md)     | 生成代码前必读       |
+| [codegen-rules.md](references/codegen-rules.md)     | **生成代码前必读**   |
 | [design-schema.md](references/design-schema.md)     | 理解 JSON 结构       |
 | [phased-workflow.md](references/phased-workflow.md) | **复杂设计必须先读** |
 | [api.md](references/api.md)                         | API 详细参数         |
