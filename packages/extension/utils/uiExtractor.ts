@@ -3,8 +3,7 @@ import { getCSSAsync } from '@/utils/css'
 import {
   buildSkipIds,
   detectRepeatingPatterns,
-  getRepeatInfo,
-  type RepeatPattern
+  getRepeatInfo
 } from '@/skill/extract/compress'
 
 import { codegen } from './codegen'
@@ -94,9 +93,9 @@ export interface UINode {
   children?: UINode[]
   // 添加自定义样式字段
   customStyle?: Record<string, string>
-  // 重复节点压缩信息
-  repeatCount?: number // 重复节点总数（包括样本）
-  repeatNodeIds?: string[] // 被跳过的节点 ID（不包括样本）
+  // 重复节点压缩
+  repeatCount?: number      // 设计稿中该结构的重复次数
+  repeatNodeIds?: string[]  // 被跳过的节点 ID（调试用）
 }
 
 // 提取颜色信息
@@ -725,6 +724,29 @@ function extractCustomComponent(node: any) {
   }
 }
 
+/**
+ * 获取组件的缓存 key
+ * - COMPONENT: 返回自己的 id
+ * - INSTANCE: 返回 mainComponent.id
+ * - 其他: 返回 null（不缓存）
+ */
+function getComponentCacheKey(node: any): string | null {
+  if (node.type === 'COMPONENT') {
+    return node.id
+  }
+  if (node.type === 'INSTANCE') {
+    return node.mainComponent?.id || null
+  }
+  return null
+}
+
+// CSS 缓存类型
+interface CSSCacheEntry {
+  style: any
+  component: any
+  codeBlocks: any[]
+}
+
 // 主函数：提取UI节点信息
 async function extractUINode(
   node: any,
@@ -732,7 +754,8 @@ async function extractUINode(
   parent?: any,
   siblings?: any[],
   rootNode?: any,
-  resources: Map<string, any> = new Map()
+  resources: Map<string, any> = new Map(),
+  cssCache: Map<string, CSSCacheEntry> = new Map()
 ): Promise<UINode | null> {
   // 过滤掉隐藏的节点
   if ('visible' in node && node.visible === false) {
@@ -787,28 +810,42 @@ async function extractUINode(
   const absoluteStyles = extractAbsolutePositionStyles(node, parent)
 
   try {
-    // 获取生成的CSS代码
-    const style = await getCSSAsync(node)
-    const component = getDesignComponent(node)
+    // 🚀 CSS 缓存：同一组件的实例复用 CSS
+    const cacheKey = getComponentCacheKey(node)
+    let codeBlocks: any[] | undefined
 
-    const { cssUnit, project, rootFontSize, scale } = options.value
-    const serializeOptions = {
-      useRem: cssUnit === 'rem',
-      rootFontSize,
-      scale,
-      project
+    if (cacheKey && cssCache.has(cacheKey)) {
+      // 缓存命中：直接使用缓存的 codeBlocks
+      codeBlocks = cssCache.get(cacheKey)!.codeBlocks
+    } else {
+      // 缓存未命中：计算 CSS 并缓存
+      const style = await getCSSAsync(node)
+      const component = getDesignComponent(node)
+
+      const { cssUnit, project, rootFontSize, scale } = options.value
+      const serializeOptions = {
+        useRem: cssUnit === 'rem',
+        rootFontSize,
+        scale,
+        project
+      }
+
+      const result = await codegen(
+        style,
+        component,
+        serializeOptions,
+        activePlugin.value?.code || undefined
+      )
+      codeBlocks = result.codeBlocks
+
+      // 缓存结果（仅对 COMPONENT/INSTANCE）
+      if (cacheKey) {
+        cssCache.set(cacheKey, { style, component, codeBlocks })
+      }
     }
 
-    // 使用与 CodeSection.vue 相同的参数调用 codegen
-    const { codeBlocks } = await codegen(
-      style,
-      component,
-      serializeOptions,
-      activePlugin.value?.code || undefined
-    )
-
     // 只保存 css 代码块的 code 字段
-    const cssBlock = codeBlocks.find((block) => block.name === 'css')
+    const cssBlock = codeBlocks?.find((block) => block.name === 'css')
     if (cssBlock && cssBlock.code) {
       const stylesArray = cssBlock.code.split('\n')
       const initialCustomStyle = convertStyleArrayToObject(stylesArray)
@@ -883,8 +920,12 @@ async function extractUINode(
     // 过滤可见子节点
     const visibleChildren = node.children.filter((c: any) => c.visible !== false)
 
-    // 检测重复模式 - 在遍历前一次性计算
-    const patterns = detectRepeatingPatterns(visibleChildren)
+    // 🚀 只在有意义的容器层级做重复检测
+    // 跳过 GROUP 内部（GROUP 只是视觉分组，内部重复不具备语义意义）
+    const shouldDetectPatterns = ['GROUP', 'PEN'].iconudes(node.type)
+    const patterns = shouldDetectPatterns
+      ? new Map()
+      : detectRepeatingPatterns(visibleChildren)
     const skipIds = buildSkipIds(patterns)
 
     // 提取所有子节点信息，跳过重复节点
@@ -899,7 +940,8 @@ async function extractUINode(
         node,
         node.children,
         rootNode,
-        resources
+        resources,
+        cssCache
       )
 
       if (childNode) {
@@ -931,9 +973,12 @@ export async function extractSelectedNodes(selection: readonly any[]) {
   // 创建资源收集器
   const resources = new Map<string, any>()
 
+  // 🚀 创建 CSS 缓存（跨整个提取过程共享）
+  const cssCache = new Map<string, CSSCacheEntry>()
+
   const uiNodes = await Promise.all(
     selection.map((node) =>
-      extractUINode(node, Infinity, node.parent, node.parent?.children, rootNode, resources)
+      extractUINode(node, Infinity, node.parent, node.parent?.children, rootNode, resources, cssCache)
     )
   )
   // 过滤掉null节点

@@ -64,6 +64,30 @@
 
 ## 已解决问题
 
+### ✅ 大型设计性能优化 - V7 Inline Compression (v2.3)
+
+**Issue ID**: #large-design-optimization
+
+**原问题**: 大型设计（如 10 个相同卡片组件）导致 JSON 数据冗余、CSS 提取缓慢
+
+**解决方案**: V7 Inline Compression
+
+1. **签名统一**：COMPONENT 和 INSTANCE 使用相同签名 `component:{mainComponent.id}`
+2. **内联跳过**：在遍历子节点前检测重复模式，跳过冗余节点的 CSS 提取
+3. **元数据标记**：样本节点附带 `repeatCount` 和 `repeatNodeIds`
+
+**性能提升**：
+- 10 个相同组件：CSS 提取从 10 次 → 1 次
+- JSON 大小：从 N 条记录 → 1 条记录
+
+**涉及文件**:
+- `packages/extension/skill/extract/compress.ts` - 签名计算、模式检测
+- `packages/extension/utils/uiExtractor.ts` - 集成压缩逻辑
+
+**文档更新**: `design-schema.md`, `codegen-rules.md`
+
+---
+
 ### ✅ 响应式规则完善 (v1.9)
 
 **Issue ID**: #responsive-rules

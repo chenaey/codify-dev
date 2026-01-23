@@ -6,6 +6,7 @@
 | ----------------------- | -------- |
 | `FRAME`                 | 容器     |
 | `INSTANCE`              | 组件实例 |
+| `COMPONENT`             | 组件定义 |
 | `TEXT`                  | 文本     |
 | `RECTANGLE` / `ELLIPSE` | 形状     |
 | `GROUP`                 | 分组     |
@@ -21,7 +22,9 @@ interface UINode {
   id: string      // 节点 ID（用于下载资源）
   name: string    // 节点名称
   type: string    // 节点类型，图标为 'ICON'
-
+  // 重复节点
+  repeatCount?: number      // 总重复次数（含自身）
+  repeatNodeIds?: string[]  // 被跳过的节点 ID
   layout: {
     positioning?: 'absolute'  // 绝对定位标记（customStyle 中已包含计算好的 position/left/right/top/bottom）
     x?: number                // 相对坐标（仅用于调试）
@@ -109,6 +112,17 @@ NONE       → 无自动布局
   "background": "#F7F7F7"
 }
 ```
+
+## 重复节点
+
+相同结构的兄弟节点只保留第一个（样本），其余被跳过。
+
+| 字段 | 说明 |
+|------|------|
+| `repeatCount` | 设计稿中该结构的重复次数 |
+| `repeatNodeIds` | 被跳过的节点 ID（调试用） |
+
+---
 
 ## 资源列表
 
