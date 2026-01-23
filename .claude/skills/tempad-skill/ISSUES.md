@@ -6,7 +6,7 @@
 
 ## 待处理问题
 
-### 1. 绝对定位节点信息缺失 ⭐⭐⭐ 高优先级
+### 4. 绝对定位节点信息缺失 ⭐⭐⭐ 高优先级
 
 **问题文件**: `packages/extension/utils/uiExtractor.ts`
 
@@ -63,6 +63,42 @@
 ---
 
 ## 已解决问题
+
+### ✅ 复杂设计分阶段处理 (v2.5)
+
+**Issue ID**: #phased-workflow
+
+**原问题**: 
+
+1. **组件规划承诺未兑现**: Agent 说"会拆分多组件"，实际只创建一个大组件
+2. **样式还原精度不足**: 大 JSON 导致注意力分散，样式值被猜测而非精确复制
+3. **代码语法错误**: 如 `</script` 缺少闭合 `>`
+
+**根因分析**:
+
+- 复杂设计的 JSON 超过 1000 行，LLM 无法有效处理全部信息
+- 图片分析结果随对话推进丢失
+- 一次性生成导致注意力分散
+
+**解决方案**: 分阶段工作流
+
+1. **外化记忆**: 图片分析写入 `structure.md`
+2. **按需加载**: 设计数据存入 `design.json`，使用工具按需查询
+3. **两阶段读取**: 骨架定位 → 子树提取
+4. **逐区域实现**: 按结构分析顺序逐个实现
+
+**工具支持**:
+
+- `query-design.cjs`: 支持 `--skeleton`、`--id`、`--path`、`--depth`
+- 插件层保留 `id` 字段
+
+**涉及文件**:
+- `.claude/skills/tempad-skill/SKILL.md` - 简化主流程，复杂逻辑引用参考文档
+- `.claude/skills/tempad-skill/scripts/query-design.cjs` - 查询工具
+- `.claude/skills/tempad-skill/references/phased-workflow.md` - 复杂设计处理指南
+- `packages/extension/utils/jsonOptimizer.ts` - 保留 ID 字段
+
+---
 
 ### ✅ 选中节点 UI 响应优化 (v2.4)
 

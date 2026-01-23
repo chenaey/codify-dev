@@ -244,6 +244,7 @@
 | v2.3 | V7 Inline Compression：重复节点压缩，性能优化 | ✅ #large-design-optimization |
 | v2.3.1 | 压缩优化：内容感知哈希 + 连续性检测 + GROUP 豁免 | ✅ #compression-refinement |
 | v2.4 | 选中节点 UI 响应优化：防抖 + 缓存 + 过时请求取消 | ✅ #selection-lag |
+| v2.5 | 强化组件规划：复合页面必须先输出规划清单；新增样式提取检查清单；代码质量基本要求 | #component-planning-enforce, #style-precision, #code-syntax |
 
 ---
 

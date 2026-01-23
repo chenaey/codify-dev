@@ -922,7 +922,7 @@ async function extractUINode(
 
     // 🚀 只在有意义的容器层级做重复检测
     // 跳过 GROUP 内部（GROUP 只是视觉分组，内部重复不具备语义意义）
-    const shouldDetectPatterns = ['GROUP', 'PEN'].iconudes(node.type)
+    const shouldDetectPatterns = ['GROUP', 'PEN'].includes(node.type)
     const patterns = shouldDetectPatterns
       ? new Map()
       : detectRepeatingPatterns(visibleChildren)

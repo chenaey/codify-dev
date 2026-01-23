@@ -55,11 +55,8 @@ function optimizeNode(node: UINode): void {
   }
 
   // 2. 移除冗余字段
-  // - ICON 节点保留 id（用于与 assets 数组匹配）
-  // - 其他节点移除 id 和 name
-  if (!isIconNode) {
-    delete (node as any).id
-  }
+  // - 保留 id（用于按节点查询）
+  // - 移除 name（通常无语义）
   delete (node as any).name
 
   // 3. 优化样式
