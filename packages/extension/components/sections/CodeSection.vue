@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useClipboard } from '@vueuse/core'
+import { useClipboard, useDebounceFn } from '@vueuse/core'
 import { ref, computed, shallowRef, watch, onUnmounted, unref } from 'vue'
 
 import type { CodeBlock } from '@/types/codegen'
@@ -66,6 +66,19 @@ const playButtonTitle = computed(() =>
     : 'The component is produced with older versions of TemPad that does not provide a link to TemPad playground.'
 )
 
+// 🚀 CSS 缓存：避免重复计算同一节点的 CSS
+const cssCache = new Map<string, { codeBlocks: CodeBlock[]; svgCode: string }>()
+
+// 生成缓存键：节点ID + 配置指纹
+function getCacheKey(nodeId: string): string {
+  const { cssUnit, rootFontSize, scale, project } = options.value
+  const pluginId = activePlugin.value?.name || 'none'
+  return `${nodeId}:${cssUnit}:${rootFontSize}:${scale}:${project}:${pluginId}`
+}
+
+// 标记当前是否正在更新（用于取消过时的请求）
+let updateVersion = 0
+
 async function updateCode() {
   const node = selectedNode.value
   if (node == null || selection.value.length > 1) {
@@ -78,8 +91,23 @@ async function updateCode() {
   componentCode.value = tempadComponent?.code || ''
   componentLink.value = tempadComponent?.link || ''
 
+  // 🚀 检查缓存
+  const cacheKey = getCacheKey(node.id)
+  const cached = cssCache.get(cacheKey)
+  if (cached) {
+    codeBlocks.value = cached.codeBlocks
+    svgCode.value = cached.svgCode
+    return
+  }
+
+  // 记录当前版本，用于检测过时请求
+  const currentVersion = ++updateVersion
+
   // 处理 SVG 代码生成
-  svgCode.value = await getSVGCodeAsync(node)
+  const newSvgCode = await getSVGCodeAsync(node)
+
+  // 检查是否已过时（用户已选择其他节点）
+  if (currentVersion !== updateVersion) return
 
   const result = await generateCodeBlocksForNode(
     node,
@@ -91,7 +119,21 @@ async function updateCode() {
     },
     activePlugin.value?.code || undefined
   )
+
+  // 再次检查是否过时
+  if (currentVersion !== updateVersion) return
+
+  // 更新结果
   codeBlocks.value = result.codeBlocks
+  svgCode.value = newSvgCode
+
+  // 🚀 缓存结果（限制缓存大小）
+  if (cssCache.size > 10) {
+    // 删除最早的缓存
+    const firstKey = cssCache.keys().next().value
+    if (firstKey) cssCache.delete(firstKey)
+  }
+  cssCache.set(cacheKey, { codeBlocks: result.codeBlocks, svgCode: newSvgCode })
 }
 
 // 生成AI代码的方法
@@ -166,12 +208,17 @@ async function copyPrompt() {
   }
 }
 
-watch([selectedNode, activePlugin], async () => {
-  await updateCode()
-  // 在更新完基础代码后，检查AI生成状态
+// 🚀 使用防抖优化：避免快速连续点击导致的重复计算
+// 100ms 延迟足够过滤掉快速切换，同时保持响应性
+const debouncedUpdateCode = useDebounceFn(updateCode, 100)
+
+watch([selectedNode, activePlugin], () => {
+  debouncedUpdateCode()
 })
 
-watch(options, updateCode, {
+watch(options, () => {
+  debouncedUpdateCode()
+}, {
   deep: true
 })
 
