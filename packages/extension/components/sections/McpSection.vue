@@ -121,14 +121,14 @@ async function handleClientClick(client: McpClientDisplay) {
 <template>
   <Section class="tp-mcp-section" flat>
     <template #header>
-      <div class="tp-row">MCP server</div>
+      <div class="tp-row">API server</div>
     </template>
-    <div class="tp-row tp-row-justify tp-mcp-field">
+    <!-- <div class="tp-row tp-row-justify tp-mcp-field">
       <label>Enable MCP server</label>
       <SegmentedControl :options="mcpOptions" v-model="options.mcpOn" />
-    </div>
-    <div class="tp-row tp-row-justify tp-mcp-field">
-      <label>Enable Skill server</label>
+    </div> -->
+    <div class="tp-row tp-row-justify tp-mcp-field" style="margin-bottom: 12px;">
+      <label>Enable API server</label>
       <SegmentedControl :options="mcpOptions" v-model="options.skillOn" />
     </div>
     <template v-if="options.mcpOn">
