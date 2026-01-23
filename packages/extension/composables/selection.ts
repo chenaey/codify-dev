@@ -50,7 +50,7 @@ export async function syncSelection() {
   }
   console.log(selection.value)
   // 打印选中节点的完整树结构，便于调试
-  printNodeTree(selection.value)
+  // printNodeTree(selection.value)
 }
 
 function handleClick() {

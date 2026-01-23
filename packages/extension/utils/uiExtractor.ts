@@ -1,5 +1,11 @@
 import { options, activePlugin } from '@/ui/state'
 import { getCSSAsync } from '@/utils/css'
+import {
+  buildSkipIds,
+  detectRepeatingPatterns,
+  getRepeatInfo,
+  type RepeatPattern
+} from '@/skill/extract/compress'
 
 import { codegen } from './codegen'
 import { getDesignComponent } from './component'
@@ -88,6 +94,9 @@ export interface UINode {
   children?: UINode[]
   // 添加自定义样式字段
   customStyle?: Record<string, string>
+  // 重复节点压缩信息
+  repeatCount?: number // 重复节点总数（包括样本）
+  repeatNodeIds?: string[] // 被跳过的节点 ID（不包括样本）
 }
 
 // 提取颜色信息
@@ -871,13 +880,39 @@ async function extractUINode(
     'children' in node &&
     node.children
   ) {
-    // 提取所有子节点信息，并传递当前节点作为它们的父节点
-    const childNodes = await Promise.all(
-      node.children.map((child: any) =>
-        extractUINode(child, maxDepth - 1, node, node.children, rootNode, resources)
+    // 过滤可见子节点
+    const visibleChildren = node.children.filter((c: any) => c.visible !== false)
+
+    // 检测重复模式 - 在遍历前一次性计算
+    const patterns = detectRepeatingPatterns(visibleChildren)
+    const skipIds = buildSkipIds(patterns)
+
+    // 提取所有子节点信息，跳过重复节点
+    const childNodes: UINode[] = []
+    for (const child of node.children) {
+      // 🚀 跳过重复节点 - 不调用 getCSSAsync！
+      if (skipIds.has(child.id)) continue
+
+      const childNode = await extractUINode(
+        child,
+        maxDepth - 1,
+        node,
+        node.children,
+        rootNode,
+        resources
       )
-    )
-    uiNode.children = childNodes.filter((node): node is UINode => node !== null)
+
+      if (childNode) {
+        // 为样本节点添加重复信息
+        const repeatInfo = getRepeatInfo(child.id, patterns)
+        if (repeatInfo) {
+          childNode.repeatCount = repeatInfo.repeatCount
+          childNode.repeatNodeIds = repeatInfo.repeatNodeIds
+        }
+        childNodes.push(childNode)
+      }
+    }
+    uiNode.children = childNodes
   }
 
   return uiNode
