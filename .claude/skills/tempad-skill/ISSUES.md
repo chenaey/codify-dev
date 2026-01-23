@@ -64,6 +64,76 @@
 
 ## 已解决问题
 
+### ✅ 选中节点 UI 响应优化 (v2.4)
+
+**Issue ID**: #selection-lag
+
+**原问题**: 点击大型/复杂元素时页面会卡顿，特别是包含大量子节点的组件
+
+**根因分析**:
+1. `getCSSAsync(node)` - Figma/MasterGo CSS 计算是同步阻塞操作
+2. 每次选择变化都重新计算，即使是同一节点也会重复计算
+3. 快速切换节点时，旧计算仍在进行，浪费资源
+
+**解决方案**: 三层优化策略
+
+1. **防抖 (Debounce)** - 100ms
+   - 使用 `useDebounceFn` 包装 `updateCode`
+   - 快速连续点击只执行最后一次计算
+
+2. **结果缓存 (LRU Cache)**
+   - 缓存键 = `nodeId:cssUnit:rootFontSize:scale:project:pluginId`
+   - 限制缓存大小为 50 条，超出时 LRU 淘汰
+   - 重复选择同一节点时瞬间响应
+
+3. **过时请求取消**
+   - 使用 `updateVersion` 计数器标记请求版本
+   - 异步操作后检查版本，过时请求直接放弃
+   - 避免旧结果覆盖新结果
+
+**性能提升**:
+| 场景 | 优化前 | 优化后 |
+|------|--------|--------|
+| 首次点击大型节点 | 卡顿 500-2000ms | 卡顿 (无法避免) |
+| 重复点击同一节点 | 每次都卡顿 | **瞬间响应** |
+| 快速连续点击不同节点 | 每次都阻塞 | **只计算最后一个** |
+
+**涉及文件**:
+- `packages/extension/components/sections/CodeSection.vue` - 防抖、缓存、取消逻辑
+
+---
+
+### ✅ 压缩优化：内容感知 + 连续性检测 + GROUP 豁免 (v2.3.1)
+
+**Issue ID**: #compression-refinement
+
+**原问题**: V7 压缩存在三个边缘问题
+
+1. **内容丢失**: 相同组件但文本/图标不同（如菜单项），被压缩后信息丢失
+2. **布局错乱**: 非连续的重复节点（如分隔线穿插菜单项）被错误压缩，破坏层次关系
+3. **元数据噪音**: GROUP 内部出现 `repeatNodeIds`，语义冗余
+
+**解决方案**:
+
+1. **内容感知哈希** (`computeContentHash`)
+   - 递归收集：文本内容、图片哈希、矢量尺寸
+   - 使用 djb2 哈希算法生成内容指纹
+   - 签名变为 `component:{mainComponent.id}:{contentHash}`
+
+2. **连续性检测**
+   - 只压缩连续的重复节点
+   - 非连续重复保持独立，保留布局层次
+
+3. **GROUP 豁免**
+   - `node.type === 'GROUP'` 时跳过子节点重复检测
+   - GROUP 是视觉容器，内部重复通常无系统性意义
+
+**涉及文件**:
+- `packages/extension/skill/extract/compress.ts` - `computeContentHash`, `detectRepeatingPatterns`
+- `packages/extension/utils/uiExtractor.ts` - GROUP 豁免逻辑、cssCache 集成
+
+---
+
 ### ✅ 大型设计性能优化 - V7 Inline Compression (v2.3)
 
 **Issue ID**: #large-design-optimization

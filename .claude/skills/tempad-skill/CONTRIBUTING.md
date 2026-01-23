@@ -242,6 +242,8 @@
 | v2.1 | 强化「图标资源」规则：禁止自行实现，必须从 assets 导出 | ✅ #icon-assets |
 | v2.2 | 新增「组件规划」原则：复合页面先规划再实现，原子组件直接实现 | ✅ #component-planning |
 | v2.3 | V7 Inline Compression：重复节点压缩，性能优化 | ✅ #large-design-optimization |
+| v2.3.1 | 压缩优化：内容感知哈希 + 连续性检测 + GROUP 豁免 | ✅ #compression-refinement |
+| v2.4 | 选中节点 UI 响应优化：防抖 + 缓存 + 过时请求取消 | ✅ #selection-lag |
 
 ---
 
