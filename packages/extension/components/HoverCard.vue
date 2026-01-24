@@ -199,11 +199,12 @@ const placementClass = computed(() => `tp-hover-card-${props.placement}`)
 }
 
 .tp-hover-card-content {
+  position: relative;
   background: var(--color-bg, #2c2c2c);
   border: 1px solid var(--color-border, #444);
   border-radius: 6px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-  padding: 8px 10px;
+  padding: 10px 12px;
   font-size: 11px;
   line-height: 1.5;
   color: var(--color-text, #fff);
@@ -213,6 +214,33 @@ const placementClass = computed(() => `tp-hover-card-${props.placement}`)
   user-select: text;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* Arrow pointer for bottom placement */
+.tp-hover-card-bottom .tp-hover-card-content::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid var(--color-border, #444);
+}
+
+.tp-hover-card-bottom .tp-hover-card-content::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid var(--color-bg, #2c2c2c);
 }
 
 /* Transition */

@@ -87,9 +87,7 @@ function handleMessage(event: MessageEvent<string>): void {
     case 'state':
       skillActiveId.value = msg.activeId
       skillCount.value = msg.count
-      logger.log(
-        `[Skill] State: active=${msg.activeId === skillSelfId.value}, count=${msg.count}`
-      )
+      logger.log(`[Skill] State: active=${msg.activeId === skillSelfId.value}, count=${msg.count}`)
       break
 
     case 'skillCall':
@@ -102,7 +100,10 @@ function handleClose(): void {
   logger.log('[Skill] Connection closed')
   socket = null
   resetState()
-  scheduleReconnect()
+  // Only schedule reconnect if still enabled (prevent reconnect after manual stop)
+  if (enabled) {
+    scheduleReconnect()
+  }
 }
 
 function handleError(): void {
@@ -165,6 +166,7 @@ export function startSkillConnection(): void {
 
 export function stopSkillConnection(): void {
   if (!enabled) return
+  // Set enabled to false FIRST to prevent handleClose from reconnecting
   enabled = false
   disconnect()
   logger.log('[Skill] Stopped')
