@@ -2,22 +2,19 @@
 
 HTTP API server for Codify Dev browser extension.
 
-## Usage
+## Quick Start
 
 ```bash
-# Using npx
 npx @codify-dev/api-server
-
-# Or install globally
-npm install -g @codify-dev/api-server
-api-server
 ```
+
+The server will start on `http://127.0.0.1:13580` by default.
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `API_PORT` | `13580` | HTTP API port |
+| Variable      | Default | Description    |
+| ------------- | ------- | -------------- |
+| `API_PORT`    | `13580` | HTTP API port  |
 | `API_WS_PORT` | `13581` | WebSocket port |
 
 ## API
