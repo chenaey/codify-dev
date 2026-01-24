@@ -1,9 +1,9 @@
 ---
 name: codify-skill
-description: |
+description: >-
   将 Figma/MasterGo 设计还原为前端代码（支持任意框架）。
   通过 HTTP API 获取设计数据（截图 + JSON），基于数据生成高还原度代码。
-  前提：Codify Dev 扩展已连接，API Server 运行在 http://127.0.0.1:13580
+  需要 Codify Dev 扩展和 API Server（http://127.0.0.1:13580）。
 ---
 
 # Codify Dev - 设计还原
