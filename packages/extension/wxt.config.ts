@@ -38,7 +38,7 @@ export default defineConfig({
         matches: ['https://www.figma.com/*', 'https://mastergo.netease.com/*']
       }
     ],
-    permissions: ['declarativeNetRequest', 'declarativeNetRequestWithHostAccess', 'alarms'],
+    permissions: ['declarativeNetRequest', 'declarativeNetRequestWithHostAccess'],
     host_permissions: ['https://www.figma.com/*', 'https://mastergo.netease.com/file/*'],
     declarative_net_request: {
       rule_resources: [
