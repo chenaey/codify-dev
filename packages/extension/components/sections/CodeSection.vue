@@ -51,6 +51,7 @@ const isDownloading = ref(false)
 
 // 新增提示词复制状态
 const isCopyingPrompt = ref(false)
+const isCopyingSkill = ref(false)
 
 const textContent = computed(() => {
   const node = selectedNode.value
@@ -208,6 +209,29 @@ async function copyPrompt() {
   }
 }
 
+// 复制 Skill Prompt 功能
+async function copySkill() {
+  if (!selectedNode.value) return
+
+  try {
+    isCopyingSkill.value = true
+
+    const nodeId = selectedNode.value.id
+    // 构建简短 Prompt
+    console.log('nodeId', nodeId)
+    const promptText = `用 codify-design-to-code skill 将节点 ${nodeId} 生成组件代码`
+
+    // 复制到剪贴板
+    await copy(promptText)
+    show('Skill prompt copied!')
+  } catch (error) {
+    console.error('Failed to copy skill prompt:', error)
+    show('Failed to copy skill prompt')
+  } finally {
+    isCopyingSkill.value = false
+  }
+}
+
 // 🚀 使用防抖优化：避免快速连续点击导致的重复计算
 // 100ms 延迟足够过滤掉快速切换，同时保持响应性
 const debouncedUpdateCode = useDebounceFn(updateCode, 100)
@@ -260,6 +284,10 @@ async function handleDownloadIcons() {
         <IconButton variant="secondary" title="Copy Prompt" style="width: auto; white-space: nowrap; padding: 0 6px"
           :disabled="isCopyingPrompt" @click="copyPrompt">
           Copy Prompt
+        </IconButton>
+        <IconButton variant="secondary" title="Copy Skill Prompt"
+          style="width: auto; white-space: nowrap; padding: 0 6px" :disabled="isCopyingSkill" @click="copySkill">
+          Copy Skill
         </IconButton>
         <IconButton variant="secondary" title="AI Generate Code (beta)" :disabled="isGenerating || !selectedNode"
           @click="generateAICode">
