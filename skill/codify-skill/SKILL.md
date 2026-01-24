@@ -1,9 +1,9 @@
 ---
-name: codify-skill
+name: codify-design-to-code
 description: >-
-  Converts Figma/MasterGo designs into frontend code (supports any framework).
-  Retrieves design data (screenshots + JSON) via HTTP API to generate high-fidelity code.
-  Requires Codify Dev extension and API Server (http://127.0.0.1:13580).
+  将 Figma/MasterGo 设计转换为前端组件代码。通过 API 获取设计数据和截图，
+  精准提取样式属性，生成高质量、可维护的 React/Vue等任意框架 组件代码。
+  适用于需要将设计稿转换为可用代码的场景。
 ---
 
 # Codify Dev - 设计还原
