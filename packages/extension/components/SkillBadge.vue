@@ -68,8 +68,12 @@ function handleClick() {
 <template>
   <!-- When disconnected, show HoverCard with installation instructions -->
   <HoverCard placement="bottom" :show-delay="300">
-    <Badge :class="['tp-skill-badge', badgeStatusClass, badgeActiveClass]" :tone="badgeTone" :variant="badgeVariant"
-      @dblclick.stop>
+    <Badge
+      :class="['tp-skill-badge', badgeStatusClass, badgeActiveClass]"
+      :tone="badgeTone"
+      :variant="badgeVariant"
+      @dblclick.stop
+    >
       <span class="tp-skill-dot" />
       Skill
     </Badge>
@@ -85,8 +89,11 @@ function handleClick() {
           <div class="tp-skill-hover-label">1. 启动 API 服务器 - 提供设计数据标准化接口</div>
           <div class="tp-skill-code-wrapper">
             <code class="tp-skill-hover-code">npx @codify-dev/api-server</code>
-            <button class="tp-skill-copy-btn" :class="{ copied: copiedApi }"
-              @click="copyCommand('npx @codify-dev/api-server', 'api')">
+            <button
+              class="tp-skill-copy-btn"
+              :class="{ copied: copiedApi }"
+              @click="copyCommand('npx @codify-dev/api-server', 'api')"
+            >
               {{ copiedApi ? '✓' : '复制' }}
             </button>
           </div>
@@ -96,14 +103,19 @@ function handleClick() {
           <div class="tp-skill-hover-label">2. 安装 Skill - 赋予Agent设计转代码能力</div>
           <div class="tp-skill-code-wrapper">
             <code class="tp-skill-hover-code small">
-              npx add-skill https://github.com/chenaey/codify-dev/tree/release/skill/codify-skill
+              npx add-skill https://github.com/chenaey/codify-dev/tree/main/skill --skill
+              codify-design-to-code
             </code>
-            <button class="tp-skill-copy-btn" :class="{ copied: copiedSkill }" @click="
-              copyCommand(
-                'npx add-skill https://github.com/chenaey/codify-dev/tree/release/skill/codify-skill',
-                'skill'
-              )
-              ">
+            <button
+              class="tp-skill-copy-btn"
+              :class="{ copied: copiedSkill }"
+              @click="
+                copyCommand(
+                  'npx add-skill https://github.com/chenaey/codify-dev/tree/main/skill --skill codify-design-to-code',
+                  'skill'
+                )
+              "
+            >
               {{ copiedSkill ? '✓' : '复制' }}
             </button>
           </div>
@@ -150,7 +162,6 @@ function handleClick() {
 }
 
 @keyframes tp-skill-dot-pulse {
-
   0%,
   100% {
     opacity: 0.2;
