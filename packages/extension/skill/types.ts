@@ -50,6 +50,7 @@ export type MessageToServer = ActivateMessage | SkillResultMessage
 // Request/Response types for handlers
 export interface GetDesignParams {
   nodeId?: string
+  node_id?: string
 }
 
 export interface AssetInfo {
@@ -66,6 +67,7 @@ export interface GetDesignResult {
 
 export interface GetScreenshotParams {
   nodeId?: string
+  node_id?: string
 }
 
 export interface GetScreenshotResult {
@@ -76,6 +78,7 @@ export interface GetScreenshotResult {
 
 export interface AssetExportParams {
   nodeId: string
+  node_id?: string
   format?: 'png' | 'svg'
   scale?: number
 }

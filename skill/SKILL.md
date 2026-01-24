@@ -32,7 +32,9 @@ description: >-
 ### Step 3. 获取设计数据
 
 ```bash
-curl -s -X POST http://127.0.0.1:13580/get_design -H "Content-Type: application/json" -d '{}'
+curl -s -X POST http://127.0.0.1:13580/get_design \
+  -H "Content-Type: application/json" \
+  -d '{"node_id": "用户指定的节点ID 不传默认为当前选中的节点"}'
 ```
 
 ### Step 4. 阅读规则并生成代码

@@ -229,7 +229,8 @@ function extractAssetsInfo(resources: Map<string, unknown>): AssetInfo[] {
 
 // Handler: get_design
 async function handleGetDesign(params: GetDesignParams): Promise<GetDesignResult> {
-  const node = resolveNode(params.nodeId)
+  const nodeId = params.node_id || params.nodeId
+  const node = resolveNode(nodeId)
 
   // Extract UI info using the same logic as copyPrompt
   const { nodes: uiInfo, resources } = await extractSelectedNodes([node])
@@ -250,7 +251,8 @@ async function handleGetDesign(params: GetDesignParams): Promise<GetDesignResult
 
 // Handler: get_screenshot
 async function handleGetScreenshot(params: GetScreenshotParams): Promise<GetScreenshotResult> {
-  const node = resolveNode(params.nodeId)
+  const nodeId = params.node_id || params.nodeId
+  const node = resolveNode(nodeId)
 
   const bytes = await node.exportAsync({
     format: 'PNG',
@@ -273,6 +275,9 @@ async function handleGetAssets(params: GetAssetsParams): Promise<GetAssetsResult
   const assets: ExportedAsset[] = []
 
   for (const req of params.nodes) {
+    if (req.node_id && !req.nodeId) {
+      req.nodeId = req.node_id
+    }
     const asset = await exportSingleAsset(req)
     assets.push(asset)
   }
