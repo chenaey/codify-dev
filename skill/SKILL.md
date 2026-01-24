@@ -17,33 +17,31 @@ description: >-
 ## 工作流程
 
 ### Step 1. 获取截图
-用户上传了图片进入 Step 2，未上传则跳过图片分析部分。
 
+用户上传图片则用于理解布局结构，未上传则跳过。
 
 ### Step 2. 判断复杂度
 
 | 满足任一 | 处理方式 |
 |---------|---------|
-| ≥3 组件 / 完整页面 / ≥5 重复项 | → 阅读 [phased-workflow.md](references/phased-workflow.md) |
+| ≥3 组件 / 完整页面 / ≥5 重复项 | → **必读** [phased-workflow.md](references/phased-workflow.md) |
 | 以上都不满足 | → 继续 Step 3 |
-
-**⚠️ 复杂设计禁止一次性生成所有代码，必须拆分组件逐个实现。**
 
 ### Step 3. 获取设计数据
 
 ```bash
 curl -s -X POST http://127.0.0.1:13580/get_design \
   -H "Content-Type: application/json" \
-  -d '{"node_id": "用户指定的节点ID 不传默认为当前选中的节点"}'
+  -d '{"node_id": "节点ID，不传则使用当前选中节点"}'
 ```
 
-### Step 4. 阅读规则并生成代码
+### Step 4. 生成代码
 
 **必读** [codegen-rules.md](references/codegen-rules.md)，然后生成代码。
 
 ### Step 5. 下载资源
 
-所有 `type: "ICON"` 节点和 `url(<path-to-image>)` 背景必须下载：
+`type: "ICON"` 节点和 `url(<path-to-image>)` 背景必须下载：
 
 ```bash
 node .claude/skills/tempad-skill/scripts/download-assets.cjs --nodes '[
