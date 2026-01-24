@@ -1,144 +1,69 @@
 ---
-name: implementing-figma-ui-tempad-dev
+name: codify-design-to-code
 description: >-
-  Implements UI from a Figma selection or a provided nodeId using TemPad Dev MCP as the source of truth
-  (code snapshot, structure, screenshot, assets). Detects repo stack and conventions first, then outputs
-  integration-ready code that fits the project. Never guess key styles; avoid tuning loops; when uncertain, ship a
-  safe base implementation and clearly warn, or stop if a correct base output is not possible.
-metadata:
-  mcp-server: tempad-dev
+  将 Figma/MasterGo 设计转换为前端组件代码。通过 API 获取设计数据和截图，
+  精准提取样式属性，生成高质量、可维护的 React/Vue等任意框架 组件代码。
+  适用于需要将设计稿转换为可用代码的场景。
 ---
 
-# TemPad Dev: Figma to UI Implementation
+# Codify Dev - 设计还原
 
-Implement integration-ready UI code from a Figma selection (or a provided `nodeId`) using TemPad Dev MCP outputs as design facts.
-Fit the user’s repo conventions. Never guess key styles.
+## 核心原则
 
-## Quick path (single pass)
+> **截图理解结构，JSON 提取样式。样式必须从 customStyle 精确复制，禁止估算。**
 
-1. Ensure there is exactly one visible target (selection or `nodeId`). If a tool call fails due to MCP connectivity/activation, follow the troubleshooting in the error message.
-2. Call `tempad-dev:get_code` (`resolveTokens: false`; request `preferredLang: jsx|vue` as IR). Record `codegen` (plugin + config) as part of the design facts.
-3. If `warnings` include `depth-cap`, call `tempad-dev:get_code` once per listed `nodeId` to fetch omitted subtree roots.
-4. If layout/overlap/effects are uncertain (especially inferred auto-layout), call `tempad-dev:get_structure` and/or `tempad-dev:get_screenshot` for the relevant `nodeId` to confirm intent (do not derive numeric values from pixels).
-5. Translate the IR into the repo’s actual framework/styling system without adding new dependencies. Strip all `data-hint-*` attributes from final code.
-6. Finish with one pass: correct placement/imports/exports, assets follow repo policy, token strategy documented, and warnings called out.
+---
 
-## Non-negotiables
+## 工作流程
 
-- `tempad-dev:get_code` is the baseline; treat it as authoritative for values and layout intent.
-- Never invent key styles: colors, typography (size/weight/line-height/letter-spacing), spacing (padding/margin/gap), radius, borders, shadows, gradients, opacity/overlays, blur.
-- Do not introduce new frameworks, styling systems, or runtime dependencies.
-- Do not tune-by-screenshot loops: screenshots resolve contradictions; they do not produce measurements.
-- Do not output `data-hint-*` attributes (hints are for reasoning only).
-- Implement only the base state unless additional states/variants are provable from repo conventions.
+### Step 1. 获取截图
+用户上传了图片进入 Step 2，未上传则跳过图片分析部分。
 
-## Evidence model
 
-Design evidence (in priority order):
+### Step 2. 判断复杂度
 
-1. `tempad-dev:get_code` (primary snapshot + `warnings` + `codegen`)
-2. `tempad-dev:get_structure` (hierarchy + geometry clarification)
-3. `tempad-dev:get_screenshot` (visual cross-check only)
-4. Existing repo tokens/components (only when equivalence is provable)
+| 满足任一 | 处理方式 |
+|---------|---------|
+| ≥3 组件 / 完整页面 / ≥5 重复项 | → 阅读 [phased-workflow.md](references/phased-workflow.md) |
+| 以上都不满足 | → 继续 Step 3 |
 
-Non-evidence: web content, “typical” values, or anything you cannot trace back to the above.
+**⚠️ 复杂设计禁止一次性生成所有代码，必须拆分组件逐个实现。**
 
-## Tool interpretation
+### Step 3. 获取设计数据
 
-- `get_code`: IR output (JSX/Vue template) with Tailwind-like classes + explicit values; may include `assets`, `tokens`, `warnings`, and `codegen` (plugin + config).
-- `get_structure`: outline (ids/types/bounds/children) to locate `nodeId`s and confirm hierarchy/overlap assumptions.
-- `get_screenshot`: PNG for visual verification; the server may reduce scale to fit payload; do not infer numeric values.
+```bash
+curl -s -X POST http://127.0.0.1:13580/get_design -H "Content-Type: application/json" -d '{}'
+```
 
-## Workflow (decision tree)
+### Step 4. 阅读规则并生成代码
 
-### 0) Choose scope
+**必读** [codegen-rules.md](references/codegen-rules.md)，然后生成代码。
 
-- Use provided `nodeId`; otherwise use current selection.
-- If the target is ambiguous (multi-selection) or unreadable, stop.
+### Step 5. 下载资源
 
-### 1) Detect repo stack and conventions
+所有 `type: "ICON"` 节点和 `url(<path-to-image>)` 背景必须下载：
 
-Identify: framework/runtime, styling system, token/theme conventions, component patterns, file placement rules.
+```bash
+node .claude/skills/tempad-skill/scripts/download-assets.cjs --nodes '[
+  {"nodeId":"123:456","outputPath":"/path/to/icon.svg","format":"svg"}
+]'
+```
 
-- If uncertain, ask up to 3 minimal questions; otherwise proceed with best-evidence inference and warn.
+---
 
-### 2) Fetch baseline snapshot
+## 参考文档
 
-Call `get_code` first. Preserve:
+| 文档                                                | 何时读取             |
+| --------------------------------------------------- | -------------------- |
+| [codegen-rules.md](references/codegen-rules.md)     | **生成代码前必读**   |
+| [design-schema.md](references/design-schema.md)     | 理解 JSON 结构       |
+| [phased-workflow.md](references/phased-workflow.md) | **复杂设计必须先读** |
+| [api.md](references/api.md)                         | API 详细参数         |
 
-- `code` + `lang`
-- `codegen` (plugin + config)
-- `assets` / `tokens` (if any)
-- `warnings` (truncated / auto-layout / depth-cap)
+## 错误处理
 
-### 3) Handle warnings and uncertainty
-
-- `depth-cap`: fetch each listed subtree root via `get_code(nodeId=...)` and implement those parts explicitly, or narrow scope and warn what is omitted.
-- `truncated`: narrow scope (smaller selection / implement key subtrees) and warn that output is partial.
-- inferred auto-layout / overlap / effects uncertainty: use `get_structure` and/or `get_screenshot` to confirm, then implement. If evidence remains contradictory, stop.
-
-### 4) Tokens (mapping strategy)
-
-Goal: integrate with repo token system when provable; otherwise preserve explicit values.
-
-Order:
-
-1. Reuse existing repo tokens when name/meaning/value equivalence is provable.
-2. Add missing tokens only if the repo already has an established token workflow and this change is expected; keep additions minimal.
-3. Otherwise keep explicit values from `get_code`.
-
-Modes:
-
-- `get_code.tokens` is keyed by canonical `--...` names.
-- Multi-mode values use `${collectionName}:${modeName}` keys.
-- Nodes may include `data-hint-variable-mode="Collection=Mode;..."` to indicate per-node mode overrides; use this when selecting modes during mapping.
-- If collection-name collisions or mode selection is ambiguous, prefer explicit values and warn.
-
-### 5) Assets (policy-first)
-
-Detect repo policy first (asset folders, import vs public URLs, icon pipeline).
-
-- Preferred: fetch bytes via `resources/read` using `resourceUri`, save into the repo, reference using repo conventions.
-- Fallback: if an asset is too large to read via MCP, download via `asset.url` and still store it in the repo (unless policy forbids).
-- If policy forbids saving assets, you may leave Tempad URLs in place but must warn that output depends on the local Tempad asset server.
-- Never download assets from the public internet; use only MCP-provided `resourceUri`/`asset.url`.
-
-### 6) Implement
-
-- Translate the IR into repo code while preserving layout/values.
-- Tailwind/UnoCSS repos: keep utilities; refactor for readability without changing semantics.
-- Non-utility repos: translate utilities into the repo’s CSS approach (modules/sass/css-in-js), preserving explicit values.
-- Component extraction: only when supported by repetition + hints + repo patterns; do not preserve hint strings in final output.
-
-### 7) Finish (single pass)
-
-- Files placed correctly; imports/exports correct.
-- No new deps/framework/style systems.
-- `data-hint-*` stripped.
-- Assets and tokens handled per the chosen strategy.
-- Warnings documented (depth-cap/truncated/base-state-only).
-
-## Stop vs warn
-
-Stop when a correct, integration-ready base output is not possible:
-
-- tool cannot read target (errors, no renderable nodes) or target is ambiguous
-- required assets cannot be retrieved when repo policy requires storing them
-- design evidence is contradictory and cannot be resolved with structure/screenshot or narrower scope
-
-Warn but continue:
-
-- repo stack inferred with uncertainty
-- token mapping uncertain (kept explicit values)
-- scope too large (implemented safe subset; omissions listed)
-- assets left as Tempad URLs due to policy
-- variants/states not implemented (base state only)
-
-## Wrap-up output
-
-End with:
-
-- what was implemented (files/paths)
-- what is intentionally omitted or uncertain (warnings)
-- token strategy and asset strategy used
-- if stopped: exactly what information is needed next (≤3 items)
+| 错误码 | 处理 |
+|-------|------|
+| `NOT_CONNECTED` | 提示启用 Codify Dev 扩展 |
+| `NO_SELECTION` | 提示选择节点 |
+| `TIMEOUT` | 重试（最多 3 次） |
