@@ -7,7 +7,8 @@ export const DEFAULT_CONFIG = {
   disallowedProperties: ['font-family', 'gap'],
   rootFontSize: 16,
   scale: 1,
-  lessVariables: {}
+  lessVariables: {},
+  type: 'web'
 }
 
 // MVVM项目的less变量映射

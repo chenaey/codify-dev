@@ -247,44 +247,28 @@ async function handleDownloadIcons() {
 </script>
 
 <template>
-  <Section
-    :collapsed="
-      !selectedNode ||
-      !(componentCode || shouldShowCodeBlock || codeBlocks.length || svgCode || textContent)
-    "
-  >
+  <Section :collapsed="!selectedNode ||
+    !(componentCode || shouldShowCodeBlock || codeBlocks.length || svgCode || textContent)
+    ">
     <template #header>
       <div class="tp-code-header tp-row tp-shrink tp-gap-l code-section-header">
         Code
         <Badge v-if="activePlugin" title="Code in this section is transformed by this plugin">{{
           activePlugin.name
-        }}</Badge>
+          }}</Badge>
 
-        <IconButton
-          variant="secondary"
-          title="Copy Prompt"
-          style="width: auto; white-space: nowrap; padding: 0 6px"
-          :disabled="isCopyingPrompt"
-          @click="copyPrompt"
-        >
+        <IconButton variant="secondary" title="Copy Prompt" style="width: auto; white-space: nowrap; padding: 0 6px"
+          :disabled="isCopyingPrompt" @click="copyPrompt">
           Copy Prompt
         </IconButton>
-        <IconButton
-          variant="secondary"
-          title="AI Generate Code (beta)"
-          :disabled="isGenerating || !selectedNode"
-          @click="generateAICode"
-        >
+        <IconButton variant="secondary" title="AI Generate Code (beta)" :disabled="isGenerating || !selectedNode"
+          @click="generateAICode">
           AI
         </IconButton>
         <div class="tp-code-actions tp-row tp-gap-s">
           <!-- 添加图标下载按钮 -->
-          <Button
-            v-if="unref(currentResources)?.size && selectedNode"
-            class="tp-icon-download-btn"
-            @click="handleDownloadIcons"
-            :disabled="isDownloading"
-          >
+          <Button v-if="unref(currentResources)?.size && selectedNode" class="tp-icon-download-btn"
+            @click="handleDownloadIcons" :disabled="isDownloading">
             {{ isDownloading ? 'Exporting...' : `Export ${unref(currentResources)?.size} icons` }}
           </Button>
         </div>
@@ -296,23 +280,12 @@ async function handleDownloadIcons() {
     </div>
 
     <!-- 在最后添加聊天输入框，只在生成成功后显示 -->
-    <AIChatInput
-      v-if="hasGeneratedAiCode"
-      :disabled="!selectedNode"
-      :loading="isGenerating"
-      @send="handleSendMessage"
-      @clear="handleClearChatHistory"
-    />
+    <AIChatInput v-if="hasGeneratedAiCode" :disabled="!selectedNode" :loading="isGenerating" @send="handleSendMessage"
+      @clear="handleClearChatHistory" />
 
-    <Code
-      v-if="componentCode"
-      class="tp-code-code"
-      title="Component"
-      lang="js"
-      :link="componentLink"
-      :code="componentCode"
-    >
-      <template #actions>
+    <Code v-if="componentCode" class="tp-code-code" title="Component" lang="js" :link="componentLink"
+      :code="componentCode">
+  <template #actions>
         <IconButton
           :disabled="!componentLink"
           variant="secondary"
@@ -322,43 +295,19 @@ async function handleDownloadIcons() {
           <Preview />
         </IconButton>
       </template>
-    </Code>
+</Code>
 
     <!-- 显示AI生成的代码 -->
-    <Code
-      v-if="shouldShowCodeBlock"
-      class="tp-code-code"
-      :title="loadingTitle"
-      lang="vue"
-      :code="componentAiCode"
-    />
+    <Code v-if="shouldShowCodeBlock" class="tp-code-code" :title="loadingTitle" lang="vue" :code="componentAiCode" />
 
     <!-- 显示其他代码块 -->
-    <Code
-      v-for="{ name, title, lang, code } in codeBlocks"
-      :key="name"
-      class="tp-code-code"
-      :title="title"
-      :lang="lang"
-      :code="code"
-    />
+    <Code v-for="{ name, title, lang, code } in codeBlocks" :key="name" class="tp-code-code" :title="title" :lang="lang"
+      :code="code" />
     <!-- 显示 SVG 代码 -->
-    <Code
-      v-if="svgCode"
-      class="tp-code-code tp-code-svg"
-      title="SVG Code"
-      lang="svg"
-      :code="svgCode"
-    />
+    <Code v-if="svgCode" class="tp-code-code tp-code-svg" title="SVG Code" lang="svg" :code="svgCode" />
 
     <!-- 显示文本内容 -->
-    <Code
-      v-if="textContent"
-      class="tp-code-code tp-code-text"
-      title="Content"
-      lang="text"
-      :code="textContent"
-    />
+    <Code v-if="textContent" class="tp-code-code tp-code-text" title="Content" lang="text" :code="textContent" />
   </Section>
 </template>
 
@@ -405,7 +354,7 @@ async function handleDownloadIcons() {
 .tp-code-text :deep(.tp-code-content) {
   white-space: pre-wrap;
   word-break: break-all;
-  color: var(--ramp-black-800);
+  color: var(--color-text);
 }
 
 .tp-code-svg :deep(.tp-code-content) {

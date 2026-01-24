@@ -38,6 +38,7 @@ const { userProjects } = useUserProjects()
 
 // 内置项目列表
 const builtInProjects = [
+  { id: 'default', name: 'Default', isBuiltIn: true },
   { id: 'mvvm', name: 'Vue2 (CSS Module + rem)', isBuiltIn: true },
   { id: 'vue3', name: 'Vue3 (Setup + Scoped CSS)', isBuiltIn: true },
   { id: 'cbg', name: 'Vue3 (Setup + CSS Module + Less)', isBuiltIn: true },
@@ -118,34 +119,17 @@ function openApiSettings() {
 
     <div class="tp-row tp-row-justify tp-pref-field">
       <label for="css-unit">CSS unit</label>
-      <Select
-        id="css-unit"
-        class="tp-pref-input"
-        :options="cssUnitOptions"
-        v-model="options.cssUnit"
-      />
+      <Select id="css-unit" class="tp-pref-input" :options="cssUnitOptions" v-model="options.cssUnit" />
     </div>
 
     <div class="tp-row tp-row-justify tp-pref-field">
       <label for="root-font-size">Root font size</label>
-      <input
-        id="root-font-size"
-        class="tp-pref-input"
-        ref="fontSizeInput"
-        type="number"
-        v-model.number="options.rootFontSize"
-      />
+      <input id="root-font-size" class="tp-pref-input" ref="fontSizeInput" type="number"
+        v-model.number="options.rootFontSize" />
     </div>
     <div class="tp-row tp-row-justify tp-pref-field">
       <label for="scale">Scale</label>
-      <input
-        id="scale"
-        class="tp-pref-input"
-        ref="scaleInput"
-        type="number"
-        step="1"
-        v-model.number="options.scale"
-      />
+      <input id="scale" class="tp-pref-input" ref="scaleInput" type="number" step="1" v-model.number="options.scale" />
     </div>
     <!-- 添加API设置按钮 -->
     <div class="tp-row tp-row-justify tp-pref-field tb-pref-plugin">
@@ -177,7 +161,7 @@ function openApiSettings() {
   border-top: 1px solid var(--color-border);
 }
 
-.tp-pref-field + .tp-pref-field {
+.tp-pref-field+.tp-pref-field {
   margin-top: 8px;
 }
 
