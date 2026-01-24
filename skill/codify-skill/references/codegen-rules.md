@@ -106,7 +106,7 @@
 ### 下载命令
 
 ```bash
-node .claude/skills/tempad-skill/scripts/download-assets.cjs --nodes '[
+node skill/codify-skill/scripts/download-assets.cjs --nodes '[
   {"nodeId":"123:456","outputPath":"src/assets/icon.svg","format":"svg"},
   {"nodeId":"789:012","outputPath":"src/assets/bg.png","format":"png"}
 ]'

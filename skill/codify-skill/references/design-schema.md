@@ -84,8 +84,6 @@ interface UINode {
 
 ### 下载图标
 
-使用 `id` 调用下载脚本：
-
 ```bash
 node .claude/skills/tempad-skill/scripts/download-assets.cjs --nodes '[
   {"nodeId":"123:456","outputPath":"./icons/arrow.svg","format":"svg"}

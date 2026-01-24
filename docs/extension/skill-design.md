@@ -36,7 +36,7 @@ Skill 是 TemPad Dev 提供的一套轻量级 HTTP API 能力，允许外部 Age
 
 | 组件                       | 位置                                      | 职责                                                              |
 | -------------------------- | ----------------------------------------- | ----------------------------------------------------------------- |
-| **Skill Server**           | `packages/skill-server/`                  | 独立 Node.js 服务，提供 HTTP API，通过 WebSocket 与浏览器扩展通信 |
+| **API Server**             | `packages/api-server/`                    | 独立 Node.js 服务,提供 HTTP API,通过 WebSocket 与浏览器扩展通信 |
 | **Extension Skill Module** | `packages/extension/skill/`               | 浏览器扩展中的 Skill 处理模块，执行实际的设计数据提取             |
 | **Skill Composable**       | `packages/extension/composables/skill.ts` | Vue composable，管理 Skill 连接状态和自动激活逻辑                 |
 
@@ -324,7 +324,7 @@ function isIconNode(node): boolean {
 
 ```
 packages/
-├── skill-server/                 # Skill Server
+├── api-server/                   # API Server
 │   ├── src/
 │   │   ├── index.ts             # 入口，启动 HTTP + WebSocket 服务
 │   │   ├── api.ts               # Hono HTTP API 路由
@@ -355,7 +355,7 @@ packages/
 
 ```bash
 # 安装并启动 Skill Server
-npx @tempad-dev/skill-server
+npx @codify-dev/api-server
 ```
 
 ### 在 Agent 中调用

@@ -1,7 +1,7 @@
 {
-  "name": "@tempad-dev/skill-server",
+  "name": "@codify-dev/api-server",
   "version": "0.1.0",
-  "description": "Skill API server for Codify Dev - HTTP API bridge to browser extension.",
+  "description": "API server for Codify Dev - HTTP API bridge to browser extension.",
   "bin": "dist/index.mjs",
   "files": [
     "README.md",

@@ -87,3 +87,5 @@ Pick the checks that match your change.
 
 - If you change tool schemas/contracts: update `packages/mcp-shared` first, then `packages/mcp-server`, then `packages/extension`.
 - Re-check payload limits and omission rules; see `docs/extension/requirements.md` and `docs/extension/design.md`.
+
+6. always respond in chinese

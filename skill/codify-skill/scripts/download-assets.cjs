@@ -1,5 +1,5 @@
 /**
- * 资源下载脚本 - 从 TemPad Dev Skill Server 下载设计资源
+ * 资源下载脚本 - 从 Codify Dev API Server 下载设计资源
  *
  * 使用方法:
  *   node download-assets.cjs --nodes '<JSON数组>'
@@ -153,7 +153,7 @@ async function main() {
     response = await postRequest('/get_assets', { nodes: requestNodes })
   } catch (e) {
     console.log('Error: 无法连接到 Skill Server (' + BASE_URL + ')')
-    console.log('请确保 TemPad Dev 扩展已连接')
+    console.log('请确保 Codify Dev 扩展已连接')
     process.exit(1)
   }
 

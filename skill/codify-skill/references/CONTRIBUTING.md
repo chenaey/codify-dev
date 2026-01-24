@@ -1,4 +1,4 @@
-# TemPad Skill 协作与迭代指南
+# Codify Skill 协作与迭代指南
 
 本文档定义 Skill 的协作模式、迭代流程和文档管理规范。
 
@@ -7,7 +7,7 @@
 ## 文档体系
 
 ```
-.claude/skills/tempad-skill/
+skill/codify-skill/
 ├── SKILL.md                 # 入口：工作流程、核心原则
 ├── CONTRIBUTING.md          # 本文档：协作模式、迭代流程
 ├── ISSUES.md                # 问题追踪：待处理/已解决

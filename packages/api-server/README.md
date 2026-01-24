@@ -1,24 +1,24 @@
-# @tempad-dev/skill-server
+# @codify-dev/api-server
 
-HTTP API server for TemPad Dev browser extension.
+HTTP API server for Codify Dev browser extension.
 
 ## Usage
 
 ```bash
 # Using npx
-npx @tempad-dev/skill-server
+npx @codify-dev/api-server
 
 # Or install globally
-npm install -g @tempad-dev/skill-server
-skill-server
+npm install -g @codify-dev/api-server
+api-server
 ```
 
 ### Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `SKILL_PORT` | `13580` | HTTP API port |
-| `SKILL_WS_PORT` | `13581` | WebSocket port |
+| `API_PORT` | `13580` | HTTP API port |
+| `API_WS_PORT` | `13581` | WebSocket port |
 
 ## API
 
@@ -64,10 +64,10 @@ curl -X POST http://127.0.0.1:13580/get_assets \
 ## Architecture
 
 ```
-Agent ──HTTP──► Skill Server ◄──WebSocket── Browser Extension
+Agent ──HTTP──► API Server ◄──WebSocket── Browser Extension
 ```
 
 ## Requirements
 
 - Node.js 18+
-- TemPad Dev browser extension
+- Codify Dev browser extension

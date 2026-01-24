@@ -1,4 +1,4 @@
-# TemPad Skill - 问题追踪
+# Codify Skill - 问题追踪
 
 本文档追踪 D2C 过程中发现的问题，关联 [CONTRIBUTING.md](./CONTRIBUTING.md) 的迭代流程。
 
@@ -45,9 +45,9 @@
    - Phase 3 检查点：页面入口文件已创建、组件已正确导入
 
 **涉及文件**:
-- `.claude/skills/tempad-skill/SKILL.md`
-- `.claude/skills/tempad-skill/references/phased-workflow.md`
-- `.claude/skills/tempad-skill/ISSUES.md`
+- `skill/codify-skill/SKILL.md`
+- `skill/codify-skill/references/phased-workflow.md`
+- `skill/codify-skill/ISSUES.md`
 
 ---
 
@@ -141,9 +141,9 @@
 
 **涉及文件**:
 
-- `.claude/skills/tempad-skill/SKILL.md`
-- `.claude/skills/tempad-skill/references/phased-workflow.md`
-- `.claude/skills/tempad-skill/references/codegen-rules.md`
+- `skill/codify-skill/SKILL.md`
+- `skill/codify-skill/references/phased-workflow.md`
+- `skill/codify-skill/references/codegen-rules.md`
 
 ---
 
@@ -177,9 +177,9 @@
 
 **涉及文件**:
 
-- `.claude/skills/tempad-skill/SKILL.md` - 简化主流程，复杂逻辑引用参考文档
-- `.claude/skills/tempad-skill/scripts/query-design.cjs` - 查询工具
-- `.claude/skills/tempad-skill/references/phased-workflow.md` - 复杂设计处理指南
+- `skill/codify-skill/SKILL.md` - 简化主流程，复杂逻辑引用参考文档
+- `skill/codify-skill/scripts/query-design.cjs` - 查询工具
+- `skill/codify-skill/references/phased-workflow.md` - 复杂设计处理指南
 - `packages/extension/utils/jsonOptimizer.ts` - 保留 ID 字段
 
 ---

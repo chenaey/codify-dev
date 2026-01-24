@@ -1,12 +1,12 @@
 ---
-name: tempad-skill
+name: codify-skill
 description: |
   将 Figma/MasterGo 设计还原为前端代码（支持任意框架）。
   通过 HTTP API 获取设计数据（截图 + JSON），基于数据生成高还原度代码。
-  前提：TemPad Dev 扩展已连接，Skill Server 运行在 http://127.0.0.1:13580
+  前提：Codify Dev 扩展已连接，API Server 运行在 http://127.0.0.1:13580
 ---
 
-# TemPad Dev - 设计还原
+# Codify Dev - 设计还原
 
 ## 核心原则
 
@@ -64,6 +64,6 @@ node .claude/skills/tempad-skill/scripts/download-assets.cjs --nodes '[
 
 | 错误码 | 处理 |
 |-------|------|
-| `NOT_CONNECTED` | 提示启用 TemPad Dev 扩展 |
+| `NOT_CONNECTED` | 提示启用 Codify Dev 扩展 |
 | `NO_SELECTION` | 提示选择节点 |
 | `TIMEOUT` | 重试（最多 3 次） |
