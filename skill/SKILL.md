@@ -104,15 +104,24 @@ curl -s -X POST http://127.0.0.1:13580/get_design \
 
 ---
 
-### Step 5. 下载资源（按需）
+### Step 5. 下载资源
 
-`type: "ICON"` 节点和 `url(<path-to-image>)` 背景必须下载：
+> **禁止跳过此步骤**。禁止用 emoji/占位符/纯色代替图标和图片。
+
+**必须下载的资源**：
+- `type: "ICON"` 节点 → 下载 SVG
+- `url(<path-to-image>)` 背景 → 下载 PNG
+
+**下载命令**：
 
 ```bash
 node .claude/skills/codify-design-to-code/scripts/download-assets.cjs --nodes '[
   {"nodeId":"123:456","outputPath":"/path/to/icon.svg","format":"svg"}
 ]'
 ```
+
+**资源下载检查清单**：
+- [ ] 代码中引用了实际下载的文件路径
 
 ---
 

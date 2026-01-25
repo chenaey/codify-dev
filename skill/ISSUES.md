@@ -56,6 +56,197 @@
 
 ---
 
+### 2. Agent 执行时跳过资源下载步骤 ⭐⭐⭐
+
+**Issue ID**: #asset-download-skipped
+
+**问题描述**:
+Agent 在执行 codify-design-to-code 流程时，完全跳过了 SKILL.md Step 5 的资源下载步骤，导致所有 ICON 和图片背景都没有实际资源文件。
+
+**当前行为**:
+```vue
+<!-- 图标用 emoji 代替 -->
+<span class="fire-icon">🔥</span>
+
+<!-- 背景用纯色/渐变代替实际图片 -->
+.product-image {
+  background: linear-gradient(135deg, #2d1616 0%, #1c0b0b 100%);
+}
+```
+
+**期望行为**:
+1. 调用 `download-assets.cjs` 下载所有 `type: "ICON"` 的节点
+2. 调用 `download-assets.cjs` 下载所有 `url(<path-to-image>)` 背景的节点
+3. 在代码中引用下载的实际文件
+
+```bash
+# 应该执行的命令
+node skill/scripts/download-assets.cjs --nodes '[
+  {"nodeId":"322:443","outputPath":"src/assets/fire-icon.svg","format":"svg"},
+  {"nodeId":"13:3809","outputPath":"src/assets/bg-image.png","format":"png"}
+]'
+```
+
+**根因分析**:
+1. SKILL.md 中资源下载是 Step 5，但 Agent 在 Step 4 生成代码后直接结束
+2. 资源下载步骤标注为「按需」，Agent 错误理解为「可选」
+3. 缺少强制检查机制确保资源被下载
+
+**改进方案**:
+1. 在 SKILL.md 中将资源下载从「按需」改为「必须」
+2. 添加检查清单：`[ ] 所有 ICON 节点已下载 SVG` `[ ] 所有图片背景已下载 PNG`
+3. 在 codegen-rules.md 添加禁止性规则：`❌ 用 emoji/占位符代替图标`
+
+**涉及文件**:
+- `skill/SKILL.md`
+- `skill/references/codegen-rules.md`
+
+**状态**: 🔴 待处理
+
+---
+
+### 3. 复杂设计未严格执行分步流程 ⭐⭐
+
+**Issue ID**: #phased-workflow-skipped
+
+**问题描述**:
+Agent 正确判断了设计复杂度（路径 B），但没有严格执行 phased-workflow.md 的分步流程：
+1. 没有创建 `implementation-plan.md`
+2. 没有逐个组件实现
+3. 一次性生成了整个 800+ 行的页面组件
+
+**当前行为**:
+```markdown
+## 复杂度判断
+**骨架层级**：6 层
+**判定结果**：复杂
+→ 选择路径：B
+
+[然后直接一次性生成完整代码]
+```
+
+**期望行为**:
+```markdown
+## 复杂度判断
+→ 选择路径：B
+
+## Phase 1: 骨架理解
+[输出骨架分析]
+
+## Phase 2: 实现计划
+| 组件 | 节点 ID | 状态 |
+|------|---------|------|
+| Header | 13:3811 | ⬜ |
+| LineupCard | 13:4377 | ⬜ |
+...
+
+## Phase 3: 逐个实现
+### Header (13:3811)
+[单独实现这个组件]
+...
+```
+
+**根因分析**:
+1. phased-workflow.md 的检查点机制不够强制
+2. Agent 倾向于一次性完成任务，而非分步骤
+3. 缺少「Phase 完成确认」的阻断机制
+
+**改进方案**:
+1. 在 SKILL.md 中强化：复杂设计 **禁止** 跳过 Phase 2 实现计划
+2. 添加强制输出格式要求
+
+**状态**: 🔴 待处理
+
+---
+
+### 4. 样式值估算而非精确复制 ⭐⭐
+
+**Issue ID**: #style-estimation
+
+**问题描述**:
+部分样式值是 Agent 估算的，不是从 `customStyle` 精确复制，违反 codegen-rules.md 的核心原则。
+
+**当前行为**:
+```less
+.lineup-grid {
+  gap: 8px;  // ❌ JSON 中没有 gap 属性
+}
+
+.tip-banner {
+  margin-top: 12px;  // ❌ 估算值
+  padding: 8px 12px;  // ❌ 估算值
+}
+```
+
+**JSON 中的实际值**:
+```json
+{
+  "id": "13:4382",
+  "customStyle": {
+    "display": "flex",
+    "align-items": "flex-start",
+    "align-content": "flex-start",
+    "flex-wrap": "wrap"
+    // 没有 gap 属性
+  }
+}
+```
+
+**期望行为**:
+- 只使用 `customStyle` 中存在的属性
+- 如果需要间距，从子节点的 `margin-right` 等属性获取
+- 不确定时，不添加
+
+**根因分析**:
+1. Agent 基于视觉截图推断间距，而非从 JSON 提取
+2. codegen-rules.md 的「禁止估算」规则不够醒目
+
+**改进方案**:
+1. 在 codegen-rules.md 添加检查清单：
+   - `[ ] 每个样式属性都能在 customStyle 中找到来源`
+   - `[ ] 没有添加 customStyle 不存在的属性`
+
+**状态**: 🔴 待处理
+
+---
+
+### 5. 固定宽度违反响应式原则 ⭐
+
+**Issue ID**: #fixed-width-responsive
+
+**问题描述**:
+生成的代码使用了多个固定宽度值，违反响应式设计原则。
+
+**当前行为**:
+```less
+.zhenrong-page {
+  max-width: 375px;  // ❌ 硬编码设计稿宽度
+}
+
+.bg-image {
+  width: 375px;  // ❌ 固定宽度
+}
+```
+
+**期望行为**:
+```less
+.zhenrong-page {
+  width: 100%;  // ✅ 容器宽度自适应
+}
+
+.bg-image {
+  width: 100%;  // ✅ 背景图自适应
+}
+```
+
+**根因分析**:
+- Agent 直接复制了设计稿的 375px 画布宽度
+- codegen-rules.md 的响应式规则没有被充分理解
+
+**状态**: 🔴 待处理
+
+---
+
 ## 已解决问题
 
 ### ✅ 资源下载部分失败处理 (v2.9)

@@ -105,7 +105,7 @@
 ### 下载命令
 
 ```bash
-node skill/codify-skill/scripts/download-assets.cjs --nodes '[
+node skill/scripts/download-assets.cjs --nodes '[
   {"nodeId":"123:456","outputPath":"src/assets/icon.svg","format":"svg"},
   {"nodeId":"789:012","outputPath":"src/assets/bg.png","format":"png"}
 ]'
@@ -113,7 +113,7 @@ node skill/codify-skill/scripts/download-assets.cjs --nodes '[
 
 ### 例外（可用 CSS）
 
-纯色背景、分隔线、渐变。
+纯色背景、分隔线、渐变（无 `url(<path-to-image>)` 标记）。
 
 ---
 
