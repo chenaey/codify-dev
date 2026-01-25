@@ -577,16 +577,51 @@ async function handleGetScreenshot(params: GetScreenshotParams): Promise<GetScre
 // Handler: get_assets
 async function handleGetAssets(params: GetAssetsParams): Promise<GetAssetsResult> {
   const assets: ExportedAsset[] = []
+  let successCount = 0
+  let failedCount = 0
 
   for (const req of params.nodes) {
     if (req.node_id && !req.nodeId) {
       req.nodeId = req.node_id
     }
-    const asset = await exportSingleAsset(req)
-    assets.push(asset)
+
+    try {
+      const asset = await exportSingleAsset(req)
+      assets.push(asset)
+      successCount++
+    } catch (err) {
+      // 单个资源导出失败，记录错误但继续处理其他资源
+      const errorCode = isSkillError(err) ? err.code : ERROR_CODES.EXPORT_FAILED
+      const errorMessage = isSkillError(err)
+        ? err.message
+        : err instanceof Error
+          ? err.message
+          : 'Unknown error'
+
+      assets.push({
+        nodeId: req.nodeId,
+        name: '',
+        format: req.format || 'png',
+        width: 0,
+        height: 0,
+        data: '',
+        error: {
+          code: errorCode,
+          message: errorMessage
+        }
+      })
+      failedCount++
+    }
   }
 
-  return { assets }
+  return {
+    assets,
+    summary: {
+      total: params.nodes.length,
+      success: successCount,
+      failed: failedCount
+    }
+  }
 }
 
 async function exportSingleAsset(req: AssetExportParams): Promise<ExportedAsset> {

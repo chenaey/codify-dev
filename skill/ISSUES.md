@@ -58,6 +58,58 @@
 
 ## 已解决问题
 
+### ✅ 资源下载部分失败处理 (v2.9)
+
+**Issue ID**: #partial-asset-failure
+
+**原问题**:
+`get_assets` API 在导出多个资源时，如果任意一个资源导出失败，整个请求返回失败，无法获取其他成功的资源。
+
+**表现**:
+```
+Error: EXPORT_FAILED - Unknown error
+```
+
+**根因分析**:
+1. `handleGetAssets` 使用单一 try-catch 包裹所有资源导出
+2. 任一资源异常会中断整个循环
+3. 错误信息不包含具体失败的节点 ID
+
+**解决方案**:
+
+1. **后端 (`handlers.ts`)**:
+   - 每个资源独立 try-catch
+   - 失败的资源返回 `error` 字段而非抛出异常
+   - 添加 `summary` 字段统计成功/失败数量
+
+2. **类型定义 (`types.ts`)**:
+   - `ExportedAsset` 新增可选 `error` 字段
+   - `GetAssetsResult` 新增可选 `summary` 字段
+
+3. **脚本 (`download-assets.cjs`)**:
+   - 处理部分成功的响应
+   - 成功的资源显示 ✓，失败的显示 ✗ 并附带错误原因
+   - 部分失败时退出码为 0（允许继续流程）
+   - 全部失败时退出码为 1
+
+**改进后输出**:
+```
+Downloaded 3 assets (2 success, 1 failed):
+  ✓ src/icons/arrow.svg (24x24)
+  ✓ src/icons/close.svg (16x16)
+  ✗ src/images/bg.png - NODE_NOT_FOUND: Node "0:456" not found
+
+Warning: 1 asset(s) failed to download
+```
+
+**涉及文件**:
+- `packages/extension/skill/types.ts`
+- `packages/extension/skill/handlers.ts`
+- `packages/api-server/src/types.ts`
+- `skill/scripts/download-assets.cjs`
+
+---
+
 ### ✅ 复杂设计未拆分组件 (v2.7)
 
 **Issue ID**: #component-split-enforcement

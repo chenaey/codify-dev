@@ -108,8 +108,19 @@ export interface ExportedAsset {
   width: number
   height: number
   data: string
+  // 单个资源导出失败时的错误信息
+  error?: {
+    code: string
+    message: string
+  }
 }
 
 export interface GetAssetsResult {
   assets: ExportedAsset[]
+  // 汇总信息
+  summary?: {
+    total: number
+    success: number
+    failed: number
+  }
 }

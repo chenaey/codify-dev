@@ -119,10 +119,21 @@ export interface ExportedAsset {
   width: number
   height: number
   data: string // base64 for png, svg string for svg
+  // 单个资源导出失败时的错误信息
+  error?: {
+    code: string
+    message: string
+  }
 }
 
 export interface GetAssetsResponse {
   assets: ExportedAsset[]
+  // 汇总信息
+  summary?: {
+    total: number
+    success: number
+    failed: number
+  }
 }
 
 // Status response

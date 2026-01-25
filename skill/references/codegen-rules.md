@@ -89,7 +89,6 @@
 |---------|---------|------|
 | 图标 | `type: "ICON"` | 用 `id` 下载 SVG |
 | 图片 | `background: "url(<path-to-image>)..."` | 用该节点 `id` 下载 PNG |
-| 纯色/渐变 | `background: "#xxx"` 或 `linear-gradient(...)` | 直接使用 |
 
 ### 图标（必须下载）
 
@@ -131,6 +130,10 @@ hover/active/focus **默认不添加**，除非设计稿有对应状态或用户
 如需添加，用最小化方式：`opacity: 0.9` 或 `filter: brightness(0.95)`。
 
 ---
+
+## 语义化
+- 组件名称：符合项目已有命名规范
+- 样式类名、下载的资源需要语义化
 
 ## 常见问题
 

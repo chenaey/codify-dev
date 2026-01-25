@@ -284,6 +284,8 @@ skill/codify-skill/
 | v2.5 | 强化组件规划：复合页面必须先输出规划清单；新增样式提取检查清单；代码质量基本要求 | #component-planning-enforce, #style-precision, #code-syntax |
 | v2.6 | 文档精简优化：按 skill-creator 原则精简冗余规则，移除"跳转"概念，信任模型推理能力 | #complex-workflow-enforce, #image-resources |
 | v2.7 | **强制拆分组件**：3-Phase 流程 + 检查点机制，禁止一次性生成复杂页面 | ✅ #component-split-enforcement |
+| v2.8 | **强制复杂度检查点**：Step 3 必须输出复杂度判断，明确路径 A/B 分支，禁止跳过决策 | ✅ #complexity-checkpoint |
+| v2.9 | **资源下载部分失败处理**：单个资源失败不影响其他资源，返回详细的成功/失败信息 | ✅ #partial-asset-failure |
 
 ---
 
