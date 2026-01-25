@@ -51,6 +51,7 @@ export type MessageToServer = ActivateMessage | SkillResultMessage
 export interface GetDesignParams {
   nodeId?: string
   node_id?: string
+  mode?: 'full' | 'skeleton' // 默认 'full'
 }
 
 export interface AssetInfo {
@@ -59,9 +60,22 @@ export interface AssetInfo {
   type: 'IMAGE' | 'VECTOR'
 }
 
+// skeleton 模式返回的精简节点结构（内部使用）
+export interface SkeletonNode {
+  id: string
+  type: string
+  layoutMode?: 'HORIZONTAL' | 'VERTICAL' // 自动布局方向
+  repeatCount?: number
+  characters?: string // TEXT 节点的文本内容
+  children?: SkeletonNode[]
+}
+
+// mode: 'full' 返回 design (JSON)
+// mode: 'skeleton' 返回 structure (缩进文本)
 export interface GetDesignResult {
   rootNodeId: string
-  design: unknown
+  design?: unknown // full 模式
+  structure?: string // skeleton 模式：缩进式文本树
   assets: AssetInfo[]
 }
 

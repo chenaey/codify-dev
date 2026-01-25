@@ -28,6 +28,32 @@ export function isVectorNode(node: any): boolean {
   return VECTOR_TYPES.includes(node.type)
 }
 
+// 检查容器是否只包含矢量子节点（递归检查）
+// 用于 SVG 容器折叠：GROUP/FRAME 内全是 VECTOR 类型 → 整体视为图标
+export function hasOnlyVectorDescendants(node: any): boolean {
+  // 空节点或不可见节点
+  if (!node) return false
+  if ('visible' in node && node.visible === false) return false
+
+  // 直接矢量类型
+  if (isVectorNode(node)) return true
+
+  // 容器类型需要递归检查所有子节点
+  if (isContainerNode(node)) {
+    if (!('children' in node) || !node.children?.length) {
+      // 空容器不算纯矢量容器
+      return false
+    }
+    // 所有可见子节点都必须是矢量或纯矢量容器
+    return node.children
+      .filter((child: any) => !('visible' in child) || child.visible !== false)
+      .every((child: any) => hasOnlyVectorDescendants(child))
+  }
+
+  // 其他类型（TEXT, RECTANGLE 等）不是矢量
+  return false
+}
+
 // 检查节点是否为容器节点
 export function isContainerNode(node: any): boolean {
   return CONTAINER_TYPES.includes(node.type)
