@@ -219,7 +219,7 @@ async function copySkill() {
     const nodeId = selectedNode.value.id
     // 构建简短 Prompt
     console.log('nodeId', nodeId)
-    const promptText = `用 codify-design-to-code skill 将节点 ${nodeId} 生成组件代码`
+    const promptText = `使用技能： codify-design-to-code skill 节点ID： ${nodeId}`
 
     // 复制到剪贴板
     await copy(promptText)

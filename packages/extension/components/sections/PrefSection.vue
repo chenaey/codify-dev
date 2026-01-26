@@ -136,7 +136,7 @@ function openApiSettings() {
       <label>API 设置</label>
       <button class="api-settings-button" @click="openApiSettings">配置 DeepSeek API</button>
     </div>
-    <McpSection class="tp-pref-mcp" />
+    <!-- <McpSection class="tp-pref-mcp" /> -->
     <!-- <PluginsSection class="tp-pref-plugins" /> -->
   </Section>
 

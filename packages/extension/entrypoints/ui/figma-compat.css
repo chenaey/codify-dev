@@ -113,24 +113,24 @@
   --ramp-pale-purple-400: #c5b2dc;
   --ramp-pale-yellow-300: #f5dfa8;
 
-  /* ========== Semantic Colors ========== */
+  /* ========== Semantic Colors (Dark Mode as Default for MasterGo) ========== */
   
   /* Background */
-  --color-bg: #ffffff;
-  --color-bg-secondary: #f5f5f5;
-  --color-bg-tertiary: #e6e6e6;
-  --color-bg-hover: #f5f5f5;
-  --color-bg-pressed: #f5f5f5;
-  --color-bg-disabled: #d9d9d9;
-  --color-bg-elevated: #ffffff;
-  --color-bg-inverse: #000000;
+  --color-bg: #2c2c2c;
+  --color-bg-secondary: #383838;
+  --color-bg-tertiary: #444444;
+  --color-bg-hover: #383838;
+  --color-bg-pressed: #383838;
+  --color-bg-disabled: #444444;
+  --color-bg-elevated: #383838;
+  --color-bg-inverse: #ffffff;
   --color-bg-brand: #0d99ff;
   --color-bg-brand-hover: #007be5;
   --color-bg-brand-pressed: #007be5;
-  --color-bg-selected: #e5f4ff;
-  --color-bg-selected-hover: #bde3ff;
-  --color-bg-selected-pressed: #bde3ff;
-  --color-bg-selected-secondary: #f2f9ff;
+  --color-bg-selected: #093077;
+  --color-bg-selected-hover: #034ac1;
+  --color-bg-selected-pressed: #034ac1;
+  --color-bg-selected-secondary: #0d193f;
   --color-bg-selected-strong: #0d99ff;
   --color-bg-danger: #f24822;
   --color-bg-danger-hover: #dc3412;
@@ -138,52 +138,64 @@
   --color-bg-warning: #ffcd29;
   
   /* Border */
-  --color-border: #e6e6e6;
-  --color-border-strong: #2c2c2c;
+  --color-border: #444444;
+  --color-border-strong: #b3b3b3;
   --color-border-selected: #0d99ff;
-  --color-border-disabled: #e6e6e6;
-  --color-border-danger: #ffc7c2;
+  --color-border-disabled: #444444;
+  --color-border-danger: #9f1f18;
   
   /* Text */
-  --color-text: #000000e6;
-  --color-text-secondary: #00000080;
-  --color-text-tertiary: #0000004d;
-  --color-text-disabled: #0000004d;
-  --color-text-brand: #007be5;
-  --color-text-danger: #dc3412;
-  --color-text-success: #009951;
-  --color-text-warning: #b86200;
-  --color-text-selected: #007be5;
+  --color-text: #ffffffe6;
+  --color-text-secondary: #ffffffb3;
+  --color-text-tertiary: #ffffff66;
+  --color-text-disabled: #ffffff66;
+  --color-text-brand: #80caff;
+  --color-text-danger: #ffafa3;
+  --color-text-success: #85e0a3;
+  --color-text-warning: #ffd966;
+  --color-text-selected: #80caff;
   --color-text-onbrand: #ffffff;
   --color-text-ondanger: #ffffff;
-  --color-text-onselected: #000000e6;
+  --color-text-onselected: #ffffffe6;
   
   /* Icon */
-  --color-icon: #000000e6;
-  --color-icon-secondary: #00000080;
-  --color-icon-tertiary: #0000004d;
-  --color-icon-disabled: #0000004d;
-  --color-icon-hover: #000000e6;
-  --color-icon-brand: #007be5;
-  --color-icon-danger: #dc3412;
-  --color-icon-success: #009951;
-  --color-icon-warning: #b86200;
-  --color-icon-selected: #007be5;
+  --color-icon: #ffffffe6;
+  --color-icon-secondary: #ffffffb3;
+  --color-icon-tertiary: #ffffff66;
+  --color-icon-disabled: #ffffff66;
+  --color-icon-hover: #ffffffe6;
+  --color-icon-brand: #80caff;
+  --color-icon-danger: #ffafa3;
+  --color-icon-success: #85e0a3;
+  --color-icon-warning: #ffd966;
+  --color-icon-selected: #80caff;
   --color-icon-onbrand: #ffffff;
   
   /* Transparent Background States */
-  --color-bg-transparent-hover: #0000000d;
+  --color-bg-transparent-hover: #ffffff1a;
   
   /* Code Highlighting */
-  --color-code: #000000e6;
-  --color-codestring: #007be5;
-  --color-codetag: #8638e5;
-  --color-codevalue: #ea10ac;
-  --color-codecomment: #00000080;
+  --color-code: #ffffffe6;
+  --color-codestring: #80caff;
+  --color-codetag: #d9b8ff;
+  --color-codevalue: #ff99e0;
+  --color-codecomment: #ffffffb3;
+  --color-codeaccent: #d9b8ff;
+  --color-codeclassname: #80caff;
+  --color-codeattribute: #ffd966;
+  --color-codevariable: #ff99e0;
+  --color-border-code-well: #444444;
   
   /* Shadow & Scrollbar */
-  --color-shadow: #00000026;
-  --color-scrollbar: #b3b3b380;
+  --color-shadow: #00000066;
+  --color-scrollbar: #ffffff4d;
+  
+  /* Elevation (Dark Mode) */
+  --elevation-100: 0 1px 3px 0 #00000066, 0 0 0.5px 0 #00000080;
+  --elevation-200: 0 1px 3px 0 #00000040, 0 3px 8px 0 #00000040, 0 0 0.5px 0 #0000004d;
+  --elevation-300: 0 1px 3px 0 #00000040, 0 5px 12px 0 #00000066, 0 0 0.5px 0 #00000040;
+  --elevation-400: 0 2px 5px 0 #00000066, 0 10px 16px 0 #00000080, 0 0 0.5px 0 #00000040;
+  --elevation-500: 0 2px 5px 0 #00000066, 0 10px 24px 0 #00000099, 0 0 0.5px 0 #00000033;
   
   /* ========== Typography ========== */
   --font-family-default: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -363,6 +375,11 @@ tempad code {
     --color-codetag: #d9b8ff;
     --color-codevalue: #ff99e0;
     --color-codecomment: #ffffffb3;
+    --color-codeaccent: #d9b8ff;
+    --color-codeclassname: #80caff;
+    --color-codeattribute: #ffd966;
+    --color-codevariable: #ff99e0;
+    --color-border-code-well: #444444;
     
     /* Shadow & Scrollbar - Dark Mode */
     --color-shadow: #00000066;
