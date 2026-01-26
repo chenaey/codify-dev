@@ -10,7 +10,7 @@ import {
   buildSkipIds,
   getRepeatInfo
 } from './extract/compress'
-import { isIconNode, hasOnlyVectorDescendants, isVectorNode } from '@/utils/iconExtractor'
+import { isIconNode } from '@/utils/iconExtractor'
 
 import type {
   AssetExportParams,
@@ -261,18 +261,11 @@ function extractSkeletonNode(
     return null
   }
 
-  // 优化 1: SVG 容器折叠 - 容器内全是 VECTOR 类型 → 视为 ICON
-  // 这里使用 hasOnlyVectorDescendants 递归检查
-  if (!isIconNode(node) && hasOnlyVectorDescendants(node)) {
-    const fileName = `${node.name.replace(/[^a-zA-Z0-9-_]/g, '-').toLowerCase()}.svg`
-    resources.set(node.id, { node, fileName })
-    return {
-      id: node.id,
-      type: 'ICON'
-    }
-  }
-
-  // 判断是否为图标节点（基于尺寸等条件）
+  // 判断是否为图标节点
+  // isIconNode 已整合所有图标识别逻辑：
+  // - 尺寸判断（≤64px）
+  // - SVG 容器折叠（hasOnlyVectorDescendants）
+  // - 组合图标合并（shouldMergeAsIcon：≤80×48 且全是矢量子节点）
   const nodeIsIcon = isIconNode(node)
 
   // 优化 2: 过滤装饰节点 - 无子节点的 RECTANGLE/ELLIPSE/LINE

@@ -48,7 +48,7 @@ export async function syncSelection() {
       selection.value = []
     }
   }
-  console.log(selection.value)
+  console.log('[s]',selection.value.type, selection.value, )
   // 打印选中节点的完整树结构，便于调试
   // printNodeTree(selection.value)
 }

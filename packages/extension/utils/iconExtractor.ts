@@ -4,7 +4,7 @@ import { isMasterGo } from '@/utils/platform'
 // 矢量节点类型
 // 包含 Figma 和 MasterGo 的矢量类型:
 // - Figma: VECTOR, BOOLEAN_OPERATION, STAR, LINE, ELLIPSE, POLYGON
-// - MasterGo: REGULAR_POLYGON (代替 POLYGON), PEN (钢笔工具路径)
+// - MasterGo: REGULAR_POLYGON (代替 POLYGON), PEN (钢笔工具路径), SUBTRACT, UNION 等布尔运算
 // 注意：RECTANGLE 不包含在内，因为它通常是背景/容器，不是图标
 const VECTOR_TYPES = [
   'VECTOR',
@@ -14,7 +14,12 @@ const VECTOR_TYPES = [
   'ELLIPSE',
   'POLYGON',
   'REGULAR_POLYGON',
-  'PEN' // MasterGo 钢笔工具路径
+  'PEN', // MasterGo 钢笔工具路径
+  // MasterGo 布尔运算类型（在 Figma 中统一为 BOOLEAN_OPERATION）
+  'SUBTRACT',
+  'UNION',
+  'INTERSECT',
+  'EXCLUDE'
 ] as const
 
 // 容器节点类型
@@ -25,7 +30,34 @@ type ContainerNodeType = (typeof CONTAINER_TYPES)[number]
 
 // 检查节点是否为矢量节点
 export function isVectorNode(node: any): boolean {
-  return VECTOR_TYPES.includes(node.type)
+  if (!node) return false
+
+  // 有明确的 type 属性
+  if (node.type && VECTOR_TYPES.includes(node.type)) {
+    return true
+  }
+
+  // 对于没有 type 属性的节点，检查是否可能是矢量：
+  // - 有 vectorPaths 属性（Figma）
+  // - 有 vectorNetwork 属性（Figma）
+  // - 没有 children 且没有 fills/text（可能是纯矢量路径）
+  if (!node.type) {
+    // 有矢量路径相关属性
+    if ('vectorPaths' in node || 'vectorNetwork' in node) {
+      return true
+    }
+    // 小尺寸、无子节点、无文本 → 可能是矢量图形
+    if (
+      node.width <= 64 &&
+      node.height <= 64 &&
+      !('children' in node && node.children?.length > 0) &&
+      !('characters' in node)
+    ) {
+      return true
+    }
+  }
+
+  return false
 }
 
 // 检查容器是否只包含矢量子节点（递归检查）
@@ -50,7 +82,23 @@ export function hasOnlyVectorDescendants(node: any): boolean {
       .every((child: any) => hasOnlyVectorDescendants(child))
   }
 
-  // 其他类型（TEXT, RECTANGLE 等）不是矢量
+  // 对于没有明确 type 或未知 type 的节点：
+  // 如果它没有子节点且不是文本，可能是矢量图形元素
+  // 这样可以兼容 MasterGo 等平台的特殊节点类型
+  if (!node.type || !CONTAINER_TYPES.includes(node.type)) {
+    // 没有子节点
+    if (!('children' in node) || !node.children?.length) {
+      // 不是文本节点
+      if (node.type !== 'TEXT' && !('characters' in node)) {
+        // 有尺寸信息，且尺寸合理（不是大型背景）
+        if (node.width <= 64 && node.height <= 64) {
+          return true
+        }
+      }
+    }
+  }
+
+  // 其他类型（TEXT, 大型 RECTANGLE 等）不是矢量
   return false
 }
 
@@ -59,14 +107,55 @@ export function isContainerNode(node: any): boolean {
   return CONTAINER_TYPES.includes(node.type)
 }
 
+/**
+ * 检查容器是否应该被合并为单个图标
+ * 当一个小尺寸 FRAME 的所有子节点都是 ICON 类型时，应该将整个 FRAME 作为单一 ICON 导出
+ * 解决问题：设计师创建的组合图标（如"大神攻略"标签）被拆分为多个独立图标
+ */
+export function shouldMergeAsIcon(node: any): boolean {
+  if (!node) return false
+
+  // 条件 1: 必须是容器类型
+  if (!isContainerNode(node)) return false
+
+  // 条件 2: 必须有子节点
+  if (!('children' in node) || !node.children?.length) return false
+
+  // 条件 3: 容器尺寸较小（组合图标通常不会很大）
+  const isSmallContainer = node.width <= 80 && node.height <= 48
+
+  if (!isSmallContainer) return false
+
+  // 条件 4: 没有文本子节点（有文本说明不是纯图标）
+  const hasTextChild = node.children.some((child: any) => child.type === 'TEXT')
+  if (hasTextChild) return false
+
+  // 条件 5: 所有子节点都是图标类型（ICON）或纯矢量容器
+  const allChildrenAreIcons = node.children
+    .filter((child: any) => !('visible' in child) || child.visible !== false)
+    .every((child: any) => isIconNode(child) || hasOnlyVectorDescendants(child))
+
+  return allChildrenAreIcons
+}
+
 // 检查节点是否为图标节点
 // 仅基于尺寸和结构判断，不依赖名称
+// 优化：整合 shouldMergeAsIcon 逻辑，支持组合图标识别
 export function isIconNode(node: any): boolean {
   // 空节点检查
   if (!node) return false
 
   // 不可见节点不是图标
   if ('visible' in node && node.visible === false) return false
+
+  // ===== 优先判断：组合图标合并（尺寸范围更宽：≤80×48）=====
+  // 当小尺寸容器的所有子节点都是矢量时，应该将整个容器作为单一 ICON
+  // 解决问题：设计师创建的组合图标（如"大神攻略"标签）被拆分为多个独立图标
+  // 必须放在最前面，因为它的尺寸限制（80×48）比普通图标（64×64）更宽松
+  if (isContainerNode(node) && shouldMergeAsIconInternal(node)) {
+    console.log('shouldMergeAsIconInternalshouldMergeAsIconInternalshouldMergeAsIconInternal')
+    return true
+  }
 
   // 尺寸检查 - 小尺寸基本就是图标
   const sizeBasedIcon = node.width <= 64 && node.height <= 64
@@ -129,10 +218,39 @@ export function isIconNode(node: any): boolean {
       if (sizeBasedIcon && hasOnlyVectorChildren) {
         return true
       }
+
+      // SVG 容器折叠 - 递归检查所有后代是否都是矢量
+      // 即使子节点是嵌套容器，只要最终都是矢量，也应视为图标
+      if (sizeBasedIcon && hasOnlyVectorDescendants(node)) {
+        return true
+      }
     }
   }
 
   return false
+}
+
+/**
+ * 内部函数：检查容器是否应该被合并为单个图标
+ * 被 isIconNode 调用，避免循环依赖
+ */
+function shouldMergeAsIconInternal(node: any): boolean {
+  // 条件 1: 容器尺寸较小（组合图标通常不会很大）
+  const isSmallContainer = node.width <= 80 && node.height <= 48
+  if (!isSmallContainer) return false
+
+  // 条件 2: 没有文本子节点（有文本说明不是纯图标）
+  const hasTextChild = node.children.some((child: any) => child.type === 'TEXT')
+  if (hasTextChild) return false
+
+  // 条件 3: 所有可见子节点都是矢量或纯矢量容器
+  const visibleChildren = node.children.filter(
+    (child: any) => !('visible' in child) || child.visible !== false
+  )
+
+  return visibleChildren.every(
+    (child: any) => isVectorNode(child) || hasOnlyVectorDescendants(child)
+  )
 }
 
 // 导出类型定义
