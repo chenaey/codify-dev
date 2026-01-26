@@ -380,9 +380,9 @@ function extractAssetsFromResources(
  * - : 后接子节点（简单情况合并到一行）
  * - + 表示同级节点并列
  * - "..." 表示文本内容（截断 30 字符）
- * - ID 只在关键节点显示（根节点、有布局的容器、重复模板）
+ * - ID 只在关键节点显示（根节点、有布局的容器、重复模板、ICON）
  */
-function formatSkeletonText(skeleton: SkeletonNode, assets: AssetInfo[]): string {
+function formatSkeletonText(skeleton: SkeletonNode): string {
   const lines: string[] = []
 
   // 判断节点是否为"简单节点"（可以合并到一行）
@@ -467,12 +467,6 @@ function formatSkeletonText(skeleton: SkeletonNode, assets: AssetInfo[]): string
 
   renderNode(skeleton, '', true, true)
 
-  // 添加 Assets 列表
-  if (assets.length > 0) {
-    lines.push('')
-    lines.push('[Assets] ' + assets.map((a) => a.nodeId).join(', '))
-  }
-
   return lines.join('\n')
 }
 
@@ -509,6 +503,7 @@ async function handleGetDesign(params: GetDesignParams): Promise<GetDesignResult
   const node = resolveNode(nodeId)
 
   // skeleton 模式：轻量级提取，跳过 CSS，返回缩进文本格式
+  // 注意：skeleton 不返回 assets，ICON 节点 ID 已包含在 structure 中
   if (mode === 'skeleton') {
     const resources = new Map<string, { node: SceneNode; fileName: string }>()
     const skeleton = extractSkeletonNode(node, resources)
@@ -517,15 +512,12 @@ async function handleGetDesign(params: GetDesignParams): Promise<GetDesignResult
       throw createError(ERROR_CODES.EXPORT_FAILED, 'Failed to extract skeleton')
     }
 
-    const assets = extractAssetsFromResources(resources)
-
-    // 转换为缩进式文本格式
-    const structure = formatSkeletonText(skeleton, assets)
+    // 转换为缩进式文本格式（不包含 assets 列表）
+    const structure = formatSkeletonText(skeleton)
 
     return {
       rootNodeId: node.id,
-      structure,
-      assets
+      structure
     }
   }
 
