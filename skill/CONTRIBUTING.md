@@ -289,6 +289,7 @@ skill/codify-skill/
 | v3.0 | **实现追踪机制**：Step 3 合并复杂度判断与区域追踪，明确完成条件；路径 B 强化禁止/必须约束表格；修复脚本路径 | ✅ #region-completeness, #asset-download-skipped, #phased-workflow-skipped |
 | v3.1 | **Step 3 强化追踪表**：必须输出区域追踪表格（含状态列），完成条件前置到 SKILL.md，移除骨架示例冗余内容 | ✅ #region-tracking-enforcement |
 | v3.2 | **组件拆分与接口设计**：代码质量新增"复杂设计拆分为多个组件文件"和"设计合理的输入接口"；明确 `×N` 标记使用循环、无标记禁止循环 | ✅ #component-split-props |
+| v3.3 | **图标容器合并**：插件层新增 `shouldMergeAsIcon()` 函数，小尺寸容器内全是 ICON 子节点时合并为单一图标导出；**实现前描述强化**：Phase 3.3 必须输出骨架子节点清单表格、样式来源映射、检查清单；**生成前检查清单**：codegen-rules.md 新增强制自检表格 | ✅ #icon-merge, #impl-desc-enforce, #codegen-checklist |
 
 ---
 

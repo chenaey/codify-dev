@@ -148,7 +148,7 @@ function activateMcp() {
     <template #header>
       <div class="tp-row tp-gap-l">
         <span>Codify Dev</span>
-        <Badge
+        <!-- <Badge
           v-if="options.mcpOn && runtimeMode === 'standard'"
           :class="['tp-mcp-badge', mcpBadgeStatusClass, mcpBadgeActiveClass]"
           :tone="mcpBadgeTone"
@@ -159,7 +159,7 @@ function activateMcp() {
         >
           <span class="tp-mcp-dot" />
           MCP
-        </Badge>
+        </Badge> -->
         <SkillBadge v-if="options.skillOn && runtimeMode === 'standard'" />
       </div>
       <div class="tp-row tp-gap">

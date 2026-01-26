@@ -12,7 +12,7 @@ import {
   startSkillConnection,
   stopSkillConnection
 } from '@/skill'
-import { layoutReady, options, runtimeMode, selection } from '@/ui/state'
+import { layoutReady, options, runtimeMode } from '@/ui/state'
 import { logger } from '@/utils/log'
 
 export type SkillStatus = 'disabled' | 'connecting' | 'connected' | 'error'
@@ -101,28 +101,27 @@ export const useSkill = createSharedComposable(() => {
       start()
     }
   })
-
-  // 当用户在当前标签页选中元素时，自动激活当前标签页
-  // 这样用户不需要手动点击"激活"按钮
-  watch(
-    () => selection.value,
-    (newSelection) => {
-      // 只在以下条件都满足时自动激活：
-      // 1. Skill 已连接
-      // 2. 有选中的元素
-      // 3. 当前标签页不是活跃的
-      // 4. 窗口是活跃的（用户正在操作）
-      if (
-        status.value === 'connected' &&
-        newSelection.length > 0 &&
-        !selfActive.value &&
-        isWindowActive.value
-      ) {
-        logger.log('[Skill] Auto-activating due to selection change...')
-        activate()
-      }
-    }
-  )
+  // // 当用户在当前标签页选中元素时，自动激活当前标签页
+  // // 这样用户不需要手动点击"激活"按钮
+  // watch(
+  //   () => selection.value,
+  //   (newSelection) => {
+  //     // 只在以下条件都满足时自动激活：
+  //     // 1. Skill 已连接
+  //     // 2. 有选中的元素
+  //     // 3. 当前标签页不是活跃的
+  //     // 4. 窗口是活跃的（用户正在操作）
+  //     if (
+  //       status.value === 'connected' &&
+  //       newSelection.length > 0 &&
+  //       !selfActive.value &&
+  //       isWindowActive.value
+  //     ) {
+  //       logger.log('[Skill] Auto-activating due to selection change...')
+  //       activate()
+  //     }
+  //   }
+  // )
 
   return {
     status,

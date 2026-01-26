@@ -70,13 +70,13 @@ export interface SkeletonNode {
   children?: SkeletonNode[]
 }
 
-// mode: 'full' 返回 design (JSON)
-// mode: 'skeleton' 返回 structure (缩进文本)
+// mode: 'full' 返回 design (JSON) + assets
+// mode: 'skeleton' 返回 structure (缩进文本)，不含 assets
 export interface GetDesignResult {
   rootNodeId: string
   design?: unknown // full 模式
   structure?: string // skeleton 模式：缩进式文本树
-  assets: AssetInfo[]
+  assets?: AssetInfo[] // full 模式返回，skeleton 模式不返回
 }
 
 export interface GetScreenshotParams {

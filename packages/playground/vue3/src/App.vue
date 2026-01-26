@@ -1,20 +1,6 @@
 <template>
   <div class="app">
-    <header class="header">
-      <h1>UI Playground - Vue 3</h1>
-      <p>在下方添加从 Figma/MasterGo 生成的组件进行测试</p>
-    </header>
-
-    <main class="main">
-      <section class="section">
-        <h2>示例组件</h2>
-        <div class="component-container">
-          <ExampleCard />
-        </div>
-      </section>
-
-      <!-- 在这里添加更多组件测试区域 -->
-    </main>
+    <ExampleCard />
   </div>
 </template>
 

@@ -10,7 +10,8 @@ description: >-
 
 ## 核心原则
 
-> **截图看布局，骨架定边界，JSON 取样式。三者协同，缺一不可。样式必须从 customStyle 精确复制，禁止估算**
+> **截图看布局，骨架定边界，JSON 取样式。三者协同，缺一不可。**
+> 严格遵守代码生产规范 [codegen-rules.md](references/codegen-rules.md)
 
 ---
 
@@ -53,6 +54,8 @@ curl -s -X POST http://127.0.0.1:13580/get_design \
 - `×N` → 重复 N 次，只实现模板
 - `ID` → 关键节点，可单独获取
 - `:` → 简单子节点，合并显示
+- `ICON` → 需要下载 SVG 的图标节点
+- `TEXT "..."` → 文本节点及内容预览
 
 ### Step 3. 复杂度判断 + 实现追踪（强制检查点）
 
@@ -64,11 +67,10 @@ curl -s -X POST http://127.0.0.1:13580/get_design \
 **复杂度**：简单 / 复杂（层级 X，区域 N 个）
 **路径**：A（整体实现）/ B（分步实现）
 
-| # | 组件 | 节点 ID | 状态 |
-|---|------|---------|------|
-| 1 | 组件 A | 1 | [ ] |
-| 2 | 组件 B | 2 | [ ] |
-| 3 | 组件 C | 3 | [ ] |
+| # | 区域 | 节点 ID | 子节点顺序（按骨架） | 状态 |
+|---|------|---------|---------------------|------|
+| 1 | 区域 A | 1 | 1-1 → 1-2 → 1-3 | [ ] |
+| 2 | 区域 B | 2 | 2-1 → 2-2 | [ ] |
 ```
 
 **判定规则**：
@@ -76,17 +78,19 @@ curl -s -X POST http://127.0.0.1:13580/get_design \
 | 条件 | 路径 |
 |------|------|
 | 层级 ≤3 且 区域 ≤2 | A：Step 4 整体实现 |
-| 层级 >3 或 区域 >2 | B：**必须阅读并执行** [phased-workflow.md](references/phased-workflow.md) |
+| 层级 >3 或 区域 >2 | B：**必须阅读文档并执行** [phased-workflow.md](references/phased-workflow.md) |
 
 **路径 B 约束**：
 - 禁止：判断为复杂后一次性生成所有代码
-- 必须：按 phased-workflow.md 逐个组件实现，每完成一个更新状态为 [✓]
+- 必须：阅读文档并执行 [phased-workflow.md](references/phased-workflow.md) 逐个组件实现，每完成一个更新状态为 [✓]
 
 **完成条件**：所有区域状态为 [✓] 才算实现完成。
 
 ---
 
 ### Step 4. 路径 A：整体实现（仅限简单设计）
+
+> 如果Step 3 判断为复杂，则跳过此步骤，阅读并按照[phased-workflow.md](references/phased-workflow.md)执行复杂设计。
 
 ```bash
 curl -s -X POST http://127.0.0.1:13580/get_design \
@@ -102,12 +106,17 @@ curl -s -X POST http://127.0.0.1:13580/get_design \
 
 > **禁止跳过此步骤**。禁止用 emoji/占位符/纯色代替图标和图片。
 
-**必须下载的资源**：
+**资源识别**：
 
-| 资源类型 | 识别方式 | 下载格式 |
-|---------|---------|---------|
+| 类型 | 识别方式 | 格式 |
+|-----|---------|-----|
 | 图标 | `type: "ICON"` | SVG |
-| 图片背景 | `url(<path-to-image>)` 在 customStyle 中 | PNG |
+| 图片背景 | `customStyle` 含 `url(<path-to-image>)` | PNG |
+| 图片占位符 | `RECTANGLE` + `object-fit: cover`（无 url） | PNG |
+
+**强制要求**：
+- 必须下载组件代码中使用到的图标和图片背景等资源
+- 对于 RECTANGLE + object-fit: cover 的隐式图片，用节点 ID 下载 PNG
 
 **下载命令**：
 
@@ -132,8 +141,10 @@ node skill/scripts/download-assets.cjs --nodes '[
 | 检查项 | 适用路径 |
 |--------|---------|
 | 追踪表所有状态为 [✓] | A + B |
+| 骨架关键节点均已实现（无遗漏） | A + B |
 | 所有 `type: "ICON"` 已下载 | A + B |
 | 所有 `url(<path-to-image>)` 已下载 | A + B |
+| RECTANGLE + object-fit: cover 图片已下载 | A + B |
 | 代码引用实际文件路径（无占位符） | A + B |
 | 重复结构（×N）使用循环 | A + B |
 | 已输出骨架理解 | 仅 B |
