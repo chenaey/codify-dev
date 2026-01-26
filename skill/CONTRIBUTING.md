@@ -288,6 +288,7 @@ skill/codify-skill/
 | v2.9 | **资源下载部分失败处理**：单个资源失败不影响其他资源，返回详细的成功/失败信息 | ✅ #partial-asset-failure |
 | v3.0 | **实现追踪机制**：Step 3 合并复杂度判断与区域追踪，明确完成条件；路径 B 强化禁止/必须约束表格；修复脚本路径 | ✅ #region-completeness, #asset-download-skipped, #phased-workflow-skipped |
 | v3.1 | **Step 3 强化追踪表**：必须输出区域追踪表格（含状态列），完成条件前置到 SKILL.md，移除骨架示例冗余内容 | ✅ #region-tracking-enforcement |
+| v3.2 | **组件拆分与接口设计**：代码质量新增"复杂设计拆分为多个组件文件"和"设计合理的输入接口"；明确 `×N` 标记使用循环、无标记禁止循环 | ✅ #component-split-props |
 
 ---
 
