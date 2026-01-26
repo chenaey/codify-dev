@@ -84,9 +84,9 @@ function handleClick() {
         <div class="tp-skill-hover-section">
           <div class="tp-skill-hover-label">1. 启动 API 服务器 - 提供设计数据标准化接口</div>
           <div class="tp-skill-code-wrapper">
-            <code class="tp-skill-hover-code">npx @codify-dev/api-server</code>
+            <code class="tp-skill-hover-code">npx @codify-dev/api-server@latest</code>
             <button class="tp-skill-copy-btn" :class="{ copied: copiedApi }"
-              @click="copyCommand('npx @codify-dev/api-server', 'api')">
+              @click="copyCommand('npx @codify-dev/api-server@latest', 'api')">
               {{ copiedApi ? '✓' : '复制' }}
             </button>
           </div>
