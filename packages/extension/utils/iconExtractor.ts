@@ -28,33 +28,33 @@ const CONTAINER_TYPES = ['GROUP', 'FRAME', 'COMPONENT', 'INSTANCE'] as const
 type VectorNodeType = (typeof VECTOR_TYPES)[number]
 type ContainerNodeType = (typeof CONTAINER_TYPES)[number]
 
+// 非矢量类型白名单（这些类型明确不是矢量图形）
+const NON_VECTOR_TYPES = ['TEXT', 'SLICE', 'STICKY', 'CONNECTOR', 'WIDGET', 'EMBED'] as const
+
 // 检查节点是否为矢量节点
 export function isVectorNode(node: any): boolean {
   if (!node) return false
 
-  // 有明确的 type 属性
+  // 有明确的 type 属性且在矢量类型列表中
   if (node.type && VECTOR_TYPES.includes(node.type)) {
     return true
   }
 
-  // 对于没有 type 属性的节点，检查是否可能是矢量：
-  // - 有 vectorPaths 属性（Figma）
-  // - 有 vectorNetwork 属性（Figma）
-  // - 没有 children 且没有 fills/text（可能是纯矢量路径）
-  if (!node.type) {
-    // 有矢量路径相关属性
-    if ('vectorPaths' in node || 'vectorNetwork' in node) {
-      return true
-    }
-    // 小尺寸、无子节点、无文本 → 可能是矢量图形
-    if (
-      node.width <= 64 &&
-      node.height <= 64 &&
-      !('children' in node && node.children?.length > 0) &&
-      !('characters' in node)
-    ) {
-      return true
-    }
+  // 如果 type 明确是非矢量类型，返回 false
+  if (node.type && NON_VECTOR_TYPES.includes(node.type)) {
+    return false
+  }
+
+  // 如果 type 是容器类型，返回 false（容器需要递归检查）
+  if (node.type && CONTAINER_TYPES.includes(node.type)) {
+    return false
+  }
+
+  // 对于未知类型（包括 MasterGo 特有类型或 undefined）：
+  // 如果是小尺寸叶子节点，可能是矢量图形
+  // 这是一个宽容的判断，允许未知类型被视为矢量
+  if (!node.children?.length && node.width <= 64 && node.height <= 64) {
+    return true
   }
 
   return false
@@ -82,23 +82,7 @@ export function hasOnlyVectorDescendants(node: any): boolean {
       .every((child: any) => hasOnlyVectorDescendants(child))
   }
 
-  // 对于没有明确 type 或未知 type 的节点：
-  // 如果它没有子节点且不是文本，可能是矢量图形元素
-  // 这样可以兼容 MasterGo 等平台的特殊节点类型
-  if (!node.type || !CONTAINER_TYPES.includes(node.type)) {
-    // 没有子节点
-    if (!('children' in node) || !node.children?.length) {
-      // 不是文本节点
-      if (node.type !== 'TEXT' && !('characters' in node)) {
-        // 有尺寸信息，且尺寸合理（不是大型背景）
-        if (node.width <= 64 && node.height <= 64) {
-          return true
-        }
-      }
-    }
-  }
-
-  // 其他类型（TEXT, 大型 RECTANGLE 等）不是矢量
+  // 其他类型（TEXT 等明确非矢量）
   return false
 }
 
@@ -153,7 +137,6 @@ export function isIconNode(node: any): boolean {
   // 解决问题：设计师创建的组合图标（如"大神攻略"标签）被拆分为多个独立图标
   // 必须放在最前面，因为它的尺寸限制（80×48）比普通图标（64×64）更宽松
   if (isContainerNode(node) && shouldMergeAsIconInternal(node)) {
-    console.log('shouldMergeAsIconInternalshouldMergeAsIconInternalshouldMergeAsIconInternal')
     return true
   }
 
