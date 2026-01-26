@@ -18,12 +18,17 @@
  *   ]'
  *
  * 输出 (MCP 风格文本):
- *   Downloaded 2 assets:
- *     - /project/src/icons/arrow.svg (24x24)
- *     - /project/src/images/bg.png (48x48)
+ *   Downloaded 2 assets (2 success, 0 failed):
+ *     ✓ /project/src/icons/arrow.svg (24x24)
+ *     ✓ /project/src/images/bg.png (48x48)
+ *
+ * 部分失败时:
+ *   Downloaded 2 assets (1 success, 1 failed):
+ *     ✓ /project/src/icons/arrow.svg (24x24)
+ *     ✗ /project/src/images/bg.png - NODE_NOT_FOUND: Node "0:456" not found
  *
  * 错误输出:
- *   Error: NODE_NOT_FOUND - Node "0:999" not found
+ *   Error: NOT_CONNECTED - 无法连接到 Skill Server
  */
 
 var fs = require('fs')
@@ -42,7 +47,7 @@ function parseArgs() {
       try {
         result.nodes = JSON.parse(args[i + 1])
       } catch (e) {
-        console.log('Error: --nodes 参数不是有效的 JSON')
+        console.log('Error: INVALID_PARAMS - --nodes 参数不是有效的 JSON')
         process.exit(1)
       }
       i++
@@ -121,7 +126,7 @@ async function main() {
 
   // 验证参数
   if (!args.nodes || !Array.isArray(args.nodes) || args.nodes.length === 0) {
-    console.log('Error: --nodes 必须是非空 JSON 数组')
+    console.log('Error: INVALID_PARAMS - --nodes 必须是非空 JSON 数组')
     process.exit(1)
   }
 
@@ -129,11 +134,11 @@ async function main() {
   for (var i = 0; i < args.nodes.length; i++) {
     var node = args.nodes[i]
     if (!node.nodeId) {
-      console.log('Error: nodes[' + i + '] 缺少 nodeId')
+      console.log('Error: INVALID_PARAMS - nodes[' + i + '] 缺少 nodeId')
       process.exit(1)
     }
     if (!node.outputPath) {
-      console.log('Error: nodes[' + i + '] 缺少 outputPath')
+      console.log('Error: INVALID_PARAMS - nodes[' + i + '] 缺少 outputPath')
       process.exit(1)
     }
   }
@@ -152,25 +157,38 @@ async function main() {
   try {
     response = await postRequest('/get_assets', { nodes: requestNodes })
   } catch (e) {
-    console.log('Error: 无法连接到 Skill Server (' + BASE_URL + ')')
+    console.log('Error: NOT_CONNECTED - 无法连接到 Skill Server (' + BASE_URL + ')')
     console.log('请确保 Codify Dev 扩展已连接')
     process.exit(1)
   }
 
-  // 处理错误响应
+  // 处理全局错误响应（如连接问题）
   if (response.error) {
     console.log('Error: ' + response.error.code + ' - ' + response.error.message)
     process.exit(1)
   }
 
-  // 保存资源
-  var downloaded = []
+  // 处理资源列表
   var assets = response.assets || []
+  var summary = response.summary || { total: assets.length, success: 0, failed: 0 }
+  var downloaded = []
+  var failed = []
 
   for (var i = 0; i < assets.length; i++) {
     var asset = assets[i]
     var outputPath = args.nodes[i].outputPath
 
+    // 检查单个资源是否有错误
+    if (asset.error) {
+      failed.push({
+        path: outputPath,
+        nodeId: asset.nodeId,
+        error: asset.error
+      })
+      continue
+    }
+
+    // 尝试保存资源
     try {
       saveAsset(asset, outputPath)
       downloaded.push({
@@ -179,19 +197,52 @@ async function main() {
         height: asset.height
       })
     } catch (e) {
-      console.log('Error: 无法保存文件 ' + outputPath + ' - ' + e.message)
-      process.exit(1)
+      failed.push({
+        path: outputPath,
+        nodeId: asset.nodeId,
+        error: {
+          code: 'SAVE_FAILED',
+          message: e.message
+        }
+      })
     }
   }
 
   // 输出结果 (MCP 风格)
-  if (downloaded.length === 0) {
-    console.log('No assets downloaded')
-  } else {
-    console.log('Downloaded ' + downloaded.length + ' assets:')
-    downloaded.forEach(function (item) {
-      console.log('  - ' + item.path + ' (' + item.width + 'x' + item.height + ')')
-    })
+  var totalCount = downloaded.length + failed.length
+  if (totalCount === 0) {
+    console.log('No assets to download')
+    return
+  }
+
+  console.log(
+    'Downloaded ' +
+      totalCount +
+      ' assets (' +
+      downloaded.length +
+      ' success, ' +
+      failed.length +
+      ' failed):'
+  )
+
+  // 输出成功的资源
+  downloaded.forEach(function (item) {
+    console.log('  ✓ ' + item.path + ' (' + item.width + 'x' + item.height + ')')
+  })
+
+  // 输出失败的资源
+  failed.forEach(function (item) {
+    console.log('  ✗ ' + item.path + ' - ' + item.error.code + ': ' + item.error.message)
+  })
+
+  // 如果有失败，退出码为 1（但不是完全失败）
+  if (failed.length > 0 && downloaded.length === 0) {
+    // 全部失败
+    process.exit(1)
+  } else if (failed.length > 0) {
+    // 部分失败，退出码为 0（允许继续流程），但输出警告
+    console.log('')
+    console.log('Warning: ' + failed.length + ' asset(s) failed to download')
   }
 }
 
