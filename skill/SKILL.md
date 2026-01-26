@@ -2,7 +2,7 @@
 name: codify-design-to-code
 description: >-
   将 Figma/MasterGo 设计转换为前端组件代码。通过 API 获取设计数据和截图，
-  精准提取样式属性，生成高质量、可维护的 React/Vue等任意框架 组件代码。
+  精准提取样式属性，生成高质量、可维护的任意框架组件代码。
   适用于需要将设计稿转换为可用代码的场景。
 ---
 
@@ -48,47 +48,41 @@ curl -s -X POST http://127.0.0.1:13580/get_design \
   -d '{"node_id": "节点ID", "mode": "skeleton"}'
 ```
 
-**骨架示例**：
-
-```
-FRAME 13:3808
-├─ FRAME [V] 13:4000
-│  ├─ TEXT "标题"
-│  └─ TEXT "描述"
-├─ FRAME [H] 13:4382
-│  └─ FRAME ×3: ICON + TEXT
-└─ FRAME [V] 17:6940
-   └─ TEXT "更多内容"
-```
-
-**结合截图理解**（如有）：将骨架节点与截图中的视觉区域对应起来。
-
 **骨架标记速查**：
 - `[H]`/`[V]` → flex 水平/垂直布局
 - `×N` → 重复 N 次，只实现模板
 - `ID` → 关键节点，可单独获取
 - `:` → 简单子节点，合并显示
 
-### Step 3. 决策：整体还是分步（强制检查点）
+### Step 3. 复杂度判断 + 实现追踪（强制检查点）
 
-**获取骨架后，必须先输出复杂度判断：**
+**获取骨架后，必须输出以下内容：**
 
 ```markdown
-## 复杂度判断
+## 实现追踪
 
-**骨架层级**：X 层
-**独立区域数**：N 个（列出带 ID 的 [H]/[V] 节点）
-**判定结果**：简单 / 复杂
+**复杂度**：简单 / 复杂（层级 X，区域 N 个）
+**路径**：A（整体实现）/ B（分步实现）
 
-→ 选择路径：A（整体实现）/ B（分步实现）
+| # | 组件 | 节点 ID | 状态 |
+|---|------|---------|------|
+| 1 | 组件 A | 1 | ⬜ |
+| 2 | 组件 B | 2 | ⬜ |
+| 3 | 组件 C | 3 | ⬜ |
 ```
 
-| 条件 | 判定 | 执行路径 |
-|------|------|---------|
-| 层级 ≤3 且 独立区域 ≤2 | 简单 | → **路径 A**：Step 4 |
-| 层级 >3 或 独立区域 >2 | 复杂 | → **路径 B**：阅读并按照文档执行[phased-workflow.md](references/phased-workflow.md) |
+**判定规则**：
 
->  **禁止跳过此判断**。复杂设计必须走路径 B，否则生成质量无法保证。
+| 条件 | 路径 |
+|------|------|
+| 层级 ≤3 且 区域 ≤2 | A：Step 4 整体实现 |
+| 层级 >3 或 区域 >2 | B：**必须阅读并执行** [phased-workflow.md](references/phased-workflow.md) |
+
+**路径 B 约束**：
+- ❌ 禁止：判断为复杂后一次性生成所有代码
+- ✅ 必须：按 phased-workflow.md 逐个组件实现，每完成一个更新状态为 ✅
+
+**完成条件**：所有区域状态为 ✅ 才算实现完成。
 
 ---
 
@@ -109,18 +103,24 @@ curl -s -X POST http://127.0.0.1:13580/get_design \
 > **禁止跳过此步骤**。禁止用 emoji/占位符/纯色代替图标和图片。
 
 **必须下载的资源**：
-- `type: "ICON"` 节点 → 下载 SVG
-- `url(<path-to-image>)` 背景 → 下载 PNG
+
+| 资源类型 | 识别方式 | 下载格式 |
+|---------|---------|---------|
+| 图标 | `type: "ICON"` | SVG |
+| 图片背景 | `url(<path-to-image>)` 在 customStyle 中 | PNG |
 
 **下载命令**：
 
 ```bash
-node .claude/skills/codify-design-to-code/scripts/download-assets.cjs --nodes '[
-  {"nodeId":"123:456","outputPath":"/path/to/icon.svg","format":"svg"}
+node skill/scripts/download-assets.cjs --nodes '[
+  {"nodeId":"123:456","outputPath":"/path/to/icon.svg","format":"svg"},
+  {"nodeId":"789:012","outputPath":"/path/to/bg.png","format":"png"}
 ]'
 ```
 
-**资源下载检查清单**：
+**资源检查清单**：
+- [ ] 所有 `type: "ICON"` 节点已下载
+- [ ] 所有 `url(<path-to-image>)` 背景已下载
 - [ ] 代码中引用了实际下载的文件路径
 
 ---

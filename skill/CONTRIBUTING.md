@@ -286,6 +286,8 @@ skill/codify-skill/
 | v2.7 | **强制拆分组件**：3-Phase 流程 + 检查点机制，禁止一次性生成复杂页面 | ✅ #component-split-enforcement |
 | v2.8 | **强制复杂度检查点**：Step 3 必须输出复杂度判断，明确路径 A/B 分支，禁止跳过决策 | ✅ #complexity-checkpoint |
 | v2.9 | **资源下载部分失败处理**：单个资源失败不影响其他资源，返回详细的成功/失败信息 | ✅ #partial-asset-failure |
+| v3.0 | **实现追踪机制**：Step 3 合并复杂度判断与区域追踪，明确完成条件；路径 B 强化禁止/必须约束表格；修复脚本路径 | ✅ #region-completeness, #asset-download-skipped, #phased-workflow-skipped |
+| v3.1 | **Step 3 强化追踪表**：必须输出区域追踪表格（含状态列），完成条件前置到 SKILL.md，移除骨架示例冗余内容 | ✅ #region-tracking-enforcement |
 
 ---
 
