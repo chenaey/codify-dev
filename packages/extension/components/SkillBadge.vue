@@ -96,12 +96,12 @@ function handleClick() {
           <div class="tp-skill-hover-label">2. 安装 Skill - 赋予Agent设计转代码能力</div>
           <div class="tp-skill-code-wrapper">
             <code class="tp-skill-hover-code small">
-              npx add-skill https://github.com/chenaey/codify-dev/tree/main/skill --skill
+              npx add-skill https://github.com/chenaey/codify-dev-skill.git --skill
               codify-design-to-code
             </code>
             <button class="tp-skill-copy-btn" :class="{ copied: copiedSkill }" @click="
               copyCommand(
-                'npx add-skill https://github.com/chenaey/codify-dev/tree/main/skill --skill codify-design-to-code',
+                'npx add-skill https://github.com/chenaey/codify-dev-skill.git',
                 'skill'
               )
               ">
