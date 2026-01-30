@@ -118,7 +118,7 @@ interface UINode {
 
 ## customStyle 说明
 
-已格式化的 CSS 属性，**直接复制到代码中，不修改值**：
+已格式化的 CSS 属性。Web 项目直接使用；非 Web 项目（Flutter、React Native 等）根据目标框架转换。
 
 ```json
 {

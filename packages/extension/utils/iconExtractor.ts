@@ -31,6 +31,25 @@ type ContainerNodeType = (typeof CONTAINER_TYPES)[number]
 // 非矢量类型白名单（这些类型明确不是矢量图形）
 const NON_VECTOR_TYPES = ['TEXT', 'SLICE', 'STICKY', 'CONNECTOR', 'WIDGET', 'EMBED'] as const
 
+/**
+ * 递归检查节点是否包含文本后代
+ * 用于排除包含文字的容器被误判为图标
+ * 解决问题：容器内嵌套的 TEXT 节点未被检测到，导致属性卡片等 UI 组件被误判为图标
+ */
+function hasTextDescendant(node: any): boolean {
+  if (!node) return false
+
+  // 当前节点是 TEXT 类型
+  if (node.type === 'TEXT') return true
+
+  // 递归检查所有子节点
+  if ('children' in node && node.children?.length > 0) {
+    return node.children.some((child: any) => hasTextDescendant(child))
+  }
+
+  return false
+}
+
 // 检查节点是否为矢量节点
 export function isVectorNode(node: any): boolean {
   if (!node) return false
@@ -110,9 +129,8 @@ export function shouldMergeAsIcon(node: any): boolean {
 
   if (!isSmallContainer) return false
 
-  // 条件 4: 没有文本子节点（有文本说明不是纯图标）
-  const hasTextChild = node.children.some((child: any) => child.type === 'TEXT')
-  if (hasTextChild) return false
+  // 条件 4: 🔧 修复：递归检查是否包含任何文本后代（不仅仅是直接子节点）
+  if (hasTextDescendant(node)) return false
 
   // 条件 5: 所有子节点都是图标类型（ICON）或纯矢量容器
   const allChildrenAreIcons = node.children
@@ -188,6 +206,12 @@ export function isIconNode(node: any): boolean {
 
   // 容器类型（FRAME, GROUP）需要进一步检查
   if (isContainerNode(node)) {
+    // 🔧 修复：如果容器包含任何文本后代，一定不是图标
+    // 解决问题：属性卡片等包含文字的小型 UI 组件被误判为图标
+    if (hasTextDescendant(node)) {
+      return false
+    }
+
     // 尺寸合适且为正方形
     if (sizeBasedIcon && isSquarish) {
       return true
@@ -226,9 +250,9 @@ function shouldMergeAsIconInternal(node: any): boolean {
   const isSmallContainer = node.width <= 80 && node.height <= 48
   if (!isSmallContainer) return false
 
-  // 条件 2: 没有文本子节点（有文本说明不是纯图标）
-  const hasTextChild = node.children.some((child: any) => child.type === 'TEXT')
-  if (hasTextChild) return false
+  // 条件 2: 🔧 修复：递归检查是否包含任何文本后代（不仅仅是直接子节点）
+  // 解决问题：嵌套在深层的 TEXT 节点未被检测到，导致属性卡片被误判为图标
+  if (hasTextDescendant(node)) return false
 
   // 条件 3: 如果容器是 Auto Layout 且有 itemSpacing，说明是独立图标的容器
   // 这种情况不应该合并，而是保持独立

@@ -48,10 +48,32 @@
 
 ## Phase 2: 制定实现计划
 
-必须创建 `implementation-plan.md`，包含**组件规划**和**实现思路**：
+必须创建 `implementation-plan.md`，包含**接口设计**、**组件规划**和**实现思路**：
 
 ```markdown
 # 实现计划
+
+## 接口设计
+
+> 从骨架推导数据接口，设计稿值作为示例数据。
+
+```typescript
+// 从 ×3 重复结构推导
+interface CardItem {
+  icon: string    // ICON 节点
+  title: string   // TEXT 节点
+}
+
+// 组件 Props
+interface CardListProps {
+  items: CardItem[]
+}
+
+interface HeaderProps {
+  title: string
+  description?: string
+}
+```
 
 ## 组件列表
 
@@ -73,21 +95,23 @@
 ## 组件详细描述
 
 ### Card (子节点 of 13:4382)
+- **Props**：`CardItem`（icon, title）
 - **结构**：ICON + TEXT 组合
 - **预期实现**：图标 + 文字横排，可能有点击态
 - **注意**：图标需下载 SVG
 
 ### CardList (13:4382)
+- **Props**：`CardListProps`（items 数组）
 - **结构**：水平布局容器，包含 3 个 Card
-- **预期实现**：flex 横向排列，可能有 gap
-- **数据**：接收 items 数组，循环渲染 Card
+- **预期实现**：flex 横向排列，循环渲染 Card
 
 ### Header (13:4000)
+- **Props**：`HeaderProps`（title, description）
 - **结构**：垂直布局，标题 + 描述
 - **预期实现**：简单的标题组件
-- **注意**：检查是否有背景色或分割线
 
 ### Footer (17:6940)
+- **Props**：无（静态内容）或 `{ text: string }`
 - **结构**：简单文本区域
 - **预期实现**：底部信息展示
 ```
