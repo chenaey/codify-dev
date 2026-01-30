@@ -216,6 +216,10 @@ export function isIconNode(node: any): boolean {
 /**
  * 内部函数：检查容器是否应该被合并为单个图标
  * 被 isIconNode 调用，避免循环依赖
+ *
+ * 组合图标 vs 图标容器的区分：
+ * - 组合图标：子节点紧密排列，共同构成一个图形（如品牌标识）
+ * - 图标容器：子节点之间有间距，是多个独立图标的容器（如工具栏）
  */
 function shouldMergeAsIconInternal(node: any): boolean {
   // 条件 1: 容器尺寸较小（组合图标通常不会很大）
@@ -226,11 +230,37 @@ function shouldMergeAsIconInternal(node: any): boolean {
   const hasTextChild = node.children.some((child: any) => child.type === 'TEXT')
   if (hasTextChild) return false
 
-  // 条件 3: 所有可见子节点都是矢量或纯矢量容器
+  // 条件 3: 如果容器是 Auto Layout 且有 itemSpacing，说明是独立图标的容器
+  // 这种情况不应该合并，而是保持独立
+  const layoutMode = node.layoutMode || node.flexMode
+  const hasAutoLayout = layoutMode === 'HORIZONTAL' || layoutMode === 'VERTICAL'
+  const hasItemSpacing = node.itemSpacing && node.itemSpacing > 0
+
+  if (hasAutoLayout && hasItemSpacing) {
+    // Auto Layout 容器带间距 = 多个独立图标，不合并
+    return false
+  }
+
+  // 条件 4: 检查子节点数量和类型
   const visibleChildren = node.children.filter(
     (child: any) => !('visible' in child) || child.visible !== false
   )
 
+  // 如果有多个子节点且每个都已经是独立的"图标级别"容器（FRAME/COMPONENT/INSTANCE），
+  // 说明设计师有意将它们作为独立图标，不应合并
+  if (visibleChildren.length > 1) {
+    const allChildrenAreIconContainers = visibleChildren.every(
+      (child: any) =>
+        (child.type === 'FRAME' || child.type === 'COMPONENT' || child.type === 'INSTANCE') &&
+        child.width <= 48 && child.height <= 48
+    )
+    if (allChildrenAreIconContainers) {
+      // 多个小尺寸 FRAME/COMPONENT/INSTANCE = 独立图标，不合并
+      return false
+    }
+  }
+
+  // 条件 5: 所有可见子节点都是矢量或纯矢量容器
   return visibleChildren.every(
     (child: any) => isVectorNode(child) || hasOnlyVectorDescendants(child)
   )

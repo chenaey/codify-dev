@@ -2,7 +2,9 @@ import waitFor from 'p-wait-for'
 
 import { evaluate } from '@/utils'
 
-const EXTRA_LANGS = ['sass', 'scss', 'less', 'stylus', 'css-extras'] as const
+// 注意：移除了 'css-extras'，因为它会把 rgba() 等函数整体标记为 .token.color，
+// 内部又嵌套 function/number/punctuation 等 token，导致渲染时出现重复显示的问题
+const EXTRA_LANGS = ['sass', 'scss', 'less', 'stylus'] as const
 
 // We are importing this in this way is because if we use
 // `import('prismjs/components/prism-sass')` Rollup will not resolve it correctly
