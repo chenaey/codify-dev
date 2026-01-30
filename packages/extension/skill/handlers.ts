@@ -5,11 +5,8 @@ import { extractSelectedNodes } from '@/utils/uiExtractor'
 import { parseUIInfo } from '@/utils/uiParser'
 import { getCurrentPlatform, Platform } from '@/utils/platform'
 
-import {
-  detectRepeatingPatterns,
-  buildSkipIds,
-  getRepeatInfo
-} from './extract/compress'
+import { detectRepeatingPatterns, buildSkipIds, getRepeatInfo } from './extract/compress'
+import { compressToJpeg } from '@/utils/compress'
 import { isIconNode } from '@/utils/iconExtractor'
 
 import type {
@@ -239,7 +236,7 @@ function getLayoutMode(node: SceneNode): 'HORIZONTAL' | 'VERTICAL' | undefined {
 
 /**
  * 从原始 Figma/MasterGo 节点提取 skeleton
- * 
+ *
  * 优化策略：
  * 1. SVG 容器折叠：GROUP/FRAME 内全是 VECTOR → 标记为 ICON
  * 2. 过滤装饰节点：无子节点的 RECTANGLE/ELLIPSE/LINE → 跳过
@@ -309,9 +306,7 @@ function extractSkeletonNode(
 
     // 检测重复模式（与 uiExtractor 逻辑一致）
     const shouldDetectPatterns = !['GROUP', 'PEN'].includes(node.type)
-    const patterns = shouldDetectPatterns
-      ? detectRepeatingPatterns(visibleChildren)
-      : new Map()
+    const patterns = shouldDetectPatterns ? detectRepeatingPatterns(visibleChildren) : new Map()
     const skipIds = buildSkipIds(patterns)
 
     const children: SkeletonNode[] = []
@@ -538,24 +533,27 @@ async function handleGetDesign(params: GetDesignParams): Promise<GetDesignResult
   }
 }
 
+// Screenshot 压缩质量（0-1），0.7 平衡体积和清晰度
+const SCREENSHOT_QUALITY = 0.3
+
 // Handler: get_screenshot
 async function handleGetScreenshot(params: GetScreenshotParams): Promise<GetScreenshotResult> {
   const nodeId = params.node_id || params.nodeId
   const node = resolveNode(nodeId)
 
+  // 1x 缩放导出 JPG，再通过 Canvas 进一步压缩
   const bytes = await node.exportAsync({
-    format: 'PNG',
-    constraint: { type: 'SCALE', value: 2 }
+    format: 'JPG',
+    constraint: { type: 'SCALE', value: 1 }
   })
 
-  const base64 = bytesToBase64(bytes)
-  const width = Math.round(node.width * 2)
-  const height = Math.round(node.height * 2)
+  // Canvas 二次压缩
+  const image = await compressToJpeg(bytes, SCREENSHOT_QUALITY, 'image/jpeg')
 
   return {
-    image: `data:image/png;base64,${base64}`,
-    width,
-    height
+    image,
+    width: Math.round(node.width),
+    height: Math.round(node.height)
   }
 }
 
