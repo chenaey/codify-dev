@@ -207,8 +207,10 @@ skill/codify-skill/
 **假设模型很聪明**——只提供模型不具备的信息。
 
 ```
+
 ❌ "Flex 布局时，如果 justifyContent 是 space-between，则子元素会..."
 ✅ "从 layout.mode 和 layout.justifyContent 提取布局属性"
+
 ```
 
 | 模型已知 | 模型未知 |
@@ -220,8 +222,10 @@ skill/codify-skill/
 描述**如何从设计数据中提取信息**，而非**如何写某个框架的代码**。
 
 ```
+
 ❌ "Vue 组件用 <script setup>，React 用函数组件..."
 ✅ "从 customStyle 提取样式，从 text.content 提取文本"
+
 ```
 
 ### 3. 数据驱动
@@ -234,8 +238,10 @@ skill/codify-skill/
 ### 4. 简洁优先
 
 ```
+
 ❌ 大段解释 + 多种情况分析
 ✅ 一条规则 + 必要时一个示例
+
 ```
 
 **每条规则都要问：这值得占用 context window 吗？**
@@ -290,6 +296,7 @@ skill/codify-skill/
 | v3.1 | **Step 3 强化追踪表**：必须输出区域追踪表格（含状态列），完成条件前置到 SKILL.md，移除骨架示例冗余内容 | ✅ #region-tracking-enforcement |
 | v3.2 | **组件拆分与接口设计**：代码质量新增"复杂设计拆分为多个组件文件"和"设计合理的输入接口"；明确 `×N` 标记使用循环、无标记禁止循环 | ✅ #component-split-props |
 | v3.3 | **图标容器合并**：插件层新增 `shouldMergeAsIcon()` 函数，小尺寸容器内全是 ICON 子节点时合并为单一图标导出；**实现前描述强化**：Phase 3.3 必须输出骨架子节点清单表格、样式来源映射、检查清单；**生成前检查清单**：codegen-rules.md 新增强制自检表格 | ✅ #icon-merge, #impl-desc-enforce, #codegen-checklist |
+| v3.4 | **Props 结构设计规范**：新增语义相关字段组合为对象、重复结构设计为对象数组的规则，明确判断标准"总是一起出现、一起变化" | ✅ #props-structure-design |
 
 ---
 
