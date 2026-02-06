@@ -297,6 +297,8 @@ skill/codify-skill/
 | v3.2 | **组件拆分与接口设计**：代码质量新增"复杂设计拆分为多个组件文件"和"设计合理的输入接口"；明确 `×N` 标记使用循环、无标记禁止循环 | ✅ #component-split-props |
 | v3.3 | **图标容器合并**：插件层新增 `shouldMergeAsIcon()` 函数，小尺寸容器内全是 ICON 子节点时合并为单一图标导出；**实现前描述强化**：Phase 3.3 必须输出骨架子节点清单表格、样式来源映射、检查清单；**生成前检查清单**：codegen-rules.md 新增强制自检表格 | ✅ #icon-merge, #impl-desc-enforce, #codegen-checklist |
 | v3.4 | **Props 结构设计规范**：新增语义相关字段组合为对象、重复结构设计为对象数组的规则，明确判断标准"总是一起出现、一起变化" | ✅ #props-structure-design |
+| v3.5 | **phased-workflow 精简**：从 233 行精简至 ~80 行；组件规划合并 Props 设计；移除冗余检查清单，约束内化到流程中 | ✅ #reduce-output-overhead |
+| v3.6 | **Props 设计原则完善**：新增"可配置文案"类型（可选 + 默认值），区分业务数据/可配置文案/固定文案三种情况 | ✅ #props-design-refinement |
 
 ---
 

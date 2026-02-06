@@ -10,20 +10,6 @@ Server: `http://127.0.0.1:13580`
 { "ready": true, "platform": "figma", "count": 1 }
 ```
 
-## POST /get_screenshot
-
-获取选中节点截图（2x PNG）。
-
-```json
-{
-  "screenshot": {
-    "data": "data:image/png;base64,...",
-    "width": 800,
-    "height": 600
-  }
-}
-```
-
 ## POST /get_design
 
 获取设计数据，支持两种模式。
@@ -50,13 +36,13 @@ Server: `http://127.0.0.1:13580`
 
 **标记说明**：
 
-| 标记 | 含义 |
-|-----|------|
-| `[H]` / `[V]` | 水平/垂直布局 |
-| `×N` | 重复 N 次 |
-| `ID` | 节点 ID，可单独获取 full 数据 |
-| `ICON` / `IMAGE` | 需下载的资源节点 |
-| `"..."` | TEXT 内容预览 |
+| 标记             | 含义                          |
+| ---------------- | ----------------------------- |
+| `[H]` / `[V]`    | 水平/垂直布局                 |
+| `×N`             | 重复 N 次                     |
+| `ID`             | 节点 ID，可单独获取 full 数据 |
+| `ICON` / `IMAGE` | 需下载的资源节点              |
+| `"..."`          | TEXT 内容预览                 |
 
 **优化**：装饰节点被过滤，纯矢量容器折叠为 `ICON`，简单子节点合并显示。
 
@@ -67,7 +53,11 @@ Server: `http://127.0.0.1:13580`
 ```json
 {
   "rootNodeId": "0:1234",
-  "design": [{ /* UINode 树 */ }],
+  "design": [
+    {
+      /* UINode 树 */
+    }
+  ],
   "assets": [
     { "nodeId": "123:456", "name": "icon-arrow", "type": "ICON", "width": 14, "height": 14 },
     { "nodeId": "789:012", "name": "image", "type": "IMAGE" }
@@ -75,55 +65,60 @@ Server: `http://127.0.0.1:13580`
 }
 ```
 
-| 字段 | 说明 |
-|------|------|
-| `rootNodeId` | 根节点 ID，用于下载截图 |
-| `design` | 节点树数组 |
-| `assets` | 可导出资源列表（含所有 ICON 节点） |
+| 字段         | 说明                               |
+| ------------ | ---------------------------------- |
+| `rootNodeId` | 根节点 ID，用于下载截图            |
+| `design`     | 节点树数组                         |
+| `assets`     | 可导出资源列表（含所有 ICON 节点） |
 
-## POST /get_assets
+## 下载资源
 
-导出资源文件。
+使用脚本下载图标和图片资源：
 
-**请求：**
-
-```json
-{
-  "nodes": [
-    { "nodeId": "123:456", "format": "svg" },
-    { "nodeId": "789:012", "format": "png" }
-  ]
-}
+```bash
+node skill/scripts/download-assets.cjs --nodes '[
+  {"nodeId":"123:456","outputPath":"/path/to/icon.svg","format":"svg"},
+  {"nodeId":"789:012","outputPath":"/path/to/bg.png","format":"png"}
+]'
 ```
 
-**响应（全部成功）：**
+### 参数
 
-```json
-{
-  "assets": [
-    { "nodeId": "123:456", "name": "icon", "format": "svg", "width": 24, "height": 24, "data": "<svg>..." },
-    { "nodeId": "789:012", "name": "image", "format": "png", "width": 100, "height": 100, "data": "data:image/png;base64,..." }
-  ],
-  "summary": { "total": 2, "success": 2, "failed": 0 }
-}
+| 字段         | 类型               | 必需 | 说明               |
+| ------------ | ------------------ | ---- | ------------------ |
+| `nodeId`     | string             | ✓    | 节点 ID            |
+| `outputPath` | string             | ✓    | 输出文件完整路径   |
+| `format`     | `'svg'` \| `'png'` |      | 默认 `'png'`       |
+| `scale`      | number             |      | 缩放比例，默认 `1` |
+
+### 输出
+
+```
+Downloaded 2 assets (2 success, 0 failed):
+  ✓ /path/to/icon.svg (24x24)
+  ✓ /path/to/bg.png (100x100)
 ```
 
-**响应（部分失败）：**
+## 下载截图
 
-```json
-{
-  "assets": [
-    { "nodeId": "123:456", "name": "icon", "format": "svg", "width": 24, "height": 24, "data": "<svg>..." },
-    { "nodeId": "789:012", "name": "", "format": "png", "width": 0, "height": 0, "data": "", "error": { "code": "NODE_NOT_FOUND", "message": "Node \"789:012\" not found" } }
-  ],
-  "summary": { "total": 2, "success": 1, "failed": 1 }
-}
+使用脚本下载节点截图：
+
+```bash
+node skill/scripts/download-screenshot.cjs --nodeId "317:03206" --output "/path/to/screenshot.png"
 ```
 
-| 字段 | 说明 |
-|------|------|
-| `assets[].error` | 可选，单个资源导出失败时的错误信息 |
-| `summary` | 汇总：总数、成功数、失败数 |
+### 参数
+
+| 参数       | 必需 | 说明                        |
+| ---------- | ---- | --------------------------- |
+| `--nodeId` |      | 节点 ID，不传则使用当前选中 |
+| `--output` | ✓    | 输出文件完整路径            |
+
+### 输出
+
+```
+✓ /path/to/screenshot.png (800x600)
+```
 
 ## 错误格式
 
