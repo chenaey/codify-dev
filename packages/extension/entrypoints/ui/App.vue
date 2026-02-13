@@ -24,6 +24,7 @@ import {
 import { layoutReady, options, runtimeMode, selection } from '@/ui/state'
 import { getCanvas } from '@/utils'
 import { isMasterGo } from '@/utils/platform'
+import { track } from '@/utils/tracker'
 
 useSelection()
 useKeyLock()
@@ -124,6 +125,7 @@ const showHint = computed(() => (idle.value || initialLock.value) && lowVisibili
 
 watch(layoutReady, (ready) => {
   if (ready) {
+    track('pv')
     syncSelection()
     return
   }

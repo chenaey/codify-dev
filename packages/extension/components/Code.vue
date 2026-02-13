@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useCopy } from '@/composables'
 import { transformHTML } from '@/utils/dom'
+import { track } from '@/utils/tracker'
 
 import IconButton from './IconButton.vue'
 import Copy from './icons/Copy.vue'
@@ -83,12 +84,14 @@ const copy = useCopy(code)
 
 function handleCopy() {
   copy()
+  track('copy_code')
 }
 
 function handleClick(event: MouseEvent) {
   const target = event.target as HTMLElement
   if (target.closest('.token.copyable')) {
     copy(target)
+    track('copy_css_token')
   }
 }
 </script>
@@ -214,8 +217,6 @@ function handleClick(event: MouseEvent) {
 .tp-code-content .token {
   color: var(--color-text);
 }
-
-
 
 .tp-code-content .token.property {
   color: var(--color-text);

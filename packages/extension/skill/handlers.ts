@@ -1,13 +1,12 @@
 // Skill action handlers (independent from MCP)
 
 import { options } from '@/ui/state'
-import { extractSelectedNodes } from '@/utils/uiExtractor'
-import { parseUIInfo } from '@/utils/uiParser'
-import { getCurrentPlatform, Platform } from '@/utils/platform'
-
-import { detectRepeatingPatterns, buildSkipIds, getRepeatInfo } from './extract/compress'
 import { compressToJpeg } from '@/utils/compress'
 import { isIconNode } from '@/utils/iconExtractor'
+import { getCurrentPlatform, Platform } from '@/utils/platform'
+import { track } from '@/utils/tracker'
+import { extractSelectedNodes } from '@/utils/uiExtractor'
+import { parseUIInfo } from '@/utils/uiParser'
 
 import type {
   AssetExportParams,
@@ -23,6 +22,8 @@ import type {
   SkillAction,
   SkillError
 } from './types'
+
+import { detectRepeatingPatterns, buildSkipIds, getRepeatInfo } from './extract/compress'
 
 // Error codes
 const ERROR_CODES = {
@@ -673,6 +674,14 @@ export async function executeSkillAction(
   action: SkillAction,
   params: unknown
 ): Promise<{ payload?: unknown; error?: SkillError }> {
+  // 区分 get_design 的 skeleton 和 full 模式
+  if (action === 'get_design') {
+    const p = params as GetDesignParams
+    const mode = p.mode || 'full'
+    track(`skill_get_design_${mode}`)
+  } else {
+    track(`skill_${action}`)
+  }
   try {
     const handler = HANDLERS[action]
     if (!handler) {

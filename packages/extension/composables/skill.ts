@@ -1,6 +1,11 @@
 // Skill connection composable (independent from MCP)
 
-import { createSharedComposable, useDocumentVisibility, useIdle, useWindowFocus } from '@vueuse/core'
+import {
+  createSharedComposable,
+  useDocumentVisibility,
+  useIdle,
+  useWindowFocus
+} from '@vueuse/core'
 import { computed, shallowRef, watch } from 'vue'
 
 import {
@@ -14,6 +19,7 @@ import {
 } from '@/skill'
 import { layoutReady, options, runtimeMode } from '@/ui/state'
 import { logger } from '@/utils/log'
+import { track } from '@/utils/tracker'
 
 export type SkillStatus = 'disabled' | 'connecting' | 'connected' | 'error'
 
@@ -43,6 +49,13 @@ export const useSkill = createSharedComposable(() => {
     return 'connecting'
   })
 
+  // Track skill connection success
+  watch(status, (newStatus) => {
+    if (newStatus === 'connected') {
+      track('skill_connected')
+    }
+  })
+
   // Whether this instance is the active one
   const selfActive = computed(() => {
     return !!skillSelfId.value && skillSelfId.value === skillActiveId.value
@@ -68,6 +81,7 @@ export const useSkill = createSharedComposable(() => {
   function activate() {
     if (isSkillConnected()) {
       activateSkill()
+      track('activate_skill')
     }
   }
 

@@ -17,6 +17,7 @@ import { generateCodeBlocksForNode } from '@/utils'
 import { prepareConversation } from '@/utils/ai/conversation'
 import { downloadIconResources } from '@/utils/download'
 import { getSVGCodeAsync } from '@/utils/iconExtractor'
+import { track } from '@/utils/tracker'
 import { extractSelectedNodes } from '@/utils/uiExtractor'
 import { parseUIInfo } from '@/utils/uiParser'
 
@@ -140,7 +141,7 @@ async function updateCode() {
 // 生成AI代码的方法
 async function generateAICode() {
   if (!selectedNode.value) return
-
+  track('generate_ai_code')
   await generateAI(selectedNode.value, options.value.project)
 }
 
@@ -206,6 +207,7 @@ async function copyPrompt() {
     console.error('复制提示词失败:', error)
   } finally {
     isCopyingPrompt.value = false
+    track('copy_prompt')
   }
 }
 
@@ -229,6 +231,7 @@ async function copySkill() {
     show('Failed to copy skill prompt')
   } finally {
     isCopyingSkill.value = false
+    track('copy_skill')
   }
 }
 
@@ -240,11 +243,15 @@ watch([selectedNode, activePlugin], () => {
   debouncedUpdateCode()
 })
 
-watch(options, () => {
-  debouncedUpdateCode()
-}, {
-  deep: true
-})
+watch(
+  options,
+  () => {
+    debouncedUpdateCode()
+  },
+  {
+    deep: true
+  }
+)
 
 function open() {
   window.open(componentLink.value)
@@ -271,32 +278,53 @@ async function handleDownloadIcons() {
 </script>
 
 <template>
-  <Section :collapsed="!selectedNode ||
-    !(componentCode || shouldShowCodeBlock || codeBlocks.length || svgCode || textContent)
-    ">
+  <Section
+    :collapsed="
+      !selectedNode ||
+      !(componentCode || shouldShowCodeBlock || codeBlocks.length || svgCode || textContent)
+    "
+  >
     <template #header>
       <div class="tp-code-header tp-row tp-shrink tp-gap-l code-section-header">
         Code
         <Badge v-if="activePlugin" title="Code in this section is transformed by this plugin">{{
           activePlugin.name
-          }}</Badge>
+        }}</Badge>
 
-        <IconButton variant="secondary" title="Copy Prompt" style="width: auto; white-space: nowrap; padding: 0 6px"
-          :disabled="isCopyingPrompt" @click="copyPrompt">
+        <IconButton
+          variant="secondary"
+          title="Copy Prompt"
+          style="width: auto; white-space: nowrap; padding: 0 6px"
+          :disabled="isCopyingPrompt"
+          @click="copyPrompt"
+        >
           Copy Prompt
         </IconButton>
-        <IconButton variant="secondary" title="Copy Skill Prompt"
-          style="width: auto; white-space: nowrap; padding: 0 6px" :disabled="isCopyingSkill" @click="copySkill">
+        <IconButton
+          variant="secondary"
+          title="Copy Skill Prompt"
+          style="width: auto; white-space: nowrap; padding: 0 6px"
+          :disabled="isCopyingSkill"
+          @click="copySkill"
+        >
           Copy Skill
         </IconButton>
-        <IconButton variant="secondary" title="AI Generate Code (beta)" :disabled="isGenerating || !selectedNode"
-          @click="generateAICode">
+        <IconButton
+          variant="secondary"
+          title="AI Generate Code (beta)"
+          :disabled="isGenerating || !selectedNode"
+          @click="generateAICode"
+        >
           AI
         </IconButton>
         <div class="tp-code-actions tp-row tp-gap-s">
           <!-- 添加图标下载按钮 -->
-          <Button v-if="unref(currentResources)?.size && selectedNode" class="tp-icon-download-btn"
-            @click="handleDownloadIcons" :disabled="isDownloading">
+          <Button
+            v-if="unref(currentResources)?.size && selectedNode"
+            class="tp-icon-download-btn"
+            @click="handleDownloadIcons"
+            :disabled="isDownloading"
+          >
             {{ isDownloading ? 'Exporting...' : `Export ${unref(currentResources)?.size} icons` }}
           </Button>
         </div>
@@ -308,12 +336,23 @@ async function handleDownloadIcons() {
     </div>
 
     <!-- 在最后添加聊天输入框，只在生成成功后显示 -->
-    <AIChatInput v-if="hasGeneratedAiCode" :disabled="!selectedNode" :loading="isGenerating" @send="handleSendMessage"
-      @clear="handleClearChatHistory" />
+    <AIChatInput
+      v-if="hasGeneratedAiCode"
+      :disabled="!selectedNode"
+      :loading="isGenerating"
+      @send="handleSendMessage"
+      @clear="handleClearChatHistory"
+    />
 
-    <Code v-if="componentCode" class="tp-code-code" title="Component" lang="js" :link="componentLink"
-      :code="componentCode">
-  <template #actions>
+    <Code
+      v-if="componentCode"
+      class="tp-code-code"
+      title="Component"
+      lang="js"
+      :link="componentLink"
+      :code="componentCode"
+    >
+      <template #actions>
         <IconButton
           :disabled="!componentLink"
           variant="secondary"
@@ -323,19 +362,43 @@ async function handleDownloadIcons() {
           <Preview />
         </IconButton>
       </template>
-</Code>
+    </Code>
 
     <!-- 显示AI生成的代码 -->
-    <Code v-if="shouldShowCodeBlock" class="tp-code-code" :title="loadingTitle" lang="vue" :code="componentAiCode" />
+    <Code
+      v-if="shouldShowCodeBlock"
+      class="tp-code-code"
+      :title="loadingTitle"
+      lang="vue"
+      :code="componentAiCode"
+    />
 
     <!-- 显示其他代码块 -->
-    <Code v-for="{ name, title, lang, code } in codeBlocks" :key="name" class="tp-code-code" :title="title" :lang="lang"
-      :code="code" />
+    <Code
+      v-for="{ name, title, lang, code } in codeBlocks"
+      :key="name"
+      class="tp-code-code"
+      :title="title"
+      :lang="lang"
+      :code="code"
+    />
     <!-- 显示 SVG 代码 -->
-    <Code v-if="svgCode" class="tp-code-code tp-code-svg" title="SVG Code" lang="svg" :code="svgCode" />
+    <Code
+      v-if="svgCode"
+      class="tp-code-code tp-code-svg"
+      title="SVG Code"
+      lang="svg"
+      :code="svgCode"
+    />
 
     <!-- 显示文本内容 -->
-    <Code v-if="textContent" class="tp-code-code tp-code-text" title="Content" lang="text" :code="textContent" />
+    <Code
+      v-if="textContent"
+      class="tp-code-code tp-code-text"
+      title="Content"
+      lang="text"
+      :code="textContent"
+    />
   </Section>
 </template>
 
