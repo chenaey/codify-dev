@@ -1,7 +1,6 @@
 // Skill action handlers (independent from MCP)
 
 import { options } from '@/ui/state'
-import { compressToJpeg } from '@/utils/compress'
 import { isIconNode } from '@/utils/iconExtractor'
 import { getCurrentPlatform, Platform } from '@/utils/platform'
 import { track } from '@/utils/tracker'
@@ -534,22 +533,19 @@ async function handleGetDesign(params: GetDesignParams): Promise<GetDesignResult
   }
 }
 
-// Screenshot 压缩质量（0-1），0.7 平衡体积和清晰度
-const SCREENSHOT_QUALITY = 0.3
-
 // Handler: get_screenshot
 async function handleGetScreenshot(params: GetScreenshotParams): Promise<GetScreenshotResult> {
   const nodeId = params.node_id || params.nodeId
   const node = resolveNode(nodeId)
 
-  // 1x 缩放导出 JPG，再通过 Canvas 进一步压缩
+  // 1x 缩放导出 JPG
   const bytes = await node.exportAsync({
     format: 'JPG',
     constraint: { type: 'SCALE', value: 1 }
   })
 
-  // Canvas 二次压缩
-  const image = await compressToJpeg(bytes, SCREENSHOT_QUALITY, 'image/jpeg')
+  // 直接用导出的 bytes 构建 data URI，跳过 Canvas 二次压缩
+  const image = `data:image/jpeg;base64,${bytesToBase64(bytes)}`
 
   return {
     image,

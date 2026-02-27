@@ -154,14 +154,6 @@ interface UINode {
 | `layout.width/height` | 图标尺寸 |
 | `customStyle` | 图标容器样式（通常无需关注） |
 
-### 下载图标
-
-```bash
-node skill/scripts/download-assets.cjs --nodes '[
-  {"nodeId":"123:456","outputPath":"./icons/arrow.svg","format":"svg"}
-]'
-```
-
 ## layoutMode 映射
 
 ```
