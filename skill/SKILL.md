@@ -23,7 +23,9 @@ description: >-
 
 ## 工作流程
 
-### Step 1. 获取骨架
+### Step 1. 分析设计结构
+
+获取骨架，理解结构和组件边界：
 
 ```bash
 curl -s -X POST http://127.0.0.1:13580/get_design \
@@ -31,28 +33,15 @@ curl -s -X POST http://127.0.0.1:13580/get_design \
   -d '{"node_id": "节点ID", "mode": "skeleton"}'
 ```
 
-骨架返回缩进式文本树，标记含义见 [design-schema.md](references/design-schema.md)。
-
-### Step 2. 获取视觉图片（可选）
-
-复杂设计（层级深或区域多）且具备图片读取能力时，获取截图辅助理解：
-
-来源：用户上传 或 下载后阅读：
+如果具备图片读取能力，同时获取截图辅助理解设计意图和视觉主次：
 
 ```bash
-node skill/scripts/download-screenshot.cjs --output "$TMPDIR/design-screenshot.jpg"
+node $SKILL_DIR/scripts/download-screenshot.cjs --output "$TMPDIR/design-screenshot.jpg"
 ```
 
-带着问题看图：UI 类型？视觉区域？主体 vs 装饰？重复模式？
+根据骨架（+ 截图）规划组件拆分和实现顺序。骨架标记见 [design-schema.md](references/design-schema.md)，拆分规则见 [codegen-rules.md](references/codegen-rules.md)。骨架太大时，按子节点 ID 分步获取 JSON 并逐个实现。
 
-### Step 3. 分析结构与组件规划
-
-根据骨架分析设计结构，规划组件拆分和实现顺序。
-
-- 骨架太大时，按子节点 ID 分步获取 JSON 并逐个实现
-- 组件拆分与接口设计规则见 [codegen-rules.md](references/codegen-rules.md)
-
-### Step 4. 获取 JSON 并生成代码
+### Step 2. 获取 JSON 并生成代码
 
 ```bash
 curl -s -X POST http://127.0.0.1:13580/get_design \
@@ -62,7 +51,7 @@ curl -s -X POST http://127.0.0.1:13580/get_design \
 
 生成代码前阅读 [codegen-rules.md](references/codegen-rules.md)。
 
-### Step 5. 下载资源
+### Step 3. 下载资源
 
 所有图标和图片通过脚本下载，不使用占位符。
 资源识别规则见 [codegen-rules.md](references/codegen-rules.md)，下载命令见 [api.md](references/api.md)。

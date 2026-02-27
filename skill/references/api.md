@@ -57,7 +57,7 @@ Server: `http://127.0.0.1:13580`
 使用脚本下载图标和图片资源：
 
 ```bash
-node skill/scripts/download-assets.cjs --nodes '[
+node $SKILL_DIR/scripts/download-assets.cjs --nodes '[
   {"nodeId":"123:456","outputPath":"/path/to/icon.svg","format":"svg"},
   {"nodeId":"789:012","outputPath":"/path/to/bg.png","format":"png"}
 ]'
@@ -85,7 +85,7 @@ Downloaded 2 assets (2 success, 0 failed):
 使用脚本下载节点截图：
 
 ```bash
-node skill/scripts/download-screenshot.cjs --nodeId "317:03206" --output "/path/to/screenshot.png"
+node $SKILL_DIR/scripts/download-screenshot.cjs --nodeId "317:03206" --output "/path/to/screenshot.png"
 ```
 
 ### 参数
