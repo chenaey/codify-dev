@@ -2,10 +2,11 @@
  * 资源下载脚本 - 从 Codify Dev API Server 下载设计资源
  *
  * 使用方法:
- *   node download-assets.cjs --nodes '<JSON数组>'
+ *   node download-assets.cjs --windowId "131" --nodes '<JSON数组>'
  *
  * 参数:
- *   --nodes   JSON 数组，每个元素包含:
+ *   --windowId  窗口 ID (必需)
+ *   --nodes     JSON 数组，每个元素包含:
  *             - nodeId: 节点 ID (必需)
  *             - outputPath: 输出文件完整路径 (必需)
  *             - format: 'svg' | 'png' | 'jpg' | 'webp' (可选，默认 'png')
@@ -40,10 +41,13 @@ var BASE_URL = 'http://127.0.0.1:13580'
 // 解析命令行参数
 function parseArgs() {
   var args = process.argv.slice(2)
-  var result = { nodes: null }
+  var result = { nodes: null, windowId: null }
 
   for (var i = 0; i < args.length; i++) {
-    if (args[i] === '--nodes' && args[i + 1]) {
+    if (args[i] === '--windowId' && args[i + 1]) {
+      result.windowId = args[i + 1]
+      i++
+    } else if (args[i] === '--nodes' && args[i + 1]) {
       try {
         result.nodes = JSON.parse(args[i + 1])
       } catch (e) {
@@ -155,7 +159,9 @@ async function main() {
   // 调用 API
   var response
   try {
-    response = await postRequest('/get_assets', { nodes: requestNodes })
+    var body = { nodes: requestNodes }
+    if (args.windowId) body.window_id = args.windowId
+    response = await postRequest('/get_assets', body)
   } catch (e) {
     console.log('Error: NOT_CONNECTED - 无法连接到 Skill Server (' + BASE_URL + ')')
     console.log('请确保 Codify Dev 扩展已连接')

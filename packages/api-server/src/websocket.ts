@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid'
 import { WebSocketServer, type RawData, type WebSocket } from 'ws'
 
 import type {
@@ -17,8 +16,27 @@ import { log, TOOL_TIMEOUT_MS } from './config'
 
 const extensions: ExtensionConnection[] = []
 const pendingRequests = new Map<string, PendingRequest>()
+const usedIds = new Set<number>()
+let idCounter = 0
 
 let wss: WebSocketServer | null = null
+
+/** 分配一个 100-999 范围内未使用的3位数 ID */
+function allocateId(): string {
+  for (let i = 0; i < 900; i++) {
+    idCounter = (idCounter % 900) + 1
+    const candidate = idCounter + 99 // 100–999
+    if (!usedIds.has(candidate)) {
+      usedIds.add(candidate)
+      return String(candidate)
+    }
+  }
+  return String(Date.now() % 900 + 100)
+}
+
+function freeId(id: string): void {
+  usedIds.delete(Number(id))
+}
 
 export function getExtensions(): readonly ExtensionConnection[] {
   return extensions
@@ -111,6 +129,7 @@ function handleMessage(ext: ExtensionConnection, raw: RawData): void {
 function handleClose(ext: ExtensionConnection): void {
   const index = extensions.findIndex((e) => e.id === ext.id)
   if (index > -1) extensions.splice(index, 1)
+  freeId(ext.id)
 
   log.info({ id: ext.id }, `Extension disconnected. Remaining: ${extensions.length}`)
 
@@ -137,12 +156,13 @@ function handleClose(ext: ExtensionConnection): void {
 }
 
 function handleConnection(ws: WebSocket): void {
-  const ext: ExtensionConnection = { id: nanoid(), ws, active: false }
+  const id = allocateId()
+  const ext: ExtensionConnection = { id, ws, active: false }
   extensions.push(ext)
-  log.info({ id: ext.id }, `Extension connected. Total: ${extensions.length}`)
+  log.info({ id }, `Extension connected. Total: ${extensions.length}`)
 
   // Send registration
-  const regMsg: RegisteredMessage = { type: 'registered', id: ext.id }
+  const regMsg: RegisteredMessage = { type: 'registered', id }
   ws.send(JSON.stringify(regMsg))
 
   // Auto-activate if this is the only extension
@@ -180,15 +200,17 @@ export function stopWebSocketServer(): void {
   }
 }
 
-export function callExtension<T = unknown>(action: SkillAction, params: unknown = {}): Promise<T> {
+export function callExtension<T = unknown>(action: SkillAction, params: unknown = {}, windowId?: string): Promise<T> {
   return new Promise((resolve, reject) => {
-    const ext = getActiveExtension()
+    const ext = windowId
+      ? extensions.find((e) => e.id === windowId) ?? getActiveExtension()
+      : getActiveExtension()
     if (!ext) {
       reject(new Error('No active extension connected'))
       return
     }
 
-    const requestId = nanoid()
+    const requestId = `req-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
     const timer = setTimeout(() => {
       pendingRequests.delete(requestId)
       reject(new Error(`Request timed out after ${TOOL_TIMEOUT_MS}ms`))

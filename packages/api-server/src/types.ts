@@ -10,8 +10,8 @@ export interface ExtensionConnection {
 
 export interface ExtensionInfo {
   platform?: string
-  fileKey?: string
-  fileName?: string
+  title?: string     // document.title（文件名）
+  pageName?: string  // 当前 Page 名称
 }
 
 export interface PendingRequest {
@@ -76,6 +76,8 @@ export interface SkillError {
 // API request/response types
 export interface GetDesignRequest {
   nodeId?: string
+  node_id?: string
+  window_id?: string
 }
 
 export interface GetDesignResponse {
@@ -94,6 +96,8 @@ export interface AssetInfo {
 
 export interface GetScreenshotRequest {
   nodeId?: string
+  node_id?: string
+  window_id?: string
 }
 
 export interface GetScreenshotResponse {
@@ -110,6 +114,7 @@ export interface AssetExportRequest {
 
 export interface GetAssetsRequest {
   nodes: AssetExportRequest[]
+  window_id?: string
 }
 
 export interface ExportedAsset {

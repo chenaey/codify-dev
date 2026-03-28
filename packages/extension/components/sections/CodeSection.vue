@@ -10,7 +10,7 @@ import Code from '@/components/Code.vue'
 import IconButton from '@/components/IconButton.vue'
 import Preview from '@/components/icons/Preview.vue'
 import Section from '@/components/Section.vue'
-import { useToast } from '@/composables'
+import { useSkill, useToast } from '@/composables'
 import useAICodeGeneration from '@/composables/useAICodeGeneration'
 import { selection, selectedNode, options, selectedTemPadComponent, activePlugin } from '@/ui/state'
 import { generateCodeBlocksForNode } from '@/utils'
@@ -26,6 +26,7 @@ import Button from '../Button.vue'
 // 导入复制功能和提示功能
 const { copy } = useClipboard()
 const { show } = useToast()
+const { selfId } = useSkill()
 
 // 导入AI代码生成相关hook
 const {
@@ -219,9 +220,8 @@ async function copySkill() {
     isCopyingSkill.value = true
 
     const nodeId = selectedNode.value.id
-    // 构建简短 Prompt
-    console.log('nodeId', nodeId)
-    const promptText = `使用技能： codify-design-to-code skill 节点ID： ${nodeId}`
+    const windowId = selfId.value ?? ''
+    const promptText = `codify-design-to-code skill window_id: ${windowId} node_id: ${nodeId}`
 
     // 复制到剪贴板
     await copy(promptText)

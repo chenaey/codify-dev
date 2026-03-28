@@ -2,11 +2,12 @@
  * 截图下载脚本 - 从 Codify Dev API Server 下载节点截图
  *
  * 使用方法:
- *   node download-screenshot.cjs --nodeId "317:03206" --output "/path/to/screenshot.png"
+ *   node download-screenshot.cjs --nodeId "317:03206" --windowId "131" --output "/path/to/screenshot.png"
  *
  * 参数:
- *   --nodeId   节点 ID (可选，不传则使用当前选中节点)
- *   --output   输出文件完整路径 (必需)
+ *   --nodeId     节点 ID (可选，不传则使用当前选中节点)
+ *   --windowId   窗口 ID (必需)
+ *   --output     输出文件完整路径 (必需)
  *
  * 示例:
  *   node download-screenshot.cjs --output "/project/src/assets/screenshot.png"
@@ -26,11 +27,14 @@ var path = require('path')
 // 解析命令行参数
 function parseArgs() {
   var args = process.argv.slice(2)
-  var result = { nodeId: null, output: null }
+  var result = { nodeId: null, windowId: null, output: null }
 
   for (var i = 0; i < args.length; i++) {
     if (args[i] === '--nodeId' && args[i + 1]) {
       result.nodeId = args[i + 1]
+      i++
+    } else if (args[i] === '--windowId' && args[i + 1]) {
+      result.windowId = args[i + 1]
       i++
     } else if (args[i] === '--output' && args[i + 1]) {
       result.output = args[i + 1]
@@ -100,7 +104,9 @@ async function main() {
   // 调用 API
   var response
   try {
-    var params = args.nodeId ? { nodeId: args.nodeId } : {}
+    var params = {}
+    if (args.nodeId) params.nodeId = args.nodeId
+    if (args.windowId) params.window_id = args.windowId
     response = await postRequest('/get_screenshot', params)
   } catch (e) {
     console.log('Error: NOT_CONNECTED - 无法连接到 Skill Server')

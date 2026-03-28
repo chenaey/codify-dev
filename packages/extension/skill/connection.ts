@@ -5,7 +5,7 @@ import { shallowRef } from 'vue'
 import { logger } from '@/utils/log'
 import { getCurrentPlatform, Platform } from '@/utils/platform'
 
-import type { MessageFromServer, SkillCallMessage, SkillResultMessage } from './types'
+import type { MessageFromServer, SkillCallMessage, SkillResultMessage, WindowInfo } from './types'
 
 import { executeSkillAction } from './handlers'
 
@@ -20,6 +20,7 @@ let enabled = false
 export const skillSelfId = shallowRef<string | null>(null)
 export const skillActiveId = shallowRef<string | null>(null)
 export const skillCount = shallowRef(0)
+export const skillWindows = shallowRef<WindowInfo[]>([])
 
 function getPlatformName(): string {
   const platform = getCurrentPlatform()
@@ -31,6 +32,22 @@ function getPlatformName(): string {
     default:
       return 'unknown'
   }
+}
+
+function getWindowTitle(): string {
+  // document.title 通常为 "文件名 – Figma" 或 "文件名 - MasterGo"
+  // 截取平台后缀前的文件名
+  const title = document.title || ''
+  return title.replace(/\s*[–\-]\s*(Figma|MasterGo)\s*$/i, '').trim() || title
+}
+
+function getCurrentPageName(): string {
+  const platform = getCurrentPlatform()
+  if (platform === Platform.MasterGo) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (window as any).mg?.document?.currentPage?.name ?? ''
+  }
+  return window.figma?.currentPage?.name ?? ''
 }
 
 function parseMessage(data: string): MessageFromServer | null {
@@ -75,11 +92,15 @@ function handleMessage(event: MessageEvent<string>): void {
     case 'registered':
       skillSelfId.value = msg.id
       logger.log(`[Skill] Registered with id: ${skillSelfId.value}`)
-      // Auto-activate on registration
+      // Auto-activate on registration, include window metadata for multi-window routing
       socket?.send(
         JSON.stringify({
           type: 'activate',
-          info: { platform: getPlatformName() }
+          info: {
+            platform: getPlatformName(),
+            title: getWindowTitle(),
+            pageName: getCurrentPageName(),
+          }
         })
       )
       break
@@ -87,6 +108,9 @@ function handleMessage(event: MessageEvent<string>): void {
     case 'state':
       skillActiveId.value = msg.activeId
       skillCount.value = msg.count
+      if (msg.windows) {
+        skillWindows.value = msg.windows
+      }
       logger.log(`[Skill] State: active=${msg.activeId === skillSelfId.value}, count=${msg.count}`)
       break
 
@@ -114,6 +138,7 @@ function resetState(): void {
   skillSelfId.value = null
   skillActiveId.value = null
   skillCount.value = 0
+  skillWindows.value = []
 }
 
 function scheduleReconnect(): void {
@@ -179,6 +204,15 @@ export function isSkillConnected(): boolean {
 export function activateSkill(): void {
   if (socket?.readyState === WebSocket.OPEN) {
     logger.log('[Skill] Activating...')
-    socket.send(JSON.stringify({ type: 'activate', info: { platform: getPlatformName() } }))
+    socket.send(
+      JSON.stringify({
+        type: 'activate',
+        info: {
+          platform: getPlatformName(),
+          title: getWindowTitle(),
+          pageName: getCurrentPageName(),
+        }
+      })
+    )
   }
 }

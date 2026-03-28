@@ -13,10 +13,18 @@ export interface RegisteredMessage {
   id: string
 }
 
+export interface WindowInfo {
+  id: string
+  title: string      // document.title（文件名）
+  pageName: string   // 当前 Page 名称
+  platform: string   // 'figma' | 'mastergo'
+}
+
 export interface StateMessage {
   type: 'state'
   activeId: string | null
   count: number
+  windows?: WindowInfo[] // 所有已连接窗口列表（多窗口时由服务端下发）
 }
 
 export interface SkillCallMessage {
@@ -33,8 +41,8 @@ export interface ActivateMessage {
   type: 'activate'
   info?: {
     platform?: string
-    fileKey?: string
-    fileName?: string
+    title?: string     // document.title（文件名）
+    pageName?: string  // 当前 Page 名称
   }
 }
 
@@ -51,6 +59,8 @@ export type MessageToServer = ActivateMessage | SkillResultMessage
 export interface GetDesignParams {
   nodeId?: string
   node_id?: string
+  windowId?: string          // 多窗口时指定目标窗口 ID
+  window_id?: string         // snake_case 别名
   mode?: 'full' | 'skeleton' // 默认 'full'
 }
 
@@ -82,6 +92,8 @@ export interface GetDesignResult {
 export interface GetScreenshotParams {
   nodeId?: string
   node_id?: string
+  windowId?: string  // 多窗口时指定目标窗口 ID
+  window_id?: string
 }
 
 export interface GetScreenshotResult {
@@ -99,6 +111,8 @@ export interface AssetExportParams {
 
 export interface GetAssetsParams {
   nodes: AssetExportParams[]
+  windowId?: string  // 多窗口时指定目标窗口 ID
+  window_id?: string
 }
 
 export interface ExportedAsset {

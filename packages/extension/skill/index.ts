@@ -7,6 +7,7 @@ export {
   activateSkill,
   skillSelfId,
   skillActiveId,
-  skillCount
+  skillCount,
+  skillWindows
 } from './connection'
-export type { SkillAction, SkillError } from './types'
+export type { SkillAction, SkillError, WindowInfo } from './types'

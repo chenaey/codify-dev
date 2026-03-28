@@ -6,42 +6,13 @@ import HoverCard from '@/components/HoverCard.vue'
 import { useSkill } from '@/composables'
 import { useCopy } from '@/composables'
 
-const { status, selfActive, count, activate } = useSkill()
+const { status, selfId } = useSkill()
 
 const isConnected = computed(() => status.value === 'connected')
 
-const badgeTone = computed(() => {
-  if (!isConnected.value) return 'neutral'
-  if (!selfActive.value) return 'neutral'
-  return 'success'
-})
-
-const badgeVariant = computed(() => {
-  if (!isConnected.value) return 'dashed'
-  if (!selfActive.value) return 'dashed'
-  return 'solid'
-})
-
-// Connected state tooltip (simple)
-const connectedTooltip = computed(() => {
-  const fileCount = count.value || 0
-  const fileLabel = fileCount > 1 ? ` • ${fileCount} files` : ''
-
-  if (selfActive.value) {
-    return `Active${fileLabel}`
-  }
-
-  return `Inactive${fileLabel}\nClick to activate`
-})
-
+const badgeTone = computed(() => (isConnected.value ? 'success' : 'neutral'))
+const badgeVariant = computed(() => (isConnected.value ? 'solid' : 'dashed'))
 const badgeStatusClass = computed(() => `tp-skill-badge-${status.value}`)
-const badgeActiveClass = computed(() =>
-  isConnected.value
-    ? selfActive.value
-      ? 'tp-skill-badge-active'
-      : 'tp-skill-badge-inactive'
-    : null
-)
 
 const copiedApi = ref(false)
 const copiedSkill = ref(false)
@@ -57,26 +28,20 @@ async function copyCommand(text: string, type: 'api' | 'skill') {
     setTimeout(() => (copiedSkill.value = false), 2000)
   }
 }
-
-function handleClick() {
-  if (isConnected.value) {
-    activate()
-  }
-}
 </script>
 
 <template>
   <!-- When disconnected, show HoverCard with installation instructions -->
   <HoverCard placement="bottom" :show-delay="300">
-    <Badge :class="['tp-skill-badge', badgeStatusClass, badgeActiveClass]" :tone="badgeTone" :variant="badgeVariant"
-      @click="handleClick" @dblclick.stop>
+    <Badge :class="['tp-skill-badge', badgeStatusClass]" :tone="badgeTone" :variant="badgeVariant"
+      @dblclick.stop>
       <span class="tp-skill-dot" />
       Skill
     </Badge>
     <template #content>
       <div class="tp-skill-hover-content">
         <div class="tp-skill-hover-title">
-          {{ selfActive ? 'API Server Connected' : 'API Server Disconnected' }}
+          {{ isConnected ? 'API Server Connected' : 'API Server Disconnected' }}
         </div>
         <div class="tp-skill-hover-desc">
           Agent 可通过 Codify Skill 连接设计系统，实时解析设计数据并自动生成符合规范的组件代码。
@@ -128,11 +93,6 @@ function handleClick() {
   gap: 4px;
 }
 
-.tp-skill-badge-inactive .tp-skill-dot {
-  animation: tp-skill-dot-pulse 1.2s ease-in-out infinite;
-  background-color: var(--color-icon-brand, #0d99ff);
-}
-
 .tp-skill-badge-connected:hover {
   border-style: solid;
 }
@@ -145,23 +105,10 @@ function handleClick() {
   box-sizing: border-box;
 }
 
-.tp-skill-badge-active .tp-skill-dot {
+.tp-skill-badge-connected .tp-skill-dot {
   background-color: var(--color-icon-success, #1bc47d);
 }
 
-@keyframes tp-skill-dot-pulse {
-
-  0%,
-  100% {
-    opacity: 0.2;
-  }
-
-  50% {
-    opacity: 1;
-  }
-}
-
-/* Hover content styles */
 /* Hover content styles */
 .tp-skill-hover-content {
   display: flex;
@@ -262,34 +209,9 @@ function handleClick() {
   border-radius: 4px;
 }
 
-.tp-skill-tip {
-  color: var(--color-text-tertiary);
-  font-style: italic;
-  font-size: 9px;
-  display: block;
-  margin-top: 2px;
-}
-
 /* Ensure text selection works */
 .tp-skill-hover-content * {
   user-select: text;
   -webkit-user-select: text;
-}
-
-.tp-skill-usage-hint {
-  font-size: 9px;
-  line-height: 1.3;
-  color: var(--color-text-tertiary);
-  margin-top: 2px;
-  padding-left: 4px;
-}
-
-.tp-skill-hover-hint {
-  font-size: 10px;
-  color: var(--color-text-tertiary);
-  font-style: italic;
-  text-align: center;
-  padding-top: 4px;
-  border-top: 1px solid var(--color-border);
 }
 </style>

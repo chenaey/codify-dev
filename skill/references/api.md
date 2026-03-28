@@ -18,7 +18,8 @@ Server: `http://127.0.0.1:13580`
 
 ```typescript
 {
-  node_id?: string       // 节点 ID，不传则使用当前选中
+  node_id?: string             // 节点 ID，不传则使用当前选中
+  window_id: string            // 窗口 ID，用于路由到指定窗口
   mode?: 'full' | 'skeleton'  // 默认 'full'
 }
 ```
@@ -85,15 +86,16 @@ Downloaded 2 assets (2 success, 0 failed):
 使用脚本下载节点截图：
 
 ```bash
-node $SKILL_DIR/scripts/download-screenshot.cjs --nodeId "317:03206" --output "/path/to/screenshot.png"
+node $SKILL_DIR/scripts/download-screenshot.cjs --nodeId "317:03206" --windowId "abc4xk" --output "/path/to/screenshot.png"
 ```
 
 ### 参数
 
-| 参数       | 必需 | 说明                        |
-| ---------- | ---- | --------------------------- |
-| `--nodeId` |      | 节点 ID，不传则使用当前选中 |
-| `--output` | ✓    | 输出文件完整路径            |
+| 参数         | 必需 | 说明                        |
+| ------------ | ---- | --------------------------- |
+| `--nodeId`   |      | 节点 ID，不传则使用当前选中 |
+| `--windowId` | ✓    | 窗口 ID                     |
+| `--output`   | ✓    | 输出文件完整路径            |
 
 ### 输出
 

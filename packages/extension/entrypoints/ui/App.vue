@@ -19,7 +19,8 @@ import {
   useMasterGoAvailability,
   useKeyLock,
   useMcp,
-  useSelection
+  useSelection,
+  useSkill
 } from '@/composables'
 import { layoutReady, options, runtimeMode, selection } from '@/ui/state'
 import { getCanvas } from '@/utils'
@@ -28,6 +29,9 @@ import { track } from '@/utils/tracker'
 
 useSelection()
 useKeyLock()
+
+const { status: skillStatus, selfId: skillSelfId } = useSkill()
+const skillConnected = computed(() => skillStatus.value === 'connected')
 
 const HINT_CHECK_INTERVAL = 500
 
@@ -163,6 +167,7 @@ function activateMcp() {
           MCP
         </Badge> -->
         <SkillBadge v-if="options.skillOn && runtimeMode === 'standard'" />
+        <span v-if="options.skillOn && runtimeMode === 'standard' && skillConnected" class="tp-skill-window-label">#{{ skillSelfId }}</span>
       </div>
       <div class="tp-row tp-gap">
         <IconButton
@@ -211,6 +216,15 @@ function activateMcp() {
 .tp-main.tp-panel-dragging,
 .tp-main.tp-panel-resizing {
   transition: none;
+}
+
+.tp-skill-window-label {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-code, monospace);
+  user-select: text;
+  margin-left: 4px;
+  -webkit-user-select: text;
 }
 
 .tp-mcp-badge {

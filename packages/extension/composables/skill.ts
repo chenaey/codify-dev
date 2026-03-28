@@ -14,6 +14,7 @@ import {
   skillActiveId,
   skillCount,
   skillSelfId,
+  skillWindows,
   startSkillConnection,
   stopSkillConnection
 } from '@/skill'
@@ -65,6 +66,7 @@ export const useSkill = createSharedComposable(() => {
   const count = skillCount
   const activeId = skillActiveId
   const selfId = skillSelfId
+  const windows = skillWindows
 
   function start() {
     errorMessage.value = null
@@ -143,6 +145,7 @@ export const useSkill = createSharedComposable(() => {
     count,
     activeId,
     selfId,
+    windows,
     errorMessage,
     activate
   }
