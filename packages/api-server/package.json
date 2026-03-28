@@ -1,8 +1,10 @@
 {
   "name": "@codify-dev/api-server",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "API server for Codify Dev - HTTP API bridge to browser extension.",
-  "bin": "dist/index.mjs",
+  "bin": {
+    "api-server": "dist/index.mjs"
+  },
   "files": [
     "README.md",
     "dist/**/*"
@@ -22,7 +24,6 @@
   "dependencies": {
     "@hono/node-server": "^1.14.1",
     "hono": "^4.7.10",
-    "nanoid": "^5.1.6",
     "pino": "^10.0.0",
     "pino-pretty": "^13.0.0",
     "ws": "^8.18.3"
@@ -37,7 +38,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/chenaey/codify-dev.git",
+    "url": "git+https://github.com/chenaey/codify-dev.git",
     "directory": "packages/api-server"
   },
   "keywords": [
