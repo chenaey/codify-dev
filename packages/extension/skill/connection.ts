@@ -35,10 +35,9 @@ function getPlatformName(): string {
 }
 
 function getFileKey(): string {
-  const pathname = window.location?.pathname || ''
   // Figma: /file/{key}/... 或 /design/{key}/...
   // MasterGo: /file/{key}
-  const match = pathname.match(/\/(?:file|design)\/([^/]+)/)
+  const match = window.location.pathname.match(/\/(?:file|design)\/([^/?#]+)/)
   return match?.[1] ?? ''
 }
 

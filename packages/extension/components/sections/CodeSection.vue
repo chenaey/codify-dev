@@ -212,6 +212,11 @@ async function copyPrompt() {
   }
 }
 
+function getFileKey(): string {
+  const match = window.location.pathname.match(/\/(?:file|design)\/([^/?#]+)/)
+  return match?.[1] ?? ''
+}
+
 // 复制 Skill Prompt 功能
 async function copySkill() {
   if (!selectedNode.value) return
@@ -220,7 +225,7 @@ async function copySkill() {
     isCopyingSkill.value = true
 
     const nodeId = selectedNode.value.id
-    const fileKey = selfId.value ?? ''
+    const fileKey = getFileKey()
     const promptText = `codify-design-to-code skill file_key: ${fileKey} node_id: ${nodeId}`
 
     // 复制到剪贴板

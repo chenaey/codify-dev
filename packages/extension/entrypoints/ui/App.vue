@@ -30,8 +30,12 @@ import { track } from '@/utils/tracker'
 useSelection()
 useKeyLock()
 
-const { status: skillStatus, selfId: skillSelfId } = useSkill()
-const skillConnected = computed(() => skillStatus.value === 'connected')
+const { status: skillStatus } = useSkill()
+
+const fileKey = computed(() => {
+  const match = window.location.pathname.match(/\/(?:file|design)\/([^/?#]+)/)
+  return match?.[1] ?? ''
+})
 
 const HINT_CHECK_INTERVAL = 500
 
@@ -167,7 +171,7 @@ function activateMcp() {
           MCP
         </Badge> -->
         <SkillBadge v-if="options.skillOn && runtimeMode === 'standard'" />
-        <span v-if="options.skillOn && runtimeMode === 'standard' && skillConnected" class="tp-skill-window-label">#{{ skillSelfId }}</span>
+        <span v-if="options.skillOn && runtimeMode === 'standard' && fileKey" class="tp-skill-window-label">#{{ fileKey }}</span>
       </div>
       <div class="tp-row tp-gap">
         <IconButton
