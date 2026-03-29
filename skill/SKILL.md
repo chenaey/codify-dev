@@ -32,7 +32,7 @@ description: >-
 ```bash
 SKILL_DIR="/path/to/skill"                    # 替换为 skill 目录实际路径
 NODE_ID="节点ID"                               # 替换为实际节点 ID
-WINDOW_ID="窗口ID"                             # 替换为实际窗口 ID
+FILE_KEY="文件Key"                             # 替换为实际文件 Key
 WORK_DIR="$TMPDIR/codify-${NODE_ID//:/–}"     # 每个节点独立目录
 mkdir -p "$WORK_DIR"
 ```
@@ -51,7 +51,7 @@ mkdir -p "$WORK_DIR"
 ```bash
 node "$SKILL_DIR/scripts/download-screenshot.cjs" \
   --nodeId "$NODE_ID" \
-  --windowId "$WINDOW_ID" \
+  --fileKey "$FILE_KEY" \
   --output "$WORK_DIR/screenshot.png"
 ```
 
@@ -69,7 +69,7 @@ node "$SKILL_DIR/scripts/download-screenshot.cjs" \
 ```bash
 curl -s -X POST http://127.0.0.1:13580/get_design \
   -H "Content-Type: application/json" \
-  -d "{\"node_id\": \"$NODE_ID\", \"window_id\": \"$WINDOW_ID\", \"mode\": \"skeleton\"}"
+  -d "{\"node_id\": \"$NODE_ID\", \"file_key\": \"$FILE_KEY\", \"mode\": \"skeleton\"}"
 ```
 
 对照截图阅读骨架，重点关注：
@@ -100,7 +100,7 @@ curl -s -X POST http://127.0.0.1:13580/get_design \
 ```bash
 curl -s -X POST http://127.0.0.1:13580/get_design \
   -H "Content-Type: application/json" \
-  -d "{\"node_id\": \"$NODE_ID\", \"window_id\": \"$WINDOW_ID\"}" \
+  -d "{\"node_id\": \"$NODE_ID\", \"file_key\": \"$FILE_KEY\"}" \
   > "$WORK_DIR/design.json"
 
 # 读取（小型节点直接格式化输出）
@@ -160,7 +160,7 @@ Block D: 25:05134  → 步骤内容列（右侧）
 ```bash
 curl -s -X POST http://127.0.0.1:13580/get_design \
   -H "Content-Type: application/json" \
-  -d "{\"node_id\": \"子节点ID\", \"window_id\": \"$WINDOW_ID\"}" \
+  -d "{\"node_id\": \"子节点ID\", \"file_key\": \"$FILE_KEY\"}" \
   > "$WORK_DIR/block-A.json"
 
 cat "$WORK_DIR/block-A.json" | python3 -m json.tool

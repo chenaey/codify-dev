@@ -16,26 +16,13 @@ import { log, TOOL_TIMEOUT_MS } from './config'
 
 const extensions: ExtensionConnection[] = []
 const pendingRequests = new Map<string, PendingRequest>()
-const usedIds = new Set<number>()
 let idCounter = 0
 
 let wss: WebSocketServer | null = null
 
-/** 分配一个 100-999 范围内未使用的3位数 ID */
+/** 分配内部唯一 ID（仅用于内部追踪，不暴露给用户） */
 function allocateId(): string {
-  for (let i = 0; i < 900; i++) {
-    idCounter = (idCounter % 900) + 1
-    const candidate = idCounter + 99 // 100–999
-    if (!usedIds.has(candidate)) {
-      usedIds.add(candidate)
-      return String(candidate)
-    }
-  }
-  return String(Date.now() % 900 + 100)
-}
-
-function freeId(id: string): void {
-  usedIds.delete(Number(id))
+  return String(++idCounter)
 }
 
 export function getExtensions(): readonly ExtensionConnection[] {
@@ -85,9 +72,13 @@ function parseMessage(raw: RawData): MessageFromExtension | null {
 function handleActivate(ext: ExtensionConnection, msg: ActivateMessage): void {
   if (msg.info) {
     ext.info = msg.info
+    // 存储 fileKey，用于按文件路由
+    if (msg.info.fileKey) {
+      ext.fileKey = msg.info.fileKey
+    }
   }
   setActive(ext.id)
-  log.info({ id: ext.id, info: ext.info }, 'Extension activated')
+  log.info({ id: ext.id, fileKey: ext.fileKey, info: ext.info }, 'Extension activated')
   broadcastState()
 }
 
@@ -129,9 +120,11 @@ function handleMessage(ext: ExtensionConnection, raw: RawData): void {
 function handleClose(ext: ExtensionConnection): void {
   const index = extensions.findIndex((e) => e.id === ext.id)
   if (index > -1) extensions.splice(index, 1)
-  freeId(ext.id)
 
-  log.info({ id: ext.id }, `Extension disconnected. Remaining: ${extensions.length}`)
+  log.info(
+    { id: ext.id, fileKey: ext.fileKey },
+    `Extension disconnected. Remaining: ${extensions.length}`
+  )
 
   // Reject pending requests for this extension
   for (const [reqId, pending] of pendingRequests.entries()) {
@@ -157,7 +150,7 @@ function handleClose(ext: ExtensionConnection): void {
 
 function handleConnection(ws: WebSocket): void {
   const id = allocateId()
-  const ext: ExtensionConnection = { id, ws, active: false }
+  const ext: ExtensionConnection = { id, fileKey: '', ws, active: false }
   extensions.push(ext)
   log.info({ id }, `Extension connected. Total: ${extensions.length}`)
 
@@ -200,11 +193,18 @@ export function stopWebSocketServer(): void {
   }
 }
 
-export function callExtension<T = unknown>(action: SkillAction, params: unknown = {}, windowId?: string): Promise<T> {
+/** 按 fileKey 查找第一个可用连接 */
+function findByFileKey(fileKey: string): ExtensionConnection | undefined {
+  return extensions.find((e) => e.fileKey === fileKey)
+}
+
+export function callExtension<T = unknown>(
+  action: SkillAction,
+  params: unknown = {},
+  fileKey?: string
+): Promise<T> {
   return new Promise((resolve, reject) => {
-    const ext = windowId
-      ? extensions.find((e) => e.id === windowId) ?? getActiveExtension()
-      : getActiveExtension()
+    const ext = fileKey ? (findByFileKey(fileKey) ?? getActiveExtension()) : getActiveExtension()
     if (!ext) {
       reject(new Error('No active extension connected'))
       return

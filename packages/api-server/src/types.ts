@@ -2,7 +2,8 @@ import type { WebSocket } from 'ws'
 
 // Extension connection
 export interface ExtensionConnection {
-  id: string
+  id: string // 内部唯一 ID（服务端分配）
+  fileKey: string // 文件 Key（从 URL 提取，同一文件的多个窗口共享）
   ws: WebSocket
   active: boolean
   info?: ExtensionInfo
@@ -10,8 +11,7 @@ export interface ExtensionConnection {
 
 export interface ExtensionInfo {
   platform?: string
-  title?: string     // document.title（文件名）
-  pageName?: string  // 当前 Page 名称
+  fileKey?: string // 文件 Key（插件上报）
 }
 
 export interface PendingRequest {
@@ -77,7 +77,7 @@ export interface SkillError {
 export interface GetDesignRequest {
   nodeId?: string
   node_id?: string
-  window_id?: string
+  file_key?: string
 }
 
 export interface GetDesignResponse {
@@ -97,7 +97,7 @@ export interface AssetInfo {
 export interface GetScreenshotRequest {
   nodeId?: string
   node_id?: string
-  window_id?: string
+  file_key?: string
 }
 
 export interface GetScreenshotResponse {
@@ -114,7 +114,7 @@ export interface AssetExportRequest {
 
 export interface GetAssetsRequest {
   nodes: AssetExportRequest[]
-  window_id?: string
+  file_key?: string
 }
 
 export interface ExportedAsset {

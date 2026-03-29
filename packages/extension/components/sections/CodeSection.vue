@@ -220,8 +220,8 @@ async function copySkill() {
     isCopyingSkill.value = true
 
     const nodeId = selectedNode.value.id
-    const windowId = selfId.value ?? ''
-    const promptText = `codify-design-to-code skill window_id: ${windowId} node_id: ${nodeId}`
+    const fileKey = selfId.value ?? ''
+    const promptText = `codify-design-to-code skill file_key: ${fileKey} node_id: ${nodeId}`
 
     // 复制到剪贴板
     await copy(promptText)

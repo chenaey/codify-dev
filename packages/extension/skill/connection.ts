@@ -34,20 +34,12 @@ function getPlatformName(): string {
   }
 }
 
-function getWindowTitle(): string {
-  // document.title 通常为 "文件名 – Figma" 或 "文件名 - MasterGo"
-  // 截取平台后缀前的文件名
-  const title = document.title || ''
-  return title.replace(/\s*[–\-]\s*(Figma|MasterGo)\s*$/i, '').trim() || title
-}
-
-function getCurrentPageName(): string {
-  const platform = getCurrentPlatform()
-  if (platform === Platform.MasterGo) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (window as any).mg?.document?.currentPage?.name ?? ''
-  }
-  return window.figma?.currentPage?.name ?? ''
+function getFileKey(): string {
+  const pathname = window.location?.pathname || ''
+  // Figma: /file/{key}/... 或 /design/{key}/...
+  // MasterGo: /file/{key}
+  const match = pathname.match(/\/(?:file|design)\/([^/]+)/)
+  return match?.[1] ?? ''
 }
 
 function parseMessage(data: string): MessageFromServer | null {
@@ -89,21 +81,22 @@ function handleMessage(event: MessageEvent<string>): void {
   if (!msg) return
 
   switch (msg.type) {
-    case 'registered':
-      skillSelfId.value = msg.id
-      logger.log(`[Skill] Registered with id: ${skillSelfId.value}`)
-      // Auto-activate on registration, include window metadata for multi-window routing
+    case 'registered': {
+      const fileKey = getFileKey()
+      skillSelfId.value = fileKey || msg.id
+      logger.log(`[Skill] Registered with id: ${msg.id}, fileKey: ${fileKey}`)
+      // Auto-activate on registration, report fileKey for stable routing
       socket?.send(
         JSON.stringify({
           type: 'activate',
           info: {
             platform: getPlatformName(),
-            title: getWindowTitle(),
-            pageName: getCurrentPageName(),
+            fileKey
           }
         })
       )
       break
+    }
 
     case 'state':
       skillActiveId.value = msg.activeId
@@ -209,8 +202,7 @@ export function activateSkill(): void {
         type: 'activate',
         info: {
           platform: getPlatformName(),
-          title: getWindowTitle(),
-          pageName: getCurrentPageName(),
+          fileKey: getFileKey()
         }
       })
     )
