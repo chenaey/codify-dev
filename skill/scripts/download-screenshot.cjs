@@ -45,7 +45,7 @@ function parseArgs() {
   return result
 }
 
-// 发送 HTTP POST 请求
+// 发送 HTTP POST 请求，支持二进制响应
 function postRequest(urlPath, body) {
   return new Promise(function (resolve, reject) {
     var postData = JSON.stringify(body)
@@ -66,11 +66,25 @@ function postRequest(urlPath, body) {
         chunks.push(chunk)
       })
       res.on('end', function () {
-        var data = Buffer.concat(chunks).toString()
-        try {
-          resolve(JSON.parse(data))
-        } catch (e) {
-          reject(new Error('Invalid JSON response'))
+        var buffer = Buffer.concat(chunks)
+        var contentType = res.headers['content-type'] || ''
+
+        if (contentType.startsWith('image/')) {
+          // Binary image response
+          resolve({
+            binary: true,
+            buffer: buffer,
+            width: res.headers['x-image-width'],
+            height: res.headers['x-image-height'],
+            contentType: contentType
+          })
+        } else {
+          // JSON response (error case)
+          try {
+            resolve(JSON.parse(buffer.toString()))
+          } catch (e) {
+            reject(new Error('Invalid response'))
+          }
         }
       })
     })
@@ -118,22 +132,39 @@ async function main() {
     process.exit(1)
   }
 
-  // 保存截图（自动修正扩展名以匹配实际图片格式）
+  // 保存截图
   try {
     ensureDir(args.output)
-    var parts = response.image.split(',')
-    var base64Data = parts[1]
-    // 从 data URI 提取实际 MIME 类型，如 data:image/jpeg;base64
-    var mimeMatch = parts[0].match(/data:image\/(\w+)/)
-    var actualExt = mimeMatch ? mimeMatch[1].replace('jpeg', 'jpg') : 'png'
-    // 修正输出路径扩展名
-    var outputExt = path.extname(args.output).slice(1).toLowerCase()
-    var outputPath = args.output
-    if (outputExt !== actualExt && outputExt !== (actualExt === 'jpg' ? 'jpeg' : '')) {
-      outputPath = args.output.replace(/\.[^.]+$/, '.' + actualExt)
+
+    if (response.binary) {
+      // Binary response: directly write buffer to file
+      var actualExt = 'jpg'
+      if (response.contentType === 'image/png') actualExt = 'png'
+      else if (response.contentType === 'image/webp') actualExt = 'webp'
+
+      // Fix output extension if needed
+      var outputExt = path.extname(args.output).slice(1).toLowerCase()
+      var outputPath = args.output
+      if (outputExt !== actualExt && outputExt !== (actualExt === 'jpg' ? 'jpeg' : '')) {
+        outputPath = args.output.replace(/\.[^.]+$/, '.' + actualExt)
+      }
+
+      fs.writeFileSync(outputPath, response.buffer)
+      console.log('✓ ' + outputPath + ' (' + response.width + 'x' + response.height + ')')
+    } else {
+      // Legacy JSON+base64 response (fallback)
+      var parts = response.image.split(',')
+      var base64Data = parts[1]
+      var mimeMatch = parts[0].match(/data:image\/(\w+)/)
+      var actualExt = mimeMatch ? mimeMatch[1].replace('jpeg', 'jpg') : 'png'
+      var outputExt = path.extname(args.output).slice(1).toLowerCase()
+      var outputPath = args.output
+      if (outputExt !== actualExt && outputExt !== (actualExt === 'jpg' ? 'jpeg' : '')) {
+        outputPath = args.output.replace(/\.[^.]+$/, '.' + actualExt)
+      }
+      fs.writeFileSync(outputPath, Buffer.from(base64Data, 'base64'))
+      console.log('✓ ' + outputPath + ' (' + response.width + 'x' + response.height + ')')
     }
-    fs.writeFileSync(outputPath, Buffer.from(base64Data, 'base64'))
-    console.log('✓ ' + outputPath + ' (' + response.width + 'x' + response.height + ')')
   } catch (e) {
     console.log('Error: SAVE_FAILED - ' + e.message)
     process.exit(1)

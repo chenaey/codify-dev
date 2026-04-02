@@ -207,3 +207,15 @@ export function activateSkill(): void {
     )
   }
 }
+
+export function sendPreload(fileKey: string, nodeId: string): void {
+  if (socket?.readyState === WebSocket.OPEN) {
+    socket.send(
+      JSON.stringify({
+        type: 'preload',
+        fileKey,
+        nodeId
+      })
+    )
+  }
+}

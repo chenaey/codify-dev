@@ -1,6 +1,7 @@
 import { serve } from '@hono/node-server'
 
 import { app } from './api'
+import { initCache } from './cache'
 import { DEFAULT_PORT, DEFAULT_WS_PORT, log } from './config'
 import { startWebSocketServer, stopWebSocketServer } from './websocket'
 
@@ -9,6 +10,9 @@ const wsPort = parseInt(process.env.SKILL_WS_PORT || '', 10) || DEFAULT_WS_PORT
 
 async function main() {
   log.info('Starting Skill Server...')
+
+  // Initialize cache
+  initCache()
 
   // Start WebSocket server for extension connections
   try {

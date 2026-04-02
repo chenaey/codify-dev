@@ -117,7 +117,7 @@ JSON 返回的数据中有两类资源需要下载，它们的发现机制不同
 **建立节点→用途的映射**：下载前，必须将每个资源节点的 `nodeId` 映射回主 JSON 结构树中，通过该节点在结构树中的**位置（父子层级、相邻节点）**来确定它的 UI 角色（如关闭按钮、装饰图标等）。**不要凭节点的 `type` 或 `name` 猜测用途。**
 
 ```bash
-node "$SKILL_DIR/scripts/download-assets.cjs" --nodes '[
+node "$SKILL_DIR/scripts/download-assets.cjs" --fileKey "$FILE_KEY" --nodes '[
   {"nodeId":"<nodeId>","outputPath":"$WORK_DIR/icon-name.svg","format":"svg"}
 ]'
 ```
@@ -189,7 +189,7 @@ cat "$WORK_DIR/block-A.json" | python3 -m json.tool
 **命名依据结构位置而非猜测**：资源文件的命名应基于该节点在结构树中的 UI 角色（通过父子层级和相邻节点判断），而不是基于节点的 `type` 或 `name` 字段。
 
 ```bash
-node "$SKILL_DIR/scripts/download-assets.cjs" --nodes '[
+node "$SKILL_DIR/scripts/download-assets.cjs" --fileKey "$FILE_KEY" --nodes '[
   {"nodeId":"<nodeId>","outputPath":"$WORK_DIR/icon-xxx.svg","format":"svg"}
 ]'
 ```

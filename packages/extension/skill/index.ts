@@ -5,6 +5,7 @@ export {
   stopSkillConnection,
   isSkillConnected,
   activateSkill,
+  sendPreload,
   skillSelfId,
   skillActiveId,
   skillCount,

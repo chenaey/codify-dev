@@ -53,34 +53,6 @@ Server: `http://127.0.0.1:13580`
 | `design`     | 节点树数组                         |
 | `assets`     | 可导出资源列表（含所有 ICON 节点） |
 
-## 下载资源
-
-使用脚本下载图标和图片资源：
-
-```bash
-node $SKILL_DIR/scripts/download-assets.cjs --nodes '[
-  {"nodeId":"123:456","outputPath":"/path/to/icon.svg","format":"svg"},
-  {"nodeId":"789:012","outputPath":"/path/to/bg.png","format":"png"}
-]'
-```
-
-### 参数
-
-| 字段         | 类型               | 必需 | 说明               |
-| ------------ | ------------------ | ---- | ------------------ |
-| `nodeId`     | string             | ✓    | 节点 ID            |
-| `outputPath` | string             | ✓    | 输出文件完整路径   |
-| `format`     | `'svg'` \| `'png'` |      | 默认 `'png'`       |
-| `scale`      | number             |      | 缩放比例，默认 `1` |
-
-### 输出
-
-```
-Downloaded 2 assets (2 success, 0 failed):
-  ✓ /path/to/icon.svg (24x24)
-  ✓ /path/to/bg.png (100x100)
-```
-
 ## 下载截图
 
 使用脚本下载节点截图：
@@ -101,6 +73,34 @@ node $SKILL_DIR/scripts/download-screenshot.cjs --nodeId "317:03206" --fileKey "
 
 ```
 ✓ /path/to/screenshot.png (800x600)
+```
+
+## 下载资源
+
+使用脚本下载图标和图片资源：
+
+```bash
+node $SKILL_DIR/scripts/download-assets.cjs --fileKey "abc4xk" --nodes '[
+  {"nodeId":"123:456","outputPath":"/path/to/icon.svg","format":"svg"},
+  {"nodeId":"789:012","outputPath":"/path/to/bg.png","format":"png"}
+]'
+```
+
+### 参数
+
+| 字段         | 类型               | 必需 | 说明               |
+| ------------ | ------------------ | ---- | ------------------ |
+| `nodeId`     | string             | ✓    | 节点 ID            |
+| `outputPath` | string             | ✓    | 输出文件完整路径   |
+| `format`     | `'svg'` \| `'png'` |      | 默认 `'png'`       |
+| `scale`      | number             |      | 缩放比例，默认 `1` |
+
+### 输出
+
+```
+Downloaded 2 assets (2 success, 0 failed):
+  ✓ /path/to/icon.svg (24x24)
+  ✓ /path/to/bg.png (100x100)
 ```
 
 ## 错误格式

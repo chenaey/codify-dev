@@ -55,10 +55,16 @@ export interface SkillResultMessage {
   error?: SkillError
 }
 
-export type MessageFromExtension = ActivateMessage | SkillResultMessage
+export interface PreloadMessage {
+  type: 'preload'
+  fileKey: string
+  nodeId: string
+}
+
+export type MessageFromExtension = ActivateMessage | SkillResultMessage | PreloadMessage
 
 // Skill actions (matching API endpoints)
-export type SkillAction = 'get_design' | 'get_screenshot' | 'get_assets'
+export type SkillAction = 'get_design' | 'get_screenshot' | 'get_asset' | 'get_assets'
 
 // Error types
 export type SkillErrorCode =
@@ -108,6 +114,14 @@ export interface GetScreenshotResponse {
 
 export interface AssetExportRequest {
   nodeId: string
+  format?: 'png' | 'svg'
+  scale?: number
+}
+
+export interface GetAssetRequest {
+  nodeId?: string
+  node_id?: string
+  file_key?: string
   format?: 'png' | 'svg'
   scale?: number
 }

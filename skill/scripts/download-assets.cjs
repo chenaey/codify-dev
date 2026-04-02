@@ -13,7 +13,7 @@
  *             - scale: 缩放比例 (可选，默认 1)
  *
  * 示例:
- *   node download-assets.cjs --nodes '[
+ *   node download-assets.cjs --fileKey "abc4xk" --nodes '[
  *     {"nodeId":"0:123","outputPath":"/project/src/icons/arrow.svg","format":"svg"},
  *     {"nodeId":"0:456","outputPath":"/project/src/images/bg.png","format":"png","scale":2}
  *   ]'
@@ -61,7 +61,7 @@ function parseArgs() {
   return result
 }
 
-// 发送 HTTP POST 请求
+// 发送 HTTP POST 请求，支持二进制响应
 function postRequest(urlPath, body) {
   return new Promise(function (resolve, reject) {
     var postData = JSON.stringify(body)
@@ -82,11 +82,26 @@ function postRequest(urlPath, body) {
         chunks.push(chunk)
       })
       res.on('end', function () {
-        var data = Buffer.concat(chunks).toString()
-        try {
-          resolve(JSON.parse(data))
-        } catch (e) {
-          reject(new Error('Invalid JSON response'))
+        var buffer = Buffer.concat(chunks)
+        var contentType = res.headers['content-type'] || ''
+
+        if (contentType.startsWith('image/')) {
+          // Binary response (image or SVG)
+          resolve({
+            binary: true,
+            buffer: buffer,
+            contentType: contentType,
+            width: res.headers['x-image-width'],
+            height: res.headers['x-image-height'],
+            name: res.headers['x-asset-name'] || ''
+          })
+        } else {
+          // JSON response (error case)
+          try {
+            resolve(JSON.parse(buffer.toString()))
+          } catch (e) {
+            reject(new Error('Invalid response'))
+          }
         }
       })
     })
@@ -105,22 +120,6 @@ function ensureDir(filePath) {
   var dir = path.dirname(filePath)
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true })
-  }
-}
-
-// 保存资源到文件
-function saveAsset(asset, outputPath) {
-  ensureDir(outputPath)
-
-  var data = asset.data
-
-  // 处理 base64 数据
-  if (data.startsWith('data:')) {
-    var base64Data = data.split(',')[1]
-    fs.writeFileSync(outputPath, Buffer.from(base64Data, 'base64'))
-  } else {
-    // SVG 是纯文本
-    fs.writeFileSync(outputPath, data, 'utf8')
   }
 }
 
@@ -147,67 +146,57 @@ async function main() {
     }
   }
 
-  // 构建请求体
-  var requestNodes = args.nodes.map(function (node) {
-    return {
-      nodeId: node.nodeId,
-      format: node.format || 'png',
-      scale: node.scale || 1
-    }
-  })
-
-  // 调用 API
-  var response
-  try {
-    var body = { nodes: requestNodes }
-    if (args.fileKey) body.file_key = args.fileKey
-    response = await postRequest('/get_assets', body)
-  } catch (e) {
-    console.log('Error: NOT_CONNECTED - 无法连接到 Skill Server (' + BASE_URL + ')')
-    console.log('请确保 Codify Dev 扩展已连接')
-    process.exit(1)
-  }
-
-  // 处理全局错误响应（如连接问题）
-  if (response.error) {
-    console.log('Error: ' + response.error.code + ' - ' + response.error.message)
-    process.exit(1)
-  }
-
-  // 处理资源列表
-  var assets = response.assets || []
-  var summary = response.summary || { total: assets.length, success: 0, failed: 0 }
   var downloaded = []
   var failed = []
 
-  for (var i = 0; i < assets.length; i++) {
-    var asset = assets[i]
-    var outputPath = args.nodes[i].outputPath
+  // Download each asset individually via POST /get_asset
+  for (var i = 0; i < args.nodes.length; i++) {
+    var node = args.nodes[i]
+    var format = node.format || 'png'
 
-    // 检查单个资源是否有错误
-    if (asset.error) {
-      failed.push({
-        path: outputPath,
-        nodeId: asset.nodeId,
-        error: asset.error
-      })
-      continue
-    }
-
-    // 尝试保存资源
     try {
-      saveAsset(asset, outputPath)
-      downloaded.push({
-        path: outputPath,
-        width: asset.width,
-        height: asset.height
-      })
+      var body = {
+        node_id: node.nodeId,
+        format: format,
+        scale: node.scale || 1
+      }
+      if (args.fileKey) body.file_key = args.fileKey
+
+      var response = await postRequest('/get_asset', body)
+
+      if (response.error) {
+        failed.push({
+          path: node.outputPath,
+          nodeId: node.nodeId,
+          error: response.error
+        })
+        continue
+      }
+
+      if (response.binary) {
+        // Write binary data directly to file
+        ensureDir(node.outputPath)
+        fs.writeFileSync(node.outputPath, response.buffer)
+        downloaded.push({
+          path: node.outputPath,
+          width: response.width,
+          height: response.height
+        })
+      }
     } catch (e) {
+      if (
+        e.message &&
+        (e.message.indexOf('ECONNREFUSED') >= 0 || e.message.indexOf('connect') >= 0)
+      ) {
+        console.log('Error: NOT_CONNECTED - 无法连接到 Skill Server (' + BASE_URL + ')')
+        console.log('请确保 Codify Dev 扩展已连接')
+        process.exit(1)
+      }
       failed.push({
-        path: outputPath,
-        nodeId: asset.nodeId,
+        path: node.outputPath,
+        nodeId: node.nodeId,
         error: {
-          code: 'SAVE_FAILED',
+          code: 'DOWNLOAD_FAILED',
           message: e.message
         }
       })

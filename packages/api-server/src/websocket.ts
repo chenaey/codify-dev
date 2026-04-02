@@ -5,6 +5,7 @@ import type {
   ExtensionConnection,
   MessageFromExtension,
   PendingRequest,
+  PreloadMessage,
   RegisteredMessage,
   SkillAction,
   SkillCallMessage,
@@ -114,6 +115,9 @@ function handleMessage(ext: ExtensionConnection, raw: RawData): void {
     case 'skillResult':
       handleSkillResult(msg)
       break
+    case 'preload':
+      handlePreload(msg)
+      break
   }
 }
 
@@ -196,6 +200,18 @@ export function stopWebSocketServer(): void {
 /** 按 fileKey 查找第一个可用连接 */
 function findByFileKey(fileKey: string): ExtensionConnection | undefined {
   return extensions.find((e) => e.fileKey === fileKey)
+}
+
+// ── Preload callback (registered by api.ts to avoid circular deps) ──
+let preloadHandler: ((fileKey: string, nodeId: string) => void) | null = null
+
+export function registerPreloadHandler(handler: (fileKey: string, nodeId: string) => void): void {
+  preloadHandler = handler
+}
+
+function handlePreload(msg: PreloadMessage): void {
+  log.info({ fileKey: msg.fileKey, nodeId: msg.nodeId }, 'Preload requested via WebSocket')
+  preloadHandler?.(msg.fileKey, msg.nodeId)
 }
 
 export function callExtension<T = unknown>(

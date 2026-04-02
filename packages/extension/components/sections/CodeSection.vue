@@ -12,6 +12,7 @@ import Preview from '@/components/icons/Preview.vue'
 import Section from '@/components/Section.vue'
 import { useSkill, useToast } from '@/composables'
 import useAICodeGeneration from '@/composables/useAICodeGeneration'
+import { sendPreload } from '@/skill'
 import { selection, selectedNode, options, selectedTemPadComponent, activePlugin } from '@/ui/state'
 import { generateCodeBlocksForNode } from '@/utils'
 import { prepareConversation } from '@/utils/ai/conversation'
@@ -231,6 +232,11 @@ async function copySkill() {
     // 复制到剪贴板
     await copy(promptText)
     show('Skill prompt copied!')
+
+    // 触发缓存预热（通过 WebSocket 通道）
+    if (fileKey && nodeId) {
+      sendPreload(fileKey, nodeId)
+    }
   } catch (error) {
     console.error('Failed to copy skill prompt:', error)
     show('Failed to copy skill prompt')
