@@ -1,6 +1,6 @@
 {
   "name": "@tempad-dev/extension",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "private": true,
   "description": "Codify Dev browser extension.",
   "type": "module",
