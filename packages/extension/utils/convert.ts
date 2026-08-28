@@ -43,7 +43,7 @@ export function cssStringToObject(cssString) {
     return {}
   }
   const excludeCSSProperty = ['position', 'left', 'right', 'bottom', 'top']
-  const cssObject = {}
+  const cssObject: Record<string, string> = {}
 
   // 按分号分割样式属性
   const styles = cssString.split(';')

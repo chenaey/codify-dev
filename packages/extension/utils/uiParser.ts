@@ -89,7 +89,7 @@ export function parseUIInfo(uiInfo: any, projectType?: string): any {
 
     // 递归处理子节点，传递是否需要检查复杂度的标志
     if (Array.isArray(node.children)) {
-      node.children.forEach((child) => processNode(child, shouldCheckComplexity))
+      node.children.forEach((child: any) => processNode(child, shouldCheckComplexity))
     }
 
     return node
