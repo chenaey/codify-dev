@@ -25,6 +25,15 @@ const ui = reactive({
     return TEMPAD_PANEL_MIN_HEIGHT
   },
 
+  get panelZIndex() {
+    const platform = getCurrentPlatform()
+    if (platform === Platform.MasterGo) {
+      // MasterGo 的 .right__container--box 层级为 100，需压过它，否则面板拖到右侧被遮挡
+      return 1000
+    }
+    return 6
+  },
+
   get topBoundary() {
     const platform = getCurrentPlatform()
     if (platform === Platform.MasterGo) {

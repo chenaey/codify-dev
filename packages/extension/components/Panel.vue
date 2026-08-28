@@ -21,11 +21,29 @@ useScrollbar(main, {
 })
 
 const position = options.value.panelPosition
+
+function resolveInitialPosition() {
+  if (!position) {
+    return { x: 0, y: 0 }
+  }
+
+  const panelPixelWidth = position.width ?? ui.tempadPanelWidth
+  const grabbableVisible =
+    position.left < window.innerWidth &&
+    position.left + panelPixelWidth > 0 &&
+    position.top < window.innerHeight &&
+    position.top + ui.tempadPanelMinHeight > 0
+
+  if (grabbableVisible) {
+    return { x: position.left, y: position.top }
+  }
+
+  // 持久化位置在当前视口外（换显示器/改分辨率），重置到右上角
+  return { x: window.innerWidth - panelPixelWidth - 12, y: 12 }
+}
+
 const { x, y, isDragging } = useDraggable(panel, {
-  initialValue: {
-    x: position ? position.left : 0,
-    y: position ? position.top : 0
-  },
+  initialValue: resolveInitialPosition(),
   handle: header
 })
 
@@ -124,16 +142,17 @@ const isAtMaxWidth = computed(() => panelWidth.value >= ui.tempadPanelMaxWidth)
 
 const restrictedPosition = computed(() => {
   if (!header.value) {
-    return { top: x.value, left: y.value }
+    return { top: y.value, left: x.value }
   }
 
   const panelPixelWidth = panelWidth.value
-  const headerHeight = header.value.offsetHeight - 1
+  const panelPixelHeight = panel.value?.offsetHeight ?? ui.tempadPanelMinHeight
 
-  const xMin = -panelPixelWidth / 2
-  const xMax = windowWidth.value - panelPixelWidth / 2
+  // 完整可见：左右贴边不出视口，底部按面板当前实际高度封顶
+  const xMin = 0
+  const xMax = windowWidth.value - panelPixelWidth
   const yMin = ui.topBoundary
-  const yMax = windowHeight.value - headerHeight - ui.bottomBoundary
+  const yMax = windowHeight.value - panelPixelHeight - ui.bottomBoundary
 
   return {
     top: Math.max(yMin, Math.min(yMax, y.value)),
@@ -224,7 +243,7 @@ const rightHandleCursor = computed(() => getResizeCursor('right'))
 <style scoped>
 .tp-panel {
   position: fixed;
-  z-index: 6;
+  z-index: v-bind(ui.panelZIndex);
   display: flex;
   flex-direction: column;
   width: v-bind(panelWidthPx);
